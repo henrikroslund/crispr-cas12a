@@ -25,7 +25,7 @@ public class Sequence {
 
     private final String pam;
     private static final int PAM_LENGTH = 20;
-    private static final Pattern PAM_MATCH_PATTERN = Pattern.compile("[GC]");
+    private static final Pattern PAM_MATCH_PATTERN = Pattern.compile("[GC]"); // TODO VERIFY WITH POP
     private static final int PAM_MATCH_MIN = 9; // 20*0.45
     private static final int PAM_MATCH_MAX = 11; // 20*0.45
 
