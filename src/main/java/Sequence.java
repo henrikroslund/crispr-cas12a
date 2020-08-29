@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 public class Sequence {
 
     // Unprocessed string
+    @Getter
     private final String raw;
     // Index from original string for first character
     private final int index;
@@ -28,7 +29,7 @@ public class Sequence {
     private static final int PAM_MATCH_MIN = 9; // 20*0.45
     private static final int PAM_MATCH_MAX = 11; // 20*0.45
 
-    private static final int RAW_LENGTH = SEED_LENGTH + PAM_LENGTH;
+    public static final int RAW_LENGTH = SEED_LENGTH + PAM_LENGTH;
 
     @Getter
     private final boolean valid;
@@ -56,5 +57,10 @@ public class Sequence {
         Matcher matcher = PAM_MATCH_PATTERN.matcher(pam);
         long matches = matcher.results().count();
         return matches >= PAM_MATCH_MIN && matches <= PAM_MATCH_MAX;
+    }
+
+    @Override
+    public String toString() {
+        return raw;
     }
 }
