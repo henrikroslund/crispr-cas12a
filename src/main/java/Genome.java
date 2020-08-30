@@ -28,6 +28,9 @@ public class Genome {
     private final List<Sequence> resultingSequences = new ArrayList<>();
     private final List<Sequence> resultingComplementSequences = new ArrayList<>();
 
+    // This contains the list of other genomes that was processed to get the result list of this genome's sequences
+    private List<Genome> processedGenomes = null;
+
     private final boolean shouldWriteInvalid;
 
     public Genome(File file, boolean shouldWriteInvalid) throws Exception {
@@ -58,12 +61,14 @@ public class Genome {
      * @throws Exception
      */
     private void createSequences() throws Exception {
+        log.info("Will process " + data.length() + " potential sequences");
         for(int i = 0; i < data.length() - (Sequence.RAW_LENGTH-1); i++) {
             Sequence sequence = new Sequence(data.substring(i, i+Sequence.RAW_LENGTH), i);
             addSequenceToList(sequence, validSequences, invalidSequences);
             Sequence complementSequence = sequence.getComplement();
             addSequenceToList(complementSequence, validComplementSequences, invalidComplementSequences);
         }
+        log.info("Finished processing sequences");
     }
 
     private void addSequenceToList(Sequence sequence, List<Sequence> valid, List<Sequence> invalid) {
@@ -75,19 +80,22 @@ public class Genome {
     }
 
     public void saveSequences() throws  Exception {
-        saveSequence(validSequences, Main.OUTPUT_FOLDER, outputFilename);
-        saveSequence(resultingSequences, Main.OUTPUT_FOLDER, outputFilename + Main.OUTPUT_RESULT_SUFFIX);
-        saveSequence(validComplementSequences, Main.OUTPUT_FOLDER, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX);
-        saveSequence(resultingComplementSequences, Main.OUTPUT_FOLDER, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX + Main.OUTPUT_RESULT_SUFFIX);
+        saveSequence(validSequences, Main.OUTPUT_FOLDER, outputFilename, false);
+        saveSequence(resultingSequences, Main.OUTPUT_FOLDER, outputFilename + Main.OUTPUT_RESULT_SUFFIX, true);
+        saveSequence(validComplementSequences, Main.OUTPUT_FOLDER, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX, false);
+        saveSequence(resultingComplementSequences, Main.OUTPUT_FOLDER, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX + Main.OUTPUT_RESULT_SUFFIX, true);
         if(shouldWriteInvalid) {
-            saveSequence(invalidSequences, Main.OUTPUT_FOLDER_INVALID, outputFilename + Main.OUTPUT_INVALID_SUFFIX);
-            saveSequence(invalidComplementSequences, Main.OUTPUT_FOLDER_INVALID, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX + Main.OUTPUT_INVALID_SUFFIX);
+            saveSequence(invalidSequences, Main.OUTPUT_FOLDER_INVALID, outputFilename + Main.OUTPUT_INVALID_SUFFIX, false);
+            saveSequence(invalidComplementSequences, Main.OUTPUT_FOLDER_INVALID, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX + Main.OUTPUT_INVALID_SUFFIX, false);
         }
     }
 
-    private void saveSequence(List<Sequence> sequences, String folder, String filename) throws Exception {
+    private void saveSequence(List<Sequence> sequences, String folder, String filename, boolean writeProcessedGenomes) throws Exception {
         BufferedWriter writer = new BufferedWriter(new FileWriter(Main.OUTPUT_FOLDER + filename, true));
         writer.append(firstRow);
+        if(writeProcessedGenomes) {
+            writer.append(getProcessedGenomesString());
+        }
         for(Sequence sequence : sequences) {
             writer.append(sequence.toString() + "\n");
         }
@@ -95,14 +103,27 @@ public class Genome {
         writer.close();
     }
 
-    public void createResult(List<Genome> genomes) throws Exception {
-        List<Genome> genomeList = new ArrayList<>(genomes);
-        genomeList.remove(this);
+    private String getProcessedGenomesString() {
+        String result = "*********** The following Genomes were used for filtering results ***********\n";
+        for(Genome genome : processedGenomes) {
+            result += genome.getOutputFilename() + "\n";
+        }
+        result += "*****************************************************************************\n";
+        return result;
+    }
+
+    public void processGenomes(List<Genome> genomes) throws Exception {
+        if(processedGenomes != null) {
+            throw new Exception("This Genome has already processed other Genomes so something is wrong");
+        }
+        processedGenomes = new ArrayList<>(genomes);
+        processedGenomes.remove(this);
+        log.info("Will process this genome " + outputFilename + " with " + processedGenomes.size() + " other genomes");
         for(Sequence sequence : validSequences) {
-            sequence.processMatchesInOtherGenomes(genomeList);
+            sequence.processMatchesInOtherGenomes(processedGenomes);
         }
         for(Sequence sequence : validComplementSequences) {
-            sequence.processMatchesInOtherGenomes(genomeList);
+            sequence.processMatchesInOtherGenomes(processedGenomes);
         }
         for(Sequence sequence : validSequences) {
             if(!sequence.shouldBeFilteredOutBasedOnMatchesInOtherGenomes()) {
@@ -114,5 +135,6 @@ public class Genome {
                 resultingComplementSequences.add(sequence);
             }
         }
+        log.info("Finished Genomes processing");
     }
 }

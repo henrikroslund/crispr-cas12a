@@ -39,14 +39,9 @@ public class Main {
         }
 
         for(Genome genome : genomes) {
-            genome.createResult(genomes);
+            genome.processGenomes(genomes);
             genome.saveSequences();
         }
-
-        /*
-        String comparisonFilesOutput = "*********** The following Genomes were used for filtering results ***********\n";
-        comparisonFilesOutput += "*****************************************************************************\n";
-        */
 
         printMemoryStat();
     }
