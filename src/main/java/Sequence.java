@@ -1,5 +1,6 @@
 import exceptions.InvalidSequenceException;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
@@ -36,6 +37,9 @@ public class Sequence {
 
     public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
 
+    @Setter
+    private boolean isComplement = false;
+
     @Getter
     private final boolean valid;
 
@@ -59,11 +63,18 @@ public class Sequence {
     }
 
     public boolean isTargetMatch() {
-        Matcher matcher = TARGET_MATCH_GC_CONTENT_PATTERN.matcher(target);
-        long matches = matcher.results().count();
+        long matches = getGCOccurences();
         boolean gcContentValid = matches >= TARGET_MATCH_MIN && matches <= TARGET_MATCH_MAX;
         boolean noTriplets = TARGET_MATCH_NO_TRIPLETS_CONTENT_PATTERN.matcher(target).results().count() == 0;
         return gcContentValid && noTriplets;
+    }
+
+    private long getGCOccurences() {
+        return TARGET_MATCH_GC_CONTENT_PATTERN.matcher(target).results().count();
+    }
+
+    private double getGCPercent() {
+        return 100 * getGCOccurences() / (double)TARGET_LENGTH;
     }
 
     public Sequence getComplement() throws Exception {
@@ -72,27 +83,29 @@ public class Sequence {
             char character = raw.charAt(i);
             switch (character) {
                 case 'A':
-                    complement += 'T';
+                    complement = 'T' + complement;
                     break;
                 case 'T':
-                    complement += 'A';
+                    complement = 'A' + complement;
                     break;
                 case 'G':
-                    complement += 'C';
+                    complement = 'C' + complement;
                     break;
                 case 'C':
-                    complement += 'G';
+                    complement = 'G' + complement;
                     break;
                 default:
-                    complement += character;
+                    complement = character + complement;
             }
         }
         log.fine(raw + " " + complement);
-        return new Sequence(complement, index);
+        Sequence complementSequence = new Sequence(complement, index);
+        complementSequence.setComplement(true);
+        return complementSequence;
     }
 
     @Override
     public String toString() {
-        return raw;
+        return raw + " " + (isComplement ? "-" : "+") + " " + index + " " + getGCPercent();
     }
 }
