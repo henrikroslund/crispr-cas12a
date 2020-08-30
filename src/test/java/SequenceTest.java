@@ -6,7 +6,7 @@ public class SequenceTest {
 
     @Test
     public void testValidSequence() {
-        Sequence sequence = new Sequence("TTTACCCCCAAAAACCCCCAAAAA", 5);
+        Sequence sequence = new Sequence("TTTAGTGAGGACTCCTTCATCGTG", 5);
         Assert.assertTrue(sequence.isPamMatch());
         Assert.assertTrue(sequence.isTargetMatch());
         Assert.assertTrue(sequence.isValid());
@@ -24,7 +24,7 @@ public class SequenceTest {
 
     @Test
     public void testMismatchPam() {
-        Sequence sequence = new Sequence("TTATCCCCCAAAAACCCCCAAAAA", 5);
+        Sequence sequence = new Sequence("TATAGTGAGGACTCCTTCATCGTG", 5);
         Assert.assertFalse(sequence.isPamMatch());
         Assert.assertTrue(sequence.isTargetMatch());
         Assert.assertFalse(sequence.isValid());

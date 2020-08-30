@@ -29,9 +29,10 @@ public class Sequence {
 
     private final String target;
     private static final int TARGET_LENGTH = 20;
-    private static final Pattern TARGET_MATCH_PATTERN = Pattern.compile("[GC]"); // TODO VERIFY WITH POP
+    private static final Pattern TARGET_MATCH_GC_CONTENT_PATTERN = Pattern.compile("[GC]");
     private static final int TARGET_MATCH_MIN = 9; // 20*0.45
-    private static final int TARGET_MATCH_MAX = 11; // 20*0.45
+    private static final int TARGET_MATCH_MAX = 11; // 20*0.55
+    private static final Pattern TARGET_MATCH_NO_TRIPLETS_CONTENT_PATTERN = Pattern.compile("[T]{3}|[A]{3}|[G]{3}|[C]{3}");
 
     public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
 
@@ -58,9 +59,11 @@ public class Sequence {
     }
 
     public boolean isTargetMatch() {
-        Matcher matcher = TARGET_MATCH_PATTERN.matcher(target);
+        Matcher matcher = TARGET_MATCH_GC_CONTENT_PATTERN.matcher(target);
         long matches = matcher.results().count();
-        return matches >= TARGET_MATCH_MIN && matches <= TARGET_MATCH_MAX;
+        boolean gcContentValid = matches >= TARGET_MATCH_MIN && matches <= TARGET_MATCH_MAX;
+        boolean noTriplets = TARGET_MATCH_NO_TRIPLETS_CONTENT_PATTERN.matcher(target).results().count() == 0;
+        return gcContentValid && noTriplets;
     }
 
     public Sequence getComplement() throws Exception {
