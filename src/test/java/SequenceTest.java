@@ -7,8 +7,8 @@ public class SequenceTest {
     @Test
     public void testValidSequence() {
         Sequence sequence = new Sequence("TTTACCCCCAAAAACCCCCAAAAA", 5);
-        Assert.assertTrue(sequence.isSeedMatch());
         Assert.assertTrue(sequence.isPamMatch());
+        Assert.assertTrue(sequence.isSeedMatch());
         Assert.assertTrue(sequence.isValid());
     }
 
@@ -23,26 +23,35 @@ public class SequenceTest {
     }
 
     @Test
-    public void testMismatchSeed() {
+    public void testMismatchPam() {
         Sequence sequence = new Sequence("TTATCCCCCAAAAACCCCCAAAAA", 5);
-        Assert.assertFalse(sequence.isSeedMatch());
-        Assert.assertTrue(sequence.isPamMatch());
+        Assert.assertFalse(sequence.isPamMatch());
+        Assert.assertTrue(sequence.isSeedMatch());
         Assert.assertFalse(sequence.isValid());
     }
 
     @Test
-    public void testPamMatchTooFew() {
+    public void testSeedMatchTooFew() {
         Sequence sequence = new Sequence("TTTACCCCCAAAAACCCAAAAAAA", 5);
-        Assert.assertTrue(sequence.isSeedMatch());
-        Assert.assertFalse(sequence.isPamMatch());
+        Assert.assertTrue(sequence.isPamMatch());
+        Assert.assertFalse(sequence.isSeedMatch());
         Assert.assertFalse(sequence.isValid());
     }
 
     @Test
-    public void testPamMatchTooMany() {
+    public void testSeedMatchTooMany() {
         Sequence sequence = new Sequence("TTTACCCCCAAAAACCCCCAAACC", 5);
-        Assert.assertTrue(sequence.isSeedMatch());
-        Assert.assertFalse(sequence.isPamMatch());
+        Assert.assertTrue(sequence.isPamMatch());
+        Assert.assertFalse(sequence.isSeedMatch());
         Assert.assertFalse(sequence.isValid());
+    }
+
+    @Test
+    public void testGetComplement() throws Exception {
+        String originalsq = "TTTACCCCCAAAAACCCCCAAAAG";
+        String complement = "AAATGGGGGTTTTTGGGGGTTTTC";
+        Sequence sequence = new Sequence(originalsq, 5);
+        Assert.assertEquals(sequence.getRaw(), originalsq);
+        Assert.assertEquals(sequence.getComplement().getRaw(), complement);
     }
 }
