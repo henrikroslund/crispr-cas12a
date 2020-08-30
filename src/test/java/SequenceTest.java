@@ -49,7 +49,7 @@ public class SequenceTest {
     @Test
     public void testGetComplement() throws Exception {
         String originalsq = "TTTACCCCCAAAAACCCCCAAAAG";
-        String complement = "AAATGGGGGTTTTTGGGGGTTTTC";
+        String complement = "CTTTTGGGGGTTTTTGGGGGTAAA";
         Sequence sequence = new Sequence(originalsq, 5);
         Assert.assertEquals(sequence.getRaw(), originalsq);
         Assert.assertEquals(sequence.getComplement().getRaw(), complement);

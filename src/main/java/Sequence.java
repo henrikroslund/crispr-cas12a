@@ -4,6 +4,8 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -55,6 +57,23 @@ public class Sequence {
             throw new InvalidSequenceException("target has length " + target.length() + " but expected " + TARGET_LENGTH);
         }
         valid = isPamMatch() && isTargetMatch();
+    }
+
+    public boolean isMatchWith(List<Sequence> comparisons) {
+        return comparisons.contains(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Sequence sequence = (Sequence) o;
+        return raw.compareTo(sequence.getRaw()) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(raw);
     }
 
     public boolean isPamMatch() {
