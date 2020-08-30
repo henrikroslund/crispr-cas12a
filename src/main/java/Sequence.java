@@ -24,11 +24,13 @@ public class Sequence {
     // Index from original string for first character
     private final int index;
 
+    @Getter
     private final String pam;
     private static final int PAM_LENGTH = 4;
     // First three must be Ts and the forth must Not be T
     private static final String PAM_MATCH_REGEXP = "^[T]{3}[^T]";
 
+    @Getter
     private final String target;
     private static final int TARGET_LENGTH = 20;
     private static final Pattern TARGET_MATCH_GC_CONTENT_PATTERN = Pattern.compile("[GC]");
@@ -39,9 +41,9 @@ public class Sequence {
     public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
 
     private int exactMatchesInOtherGenome = 0;
-    private int exactPamMatchesInOtherGenomes = 0;
-    private int consecutiveTargetMatchesInOtherGenome = 0;
+    private int partialMatchesInOtherGenome = 0;
     private int otherGenomeSequencesProcessed = 0;
+    private static final int MIN_CONSECUTIVE_MISMATCH_IN_TARGET_WITH_OTHER_GENOME = 2;
 
     @Setter
     private boolean isComplement = false;
@@ -65,9 +67,7 @@ public class Sequence {
     }
 
     public boolean shouldBeFilteredOutBasedOnMatchesInOtherGenomes() {
-        return exactMatchesInOtherGenome > 0 ||
-                exactPamMatchesInOtherGenomes > 0 ||
-                consecutiveTargetMatchesInOtherGenome > 0;
+        return exactMatchesInOtherGenome > 0 || partialMatchesInOtherGenome > 0;
     }
 
     public void processMatchesInOtherGenomes(List<Genome> genomes) throws Exception {
@@ -75,18 +75,42 @@ public class Sequence {
             throw new Exception("This sequence has already processed a list of genomes. Something is wrong");
         }
         for(Genome genome : genomes) {
-            for(Sequence sequence : genome.getValidSequences()) {
-                if(sequence.equals(this)) {
-                    exactMatchesInOtherGenome++;
-                }
-            }
-            for(Sequence sequence : genome.getValidComplementSequences()) {
-                if(sequence.equals(this)) {
-                    exactMatchesInOtherGenome++;
-                }
-            }
+            processSequenceComparison(genome.getValidSequences());
+            processSequenceComparison(genome.getValidComplementSequences());
             otherGenomeSequencesProcessed += genome.getValidSequences().size() + genome.getValidComplementSequences().size();
         }
+    }
+
+    private void processSequenceComparison(List<Sequence> sequences) {
+        for(Sequence sequence : sequences) {
+            if(sequence.equals(this)) {
+                exactMatchesInOtherGenome++;
+            }
+            if(isPartialMatch(sequence)) {
+                partialMatchesInOtherGenome++;
+            }
+        }
+    }
+
+    private boolean isPartialMatch(Sequence sequence) {
+        if(this.pam.compareTo(sequence.getPam()) != 0) {
+            // The PAM is not equal so sequence is not candidate for partial match
+            return false;
+        }
+        // The PAM is equal so we check the Target if there are at least two consecutive mismatches
+        int maxConsecutiveMismatches = 0;
+        int currentConsecutiveMismatches = 0;
+        for(int i=0; i<TARGET_LENGTH; i++) {
+            if(target.charAt(i) == sequence.getTarget().charAt(i)) {
+                currentConsecutiveMismatches = 0;
+            } else {
+                currentConsecutiveMismatches++;
+                if(currentConsecutiveMismatches > maxConsecutiveMismatches) {
+                    maxConsecutiveMismatches = currentConsecutiveMismatches;
+                }
+            }
+        }
+        return maxConsecutiveMismatches < MIN_CONSECUTIVE_MISMATCH_IN_TARGET_WITH_OTHER_GENOME;
     }
 
     @Override
