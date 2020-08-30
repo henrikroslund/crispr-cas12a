@@ -38,6 +38,11 @@ public class Sequence {
 
     public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
 
+    private int exactMatchesInOtherGenome = 0;
+    private int exactPamMatchesInOtherGenomes = 0;
+    private int consecutiveTargetMatchesInOtherGenome = 0;
+    private int otherGenomeSequencesProcessed = 0;
+
     @Setter
     private boolean isComplement = false;
 
@@ -59,8 +64,25 @@ public class Sequence {
         valid = isPamMatch() && isTargetMatch();
     }
 
-    public boolean isMatchWith(List<Sequence> comparisons) {
-        return comparisons.contains(this);
+    public boolean shouldBeFilteredOut() {
+        log.fine("Exact: " + exactMatchesInOtherGenome + " " + " ComparedWith: " + otherGenomeSequencesProcessed);
+        return exactMatchesInOtherGenome > 0 ||
+                exactPamMatchesInOtherGenomes > 0 ||
+                consecutiveTargetMatchesInOtherGenome > 0;
+    }
+
+    public void processMatchesInOtherGenome(Genome genome) {
+        for(Sequence sequence : genome.getValidSequences()) {
+            if(sequence.equals(this)) {
+                exactMatchesInOtherGenome++;
+            }
+        }
+        for(Sequence sequence : genome.getValidComplementSequences()) {
+            if(sequence.equals(this)) {
+                exactMatchesInOtherGenome++;
+            }
+        }
+        otherGenomeSequencesProcessed += genome.getValidSequences().size() + genome.getValidComplementSequences().size();
     }
 
     @Override
