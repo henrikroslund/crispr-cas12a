@@ -8,10 +8,10 @@ import java.util.regex.Pattern;
 
 /**
  * This class represents a sequence.
- * A sequence consists of two parts, PEM and SEED and is exactly PAM length + SEED length = 24 characters long.
- * A sequence is valid if both PAM and SEED is valid.
+ * A sequence consists of two parts, PEM and TARGET and is exactly PAM length + TARGET length = 24 characters long.
+ * A sequence is valid if both PAM and TARGET is valid.
  * A PAM is valid if there is a match for PAM_MATCH_REGEXP
- * A SEED is valid if the number of SEED_MATCH_PATTERN matches are within SEED_MATCH_MIN and SEED_MATCH_MAX (inclusive).
+ * A TARGET is valid if the number of TARGET_MATCH_PATTERN matches are within TARGET_MATCH_MIN and TARGET_MATCH_MAX (inclusive).
  */
 @Log
 public class Sequence {
@@ -27,13 +27,13 @@ public class Sequence {
     // First three must be Ts and the forth must Not be T
     private static final String PAM_MATCH_REGEXP = "^[T]{3}[^T]";
 
-    private final String seed;
-    private static final int SEED_LENGTH = 20; // TODO check with pop is SEED is all 20 or just the 6. IF so, what are the rest called....
-    private static final Pattern SEED_MATCH_PATTERN = Pattern.compile("[GC]"); // TODO VERIFY WITH POP
-    private static final int SEED_MATCH_MIN = 9; // 20*0.45
-    private static final int SEED_MATCH_MAX = 11; // 20*0.45
+    private final String target;
+    private static final int TARGET_LENGTH = 20;
+    private static final Pattern TARGET_MATCH_PATTERN = Pattern.compile("[GC]"); // TODO VERIFY WITH POP
+    private static final int TARGET_MATCH_MIN = 9; // 20*0.45
+    private static final int TARGET_MATCH_MAX = 11; // 20*0.45
 
-    public static final int RAW_LENGTH = PAM_LENGTH + SEED_LENGTH;
+    public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
 
     @Getter
     private final boolean valid;
@@ -46,21 +46,21 @@ public class Sequence {
         this.raw = raw;
         this.index = index;
         this.pam = raw.substring(0, PAM_LENGTH);
-        this.seed = raw.substring(PAM_LENGTH);
-        if(seed.length() != SEED_LENGTH) {
-            throw new InvalidSequenceException("SEED has length " + seed.length() + " but expected " + SEED_LENGTH);
+        this.target = raw.substring(PAM_LENGTH);
+        if(target.length() != TARGET_LENGTH) {
+            throw new InvalidSequenceException("target has length " + target.length() + " but expected " + TARGET_LENGTH);
         }
-        valid = isPamMatch() && isSeedMatch();
+        valid = isPamMatch() && isTargetMatch();
     }
 
     public boolean isPamMatch() {
         return pam.matches(PAM_MATCH_REGEXP);
     }
 
-    public boolean isSeedMatch() {
-        Matcher matcher = SEED_MATCH_PATTERN.matcher(seed);
+    public boolean isTargetMatch() {
+        Matcher matcher = TARGET_MATCH_PATTERN.matcher(target);
         long matches = matcher.results().count();
-        return matches >= SEED_MATCH_MIN && matches <= SEED_MATCH_MAX;
+        return matches >= TARGET_MATCH_MIN && matches <= TARGET_MATCH_MAX;
     }
 
     public Sequence getComplement() throws Exception {

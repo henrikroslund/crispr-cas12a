@@ -8,7 +8,7 @@ public class SequenceTest {
     public void testValidSequence() {
         Sequence sequence = new Sequence("TTTACCCCCAAAAACCCCCAAAAA", 5);
         Assert.assertTrue(sequence.isPamMatch());
-        Assert.assertTrue(sequence.isSeedMatch());
+        Assert.assertTrue(sequence.isTargetMatch());
         Assert.assertTrue(sequence.isValid());
     }
 
@@ -26,23 +26,23 @@ public class SequenceTest {
     public void testMismatchPam() {
         Sequence sequence = new Sequence("TTATCCCCCAAAAACCCCCAAAAA", 5);
         Assert.assertFalse(sequence.isPamMatch());
-        Assert.assertTrue(sequence.isSeedMatch());
+        Assert.assertTrue(sequence.isTargetMatch());
         Assert.assertFalse(sequence.isValid());
     }
 
     @Test
-    public void testSeedMatchTooFew() {
+    public void testTargetMatchTooFew() {
         Sequence sequence = new Sequence("TTTACCCCCAAAAACCCAAAAAAA", 5);
         Assert.assertTrue(sequence.isPamMatch());
-        Assert.assertFalse(sequence.isSeedMatch());
+        Assert.assertFalse(sequence.isTargetMatch());
         Assert.assertFalse(sequence.isValid());
     }
 
     @Test
-    public void testSeedMatchTooMany() {
+    public void testTargetMatchTooMany() {
         Sequence sequence = new Sequence("TTTACCCCCAAAAACCCCCAAACC", 5);
         Assert.assertTrue(sequence.isPamMatch());
-        Assert.assertFalse(sequence.isSeedMatch());
+        Assert.assertFalse(sequence.isTargetMatch());
         Assert.assertFalse(sequence.isValid());
     }
 
