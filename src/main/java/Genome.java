@@ -76,8 +76,8 @@ public class Genome {
 
     public void saveSequences() throws  Exception {
         saveSequence(validSequences, Main.OUTPUT_FOLDER, outputFilename);
-        saveSequence(validComplementSequences, Main.OUTPUT_FOLDER, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX);
         saveSequence(resultingSequences, Main.OUTPUT_FOLDER, outputFilename + Main.OUTPUT_RESULT_SUFFIX);
+        saveSequence(validComplementSequences, Main.OUTPUT_FOLDER, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX);
         saveSequence(resultingComplementSequences, Main.OUTPUT_FOLDER, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX + Main.OUTPUT_RESULT_SUFFIX);
         if(shouldWriteInvalid) {
             saveSequence(invalidSequences, Main.OUTPUT_FOLDER_INVALID, outputFilename + Main.OUTPUT_INVALID_SUFFIX);
@@ -95,25 +95,22 @@ public class Genome {
         writer.close();
     }
 
-    public void createResult(List<Genome> genomes) {
-        for(Genome genome : genomes) {
-            if(genome != this) {
-                log.info(this.getOutputFilename() + " processing genome: " + genome.getOutputFilename());
-                for(Sequence sequence : validSequences) {
-                    sequence.processMatchesInOtherGenome(genome);
-                }
-                for(Sequence sequence : validComplementSequences) {
-                    sequence.processMatchesInOtherGenome(genome);
-                }
-            }
+    public void createResult(List<Genome> genomes) throws Exception {
+        List<Genome> genomeList = new ArrayList<>(genomes);
+        genomeList.remove(this);
+        for(Sequence sequence : validSequences) {
+            sequence.processMatchesInOtherGenomes(genomeList);
+        }
+        for(Sequence sequence : validComplementSequences) {
+            sequence.processMatchesInOtherGenomes(genomeList);
         }
         for(Sequence sequence : validSequences) {
-            if(!sequence.shouldBeFilteredOut()) {
+            if(!sequence.shouldBeFilteredOutBasedOnMatchesInOtherGenomes()) {
                 resultingSequences.add(sequence);
             }
         }
         for(Sequence sequence : validComplementSequences) {
-            if(!sequence.shouldBeFilteredOut()) {
+            if(!sequence.shouldBeFilteredOutBasedOnMatchesInOtherGenomes()) {
                 resultingComplementSequences.add(sequence);
             }
         }

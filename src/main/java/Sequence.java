@@ -64,25 +64,29 @@ public class Sequence {
         valid = isPamMatch() && isTargetMatch();
     }
 
-    public boolean shouldBeFilteredOut() {
-        log.fine("Exact: " + exactMatchesInOtherGenome + " " + " ComparedWith: " + otherGenomeSequencesProcessed);
+    public boolean shouldBeFilteredOutBasedOnMatchesInOtherGenomes() {
         return exactMatchesInOtherGenome > 0 ||
                 exactPamMatchesInOtherGenomes > 0 ||
                 consecutiveTargetMatchesInOtherGenome > 0;
     }
 
-    public void processMatchesInOtherGenome(Genome genome) {
-        for(Sequence sequence : genome.getValidSequences()) {
-            if(sequence.equals(this)) {
-                exactMatchesInOtherGenome++;
-            }
+    public void processMatchesInOtherGenomes(List<Genome> genomes) throws Exception {
+        if(otherGenomeSequencesProcessed != 0) {
+            throw new Exception("This sequence has already processed a list of genomes. Something is wrong");
         }
-        for(Sequence sequence : genome.getValidComplementSequences()) {
-            if(sequence.equals(this)) {
-                exactMatchesInOtherGenome++;
+        for(Genome genome : genomes) {
+            for(Sequence sequence : genome.getValidSequences()) {
+                if(sequence.equals(this)) {
+                    exactMatchesInOtherGenome++;
+                }
             }
+            for(Sequence sequence : genome.getValidComplementSequences()) {
+                if(sequence.equals(this)) {
+                    exactMatchesInOtherGenome++;
+                }
+            }
+            otherGenomeSequencesProcessed += genome.getValidSequences().size() + genome.getValidComplementSequences().size();
         }
-        otherGenomeSequencesProcessed += genome.getValidSequences().size() + genome.getValidComplementSequences().size();
     }
 
     @Override
