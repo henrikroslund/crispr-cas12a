@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.stream.Stream;
 
 @Log
 public class Main {
@@ -32,19 +33,24 @@ public class Main {
         outputDir.mkdirs();
 
         String fileContent = getFileContent(INPUT_FILENAME);
-        process(outputDir, fileContent);
+        process(outputDir, fileContent, getFirstRow(INPUT_FILENAME));
 
         log.info(String.format("Found %,d valid sequences (including complement)", VALID_SEQUENCE_COUNT));
 
         printMemoryStat();
     }
 
-    private static void process(File outputDir, String data) throws Exception {
+    private static void process(File outputDir, String data, String outputFirstRow) throws Exception {
         BufferedWriter validWriter = new BufferedWriter(new FileWriter(outputDir.getAbsolutePath() + "/" + OUTPUT_VALID_FILENAME, true));
         BufferedWriter validComplementWriter = new BufferedWriter(new FileWriter(outputDir.getAbsolutePath() + "/" + OUTPUT_COMPLEMENT_PREFIX+OUTPUT_VALID_FILENAME, true));
         BufferedWriter invalidWriter = new BufferedWriter(new FileWriter(outputDir.getAbsolutePath() + "/" + OUTPUT_INVALID_FILENAME, true));
         BufferedWriter invalidComplementWriter = new BufferedWriter(new FileWriter(outputDir.getAbsolutePath() + "/" + OUTPUT_COMPLEMENT_PREFIX+OUTPUT_INVALID_FILENAME, true));
         log.info("Writing results to: " + outputDir.getAbsolutePath());
+
+        validWriter.append(outputFirstRow);
+        validComplementWriter.append(outputFirstRow);
+        invalidWriter.append(outputFirstRow);
+        invalidComplementWriter.append(outputFirstRow);
 
         for(int i = 0; i < data.length() - (Sequence.RAW_LENGTH-1); i++) {
             Sequence sequence = new Sequence(data.substring(i, i+Sequence.RAW_LENGTH), i);
@@ -83,6 +89,12 @@ public class Main {
         log.finest(fileContent);
         log.info("Number of characters to process: " + fileContent.length());
         return fileContent;
+    }
+
+    private static String getFirstRow(String filename) throws Exception {
+        Path filePath = Path.of("input.fasta");
+        Stream<String> lines = Files.lines(filePath);
+        return lines.findFirst().get() + "\n";
     }
 
     private static void printMemoryStat() {

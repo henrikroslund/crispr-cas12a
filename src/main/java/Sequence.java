@@ -4,7 +4,6 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -73,8 +72,8 @@ public class Sequence {
         return TARGET_MATCH_GC_CONTENT_PATTERN.matcher(target).results().count();
     }
 
-    private double getGCPercent() {
-        return 100 * getGCOccurences() / (double)TARGET_LENGTH;
+    private long getGCPercent() {
+        return 100 * getGCOccurences() / TARGET_LENGTH;
     }
 
     public Sequence getComplement() throws Exception {
@@ -106,6 +105,6 @@ public class Sequence {
 
     @Override
     public String toString() {
-        return raw + " " + (isComplement ? "-" : "+") + " " + index + " " + getGCPercent();
+        return raw + " " + (isComplement ? "-" : "+") + " " + index + " " + getGCPercent() + "%";
     }
 }
