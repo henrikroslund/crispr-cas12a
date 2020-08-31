@@ -33,6 +33,7 @@ public class Sequence {
     @Getter
     private final String target;
     private static final int TARGET_LENGTH = 20;
+    private static final int SEED_LENGTH = 6;
     private static final Pattern TARGET_MATCH_GC_CONTENT_PATTERN = Pattern.compile("[GC]");
     private static final int TARGET_MATCH_MIN = 9; // 20*0.45
     private static final int TARGET_MATCH_MAX = 11; // 20*0.55
@@ -92,7 +93,7 @@ public class Sequence {
         }
     }
 
-    private boolean isPartialMatch(Sequence sequence) {
+    protected boolean isPartialMatch(Sequence sequence) {
         if(this.pam.compareTo(sequence.getPam()) != 0) {
             // The PAM is not equal so sequence is not candidate for partial match
             return false;
@@ -100,7 +101,7 @@ public class Sequence {
         // The PAM is equal so we check the Target if there are at least two consecutive mismatches
         int maxConsecutiveMismatches = 0;
         int currentConsecutiveMismatches = 0;
-        for(int i=0; i<TARGET_LENGTH; i++) {
+        for(int i=0; i<SEED_LENGTH; i++) {
             if(target.charAt(i) == sequence.getTarget().charAt(i)) {
                 currentConsecutiveMismatches = 0;
             } else {
