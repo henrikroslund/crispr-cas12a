@@ -110,6 +110,7 @@ public class Sequence {
                 }
             }
         }
+        log.finest("maxConsecutiveMismatches: " + maxConsecutiveMismatches);
         return maxConsecutiveMismatches < MIN_CONSECUTIVE_MISMATCH_IN_TARGET_WITH_OTHER_GENOME;
     }
 
@@ -145,6 +146,14 @@ public class Sequence {
         return 100 * getGCOccurences() / TARGET_LENGTH;
     }
 
+    private static double getGCMaxPercent() {
+        return 100 * TARGET_MATCH_MAX / TARGET_LENGTH;
+    }
+
+    private static double getFCMinPercent() {
+        return 100 * TARGET_MATCH_MIN / TARGET_LENGTH;
+    }
+
     public Sequence getComplement() throws Exception {
         String complement = "";
         for(int i=0; i<raw.length(); i++) {
@@ -175,5 +184,13 @@ public class Sequence {
     @Override
     public String toString() {
         return raw + " " + (isComplement ? "-" : "+") + " " + index + " " + getGCPercent() + "%";
+    }
+
+    public static String getRulesApplied() {
+        String rules = "Target GC Min: " + getFCMinPercent() + "% (" + TARGET_MATCH_MIN + ") Max: "
+                + getGCMaxPercent() + "% (" + TARGET_MATCH_MAX + ")\n"
+                + "Minimum consecutive mismatch: " + MIN_CONSECUTIVE_MISMATCH_IN_TARGET_WITH_OTHER_GENOME + "\n";
+        rules += "*****************************************************************************\n";
+        return rules;
     }
 }

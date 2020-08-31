@@ -95,6 +95,7 @@ public class Genome {
         writer.append(firstRow);
         if(writeProcessedGenomes) {
             writer.append(getProcessedGenomesString());
+            writer.append(Sequence.getRulesApplied());
         }
         for(Sequence sequence : sequences) {
             writer.append(sequence.toString() + "\n");
