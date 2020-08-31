@@ -1,9 +1,7 @@
 import lombok.extern.java.Log;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Log
 public class Main {
@@ -20,7 +18,7 @@ public class Main {
 
     private static final boolean WRITE_INVALID = false;
 
-    private static List<Genome> genomes = new ArrayList<>();
+    private static List<Genome> genomes = Collections.synchronizedList(new ArrayList<>());
 
     public static void main(String[] args) throws Exception {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
@@ -34,14 +32,24 @@ public class Main {
         }
 
         File[] genomeFiles = getFilesInFolder(INPUT_FOLDER);
-        for(File genomeFile : genomeFiles) {
-            genomes.add(new Genome(genomeFile, WRITE_INVALID));
-        }
+        Arrays.stream(genomeFiles).parallel().forEach(file -> {
+            try {
+                genomes.add(new Genome(file, WRITE_INVALID));
+            } catch (Exception e) {
+                log.severe("Error creating genome from file " + file.getAbsolutePath());
+                System.exit(1);
+            }
+        });
 
-        for(Genome genome : genomes) {
-            genome.processGenomes(genomes);
-            genome.saveSequences();
-        }
+        genomes.parallelStream().forEach(genome -> {
+            try {
+                genome.processGenomes(genomes);
+                genome.saveSequences();
+            } catch (Exception e) {
+                log.severe("Error when processing genomes and saving sequences");
+                System.exit(1);
+            }
+        });
 
         printMemoryStat();
     }
