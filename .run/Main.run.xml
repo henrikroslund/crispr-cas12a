@@ -2,6 +2,7 @@
   <configuration default="false" name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME" value="Main" />
     <module name="crispr-cas12a" />
+    <option name="VM_PARAMETERS" value="-Xmx8G -Xms6G" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

@@ -62,11 +62,15 @@ public class Genome {
      */
     private void createSequences() throws Exception {
         log.info("Will process " + data.length() + " potential sequences");
+        int stepsPerPercent = data.length() / 100;
         for(int i = 0; i < data.length() - (Sequence.RAW_LENGTH-1); i++) {
             Sequence sequence = new Sequence(data.substring(i, i+Sequence.RAW_LENGTH), i);
             addSequenceToList(sequence, validSequences, invalidSequences);
             Sequence complementSequence = sequence.getComplement();
             addSequenceToList(complementSequence, validComplementSequences, invalidComplementSequences);
+            if(i % stepsPerPercent == 0) {
+                log.info("Finished " + i/stepsPerPercent + "%");
+            }
         }
         log.info("Finished processing sequences");
     }
@@ -74,7 +78,7 @@ public class Genome {
     private void addSequenceToList(Sequence sequence, List<Sequence> valid, List<Sequence> invalid) {
         if (sequence.isValid()) {
             valid.add(sequence);
-        } else if(shouldWriteInvalid) {
+        } else {
             invalid.add(sequence);
         }
     }

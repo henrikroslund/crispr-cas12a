@@ -54,4 +54,49 @@ public class SequenceTest {
         Assert.assertEquals(sequence.getRaw(), originalsq);
         Assert.assertEquals(sequence.getComplement().getRaw(), complement);
     }
+
+    @Test
+    public void testIsPartialMatchPamDifferent() {
+        String originalSequence =  "TTTACCCCCAAAAACCCCCAAAAA";
+        String compareToSequence = "TTTCAAAAACCCCCAAAAACCCCC";
+        Sequence original = new Sequence(originalSequence, 5);
+        Sequence compareTo = new Sequence(compareToSequence, 5);
+        Assert.assertFalse(original.isPartialMatch(compareTo));
+    }
+
+    @Test
+    public void testIsPartialMatchIdentical() {
+        String originalSequence =  "TTTACCCCCAAAAACCCCCAAAAA";
+        String compareToSequence = "TTTACCCCCAAAAACCCCCAAAAA";
+        Sequence original = new Sequence(originalSequence, 5);
+        Sequence compareTo = new Sequence(compareToSequence, 5);
+        Assert.assertTrue(original.isPartialMatch(compareTo));
+    }
+
+    @Test
+    public void testIsPartialMatchSamePamOneConsecutiveMismatch() {
+        String originalSequence =  "TTTACCCCCCCCCCCCCCCCCCCC";
+        String compareToSequence = "TTTACCCCCCCCCCCCCCCCCCCA";
+        Sequence original = new Sequence(originalSequence, 5);
+        Sequence compareTo = new Sequence(compareToSequence, 5);
+        Assert.assertTrue(original.isPartialMatch(compareTo));
+    }
+
+    @Test
+    public void testIsPartialMatchSamePamTwoConsecutiveMismatch() {
+        String originalSequence =  "TTTACCCCCCCCCCCCCCCCCCCC";
+        String compareToSequence = "TTTACCCCCCCCCCCCCCCCCCAA";
+        Sequence original = new Sequence(originalSequence, 5);
+        Sequence compareTo = new Sequence(compareToSequence, 5);
+        Assert.assertTrue(original.isPartialMatch(compareTo));
+    }
+
+    @Test
+    public void testIsPartialMatchSamePamThreeConsecutiveMatch() {
+        String originalSequence =  "TTTACCCCCCCCCCCCCCCCCCCC";
+        String compareToSequence = "TTTACCCCCCCCCCCCCCCCCAAA";
+        Sequence original = new Sequence(originalSequence, 5);
+        Sequence compareTo = new Sequence(compareToSequence, 5);
+        Assert.assertFalse(original.isPartialMatch(compareTo));
+    }
 }
