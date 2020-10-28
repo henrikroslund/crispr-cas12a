@@ -92,6 +92,18 @@ public class Genome {
             saveSequence(invalidSequences, Main.OUTPUT_FOLDER_INVALID, outputFilename + Main.OUTPUT_INVALID_SUFFIX, false);
             saveSequence(invalidComplementSequences, Main.OUTPUT_FOLDER_INVALID, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX + Main.OUTPUT_INVALID_SUFFIX, false);
         }
+        saveSequence(getAllWithPamMismatch(validSequences), Main.OUTPUT_FOLDER, outputFilename + "_pem_mismatches", false);
+        saveSequence(getAllWithPamMismatch(validComplementSequences), Main.OUTPUT_FOLDER, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX + "_pem_mismatches", false);
+    }
+
+    private List<Sequence> getAllWithPamMismatch(List<Sequence> sequences) {
+        List<Sequence> pemMismatchInOtherGenomesSequences = new ArrayList<>();
+        for(Sequence sequence : sequences) {
+            if(sequence.isPamMismatchInOtherGenomes()) {
+                invalidComplementSequences.add(sequence);
+            }
+        }
+        return pemMismatchInOtherGenomesSequences;
     }
 
     private void saveSequence(List<Sequence> sequences, String folder, String filename, boolean writeProcessedGenomes) throws Exception {
@@ -101,8 +113,16 @@ public class Genome {
             writer.append(getProcessedGenomesString());
             writer.append(Sequence.getRulesApplied());
         }
+        Sequence lowestPartialMatches = null;
         for(Sequence sequence : sequences) {
+            if(lowestPartialMatches == null || sequence.getPartialMatchesInOtherGenomes() < lowestPartialMatches.getPartialMatchesInOtherGenomes()) {
+                lowestPartialMatches = sequence;
+            }
             writer.append(sequence.toString() + "\n");
+        }
+        if(lowestPartialMatches != null) {
+            writer.append("*******************************************************\n");
+            writer.append(lowestPartialMatches.toString() + "\n");
         }
         log.info(String.format("Wrote %,d to \"" + filename+"\"", sequences.size()));
         writer.close();

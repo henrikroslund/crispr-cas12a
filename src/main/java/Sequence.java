@@ -42,9 +42,14 @@ public class Sequence {
     public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
 
     private int exactMatchesInOtherGenome = 0;
-    private int partialMatchesInOtherGenome = 0;
+    @Getter
+    private int partialMatchesInOtherGenomes = 0;
+    @Getter
+    private boolean isPamMismatchInOtherGenomes = true;
+    @Getter
+    private boolean isSeedMismatchInOtherGenomes = true;
     private int otherGenomeSequencesProcessed = 0;
-    private static final int MIN_CONSECUTIVE_MISMATCH_IN_TARGET_WITH_OTHER_GENOME = 2;
+    private static final int MIN_CONSECUTIVE_MISMATCH_IN_TARGET_WITH_OTHER_GENOME = 1;
 
     @Setter
     private boolean isComplement = false;
@@ -68,7 +73,7 @@ public class Sequence {
     }
 
     public boolean shouldBeFilteredOutBasedOnMatchesInOtherGenomes() {
-        return exactMatchesInOtherGenome > 0 || partialMatchesInOtherGenome > 0;
+        return exactMatchesInOtherGenome > 0 || partialMatchesInOtherGenomes > 0;
     }
 
     public void processMatchesInOtherGenomes(List<Genome> genomes) throws Exception {
@@ -88,16 +93,18 @@ public class Sequence {
                 exactMatchesInOtherGenome++;
             }
             if(isPartialMatch(sequence)) {
-                partialMatchesInOtherGenome++;
+                partialMatchesInOtherGenomes++;
             }
         }
     }
 
     protected boolean isPartialMatch(Sequence sequence) {
-        if(this.pam.compareTo(sequence.getPam()) != 0) {
+        if(isPamDifferent(sequence)) {
             // The PAM is not equal so sequence is not candidate for partial match
             return false;
         }
+        isPamMismatchInOtherGenomes = false;
+
         // The PAM is equal so we check the Target if there are at least two consecutive mismatches
         int maxConsecutiveMismatches = 0;
         int currentConsecutiveMismatches = 0;
@@ -112,7 +119,15 @@ public class Sequence {
             }
         }
         log.finest("maxConsecutiveMismatches: " + maxConsecutiveMismatches);
-        return maxConsecutiveMismatches < MIN_CONSECUTIVE_MISMATCH_IN_TARGET_WITH_OTHER_GENOME;
+        boolean isSeedMatch = maxConsecutiveMismatches < MIN_CONSECUTIVE_MISMATCH_IN_TARGET_WITH_OTHER_GENOME;
+        if(isSeedMatch) {
+            isSeedMismatchInOtherGenomes = false;
+        }
+        return isSeedMatch;
+    }
+
+    private boolean isPamDifferent(Sequence sequence) {
+        return this.pam.compareTo(sequence.getPam()) != 0;
     }
 
     @Override
@@ -184,7 +199,8 @@ public class Sequence {
 
     @Override
     public String toString() {
-        return raw + " " + (isComplement ? "-" : "+") + " " + index + " " + getGCPercent() + "%";
+        return raw + " " + (isComplement ? "-" : "+") + " " + index + " " + getGCPercent() + "%" + " exactMatches:"+exactMatchesInOtherGenome
+                + " partialMatches:" + partialMatchesInOtherGenomes + " sequencesComparedWith:"+otherGenomeSequencesProcessed;
     }
 
     public static String getRulesApplied() {

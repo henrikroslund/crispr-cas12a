@@ -46,7 +46,7 @@ public class Main {
                 genome.processGenomes(genomes);
                 genome.saveSequences();
             } catch (Exception e) {
-                log.severe("Error when processing genomes and saving sequences");
+                log.severe("Error when processing genomes and saving sequences: " + e.getMessage());
                 System.exit(1);
             }
         });

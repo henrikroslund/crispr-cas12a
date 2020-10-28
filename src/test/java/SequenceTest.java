@@ -76,7 +76,7 @@ public class SequenceTest {
     @Test
     public void testIsPartialMatchSamePamOneConsecutiveMismatch() {
         String originalSequence =  "TTTACCCCCCCCCCCCCCCCCCCC";
-        String compareToSequence = "TTTACCCCCCCCCCCCCCCCCCCA";
+        String compareToSequence = "TTTACCACCCCCCCCCCCCCCCCC";
         Sequence original = new Sequence(originalSequence, 5);
         Sequence compareTo = new Sequence(compareToSequence, 5);
         Assert.assertTrue(original.isPartialMatch(compareTo));
@@ -85,16 +85,16 @@ public class SequenceTest {
     @Test
     public void testIsPartialMatchSamePamTwoConsecutiveMismatch() {
         String originalSequence =  "TTTACCCCCCCCCCCCCCCCCCCC";
-        String compareToSequence = "TTTACCCCCCCCCCCCCCCCCCAA";
+        String compareToSequence = "TTTACCAACCCCCCCCCCCCCCCC";
         Sequence original = new Sequence(originalSequence, 5);
         Sequence compareTo = new Sequence(compareToSequence, 5);
-        Assert.assertTrue(original.isPartialMatch(compareTo));
+        Assert.assertFalse(original.isPartialMatch(compareTo));
     }
 
     @Test
-    public void testIsPartialMatchSamePamThreeConsecutiveMatch() {
+    public void testIsPartialMatchSamePamThreeConsecutiveMismatch() {
         String originalSequence =  "TTTACCCCCCCCCCCCCCCCCCCC";
-        String compareToSequence = "TTTACCCCCCCCCCCCCCCCCAAA";
+        String compareToSequence = "TTTACCCAAACCCCCCCCCCCCCC";
         Sequence original = new Sequence(originalSequence, 5);
         Sequence compareTo = new Sequence(compareToSequence, 5);
         Assert.assertFalse(original.isPartialMatch(compareTo));
