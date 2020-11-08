@@ -52,7 +52,7 @@ public class Genome {
         log.info("Will process " + data.length() + " potential sequences");
         int stepsPerPercent = data.length() / 100;
         for(int i = 0; i < data.length() - (Sequence.RAW_LENGTH-1); i++) {
-            Sequence sequence = new Sequence(data.substring(i, i+Sequence.RAW_LENGTH), i);
+            Sequence sequence = new Sequence(data.substring(i, i+Sequence.RAW_LENGTH), i, outputFilename);
             sequences.add(sequence);
             complementSequences.add(sequence.getComplement());
             if(i % stepsPerPercent == 0) {
@@ -80,12 +80,12 @@ public class Genome {
 
     List<Sequence> getMatchingSequences(SequenceEvaluator evaluator) {
         List<Sequence> results = new ArrayList<>();
-        sequences.stream().forEach(sequence -> {
+        sequences.parallelStream().forEach(sequence -> {
             if(evaluator.evaluate(sequence)) {
                 results.add(sequence);
             }
         });
-        complementSequences.stream().forEach(sequence -> {
+        complementSequences.parallelStream().forEach(sequence -> {
             if(evaluator.evaluate(sequence)) {
                 results.add(sequence);
             }

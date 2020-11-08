@@ -1,9 +1,12 @@
 package com.henrikroslund;
 
 import com.henrikroslund.evaluators.IdenticalEvaluator;
+import com.henrikroslund.formats.JakeCsv;
+import com.opencsv.exceptions.CsvException;
 import lombok.extern.java.Log;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -30,26 +33,35 @@ public class Main {
 
         loadGenomes();
         writeGenomes();
+        processJake("jake_pam_only_mism_v2.csv");
+        processJake("seed_only_mism_v2.csv");
+        processJake("jake_seed_andPam_mism_v2.csv");
 
-        List<Sequence> mainSequences = SequenceReader.SequenceReader(new File("Cas12a_gRNAs_10xgenomes_-_All.csv"));
+        printMemoryStat();
+        log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
+    }
 
-        AtomicInteger processedSequences = new AtomicInteger(0);
-        mainSequences.parallelStream().forEach(sequence -> {
-            AtomicInteger matchedGenomes = new AtomicInteger(0);
+    private static void processJake(String file) throws IOException, CsvException {
+        JakeCsv jakeCsv = SequenceReader.JakeCsvReader(new File(file));
+
+        for(int i=0; i<jakeCsv.getRows().size(); i++) {
+            Sequence sequence = jakeCsv.getRowSequence(i);
+            List<Sequence> matchedSequences = new ArrayList<>();
+            AtomicInteger matchedGenomes = new AtomicInteger();
             genomes.stream().forEach(genome -> {
-                List<Sequence> matchingSequences = genome.getMatchingSequences(new IdenticalEvaluator(sequence));
-                if(!matchingSequences.isEmpty()) {
-                    matchedGenomes.incrementAndGet();
+                List<Sequence> matches = genome.getMatchingSequences(new IdenticalEvaluator(sequence));
+                if(!matches.isEmpty()) {
+                    matchedSequences.addAll(matches);
+                    matchedGenomes.getAndIncrement();
                 }
             });
             if(matchedGenomes.get() == genomes.size()) {
                 log.info("matches in all genomes");
+                jakeCsv.addMatches(matchedSequences, i);
             }
-            log.info("processed: " + processedSequences.incrementAndGet() + " / " + mainSequences.size());
-        });
-
-        printMemoryStat();
-        log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
+            log.info(i + "/" + jakeCsv.getRows().size());
+        }
+        jakeCsv.writeToFile(OUTPUT_FOLDER + file.replace(".csv", "_results.csv"));
     }
 
     private static void loadGenomes() {

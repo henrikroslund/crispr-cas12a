@@ -34,13 +34,17 @@ public class Sequence {
     @Setter
     private boolean isComplement = false;
 
+    @Setter
+    private String genome;
+
     @SneakyThrows
-    public Sequence(String raw, int index) {
+    public Sequence(String raw, int index, String genome) {
         if(raw.length() != RAW_LENGTH) {
             throw new InvalidSequenceException("Raw sequence has length " + raw.length() + " but expected " + RAW_LENGTH);
         }
         this.raw = raw;
         this.index = index;
+        this.genome = genome;
     }
 
     private boolean isPamDifferent(Sequence sequence) {
@@ -69,7 +73,7 @@ public class Sequence {
             }
         }
         log.fine(raw + " " + complement);
-        Sequence complementSequence = new Sequence(complement.reverse().toString(), index);
+        Sequence complementSequence = new Sequence(complement.reverse().toString(), index, genome);
         complementSequence.setComplement(true);
         return complementSequence;
     }
@@ -89,6 +93,6 @@ public class Sequence {
 
     @Override
     public String toString() {
-        return raw + " " + (isComplement ? "-" : "+") + " " + index;
+        return raw + " " + (isComplement ? "-" : "+") + " " + index + (genome != null ? " " + genome : "");
     }
 }

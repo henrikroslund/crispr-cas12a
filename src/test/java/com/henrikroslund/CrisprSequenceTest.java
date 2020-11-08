@@ -16,12 +16,12 @@ public class CrisprSequenceTest {
 
     @Test(expected = InvalidSequenceException.class)
     public void testValidSequenceLengthShort() {
-        new Sequence("TTTACCCCCAAAAACCCCCAAAA", 5);
+        new Sequence("TTTACCCCCAAAAACCCCCAAAA", 5, "test");
     }
 
     @Test(expected = InvalidSequenceException.class)
     public void testValidSequenceLengthLong() {
-        new Sequence("TTTACCCCCAAAAACCCCCAAAAAA", 5);
+        new Sequence("TTTACCCCCAAAAACCCCCAAAAAA", 5, "test");
     }
 
     @Test
