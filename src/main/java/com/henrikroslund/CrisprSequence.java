@@ -1,4 +1,6 @@
-import exceptions.InvalidSequenceException;
+package com.henrikroslund;
+
+import com.henrikroslund.exceptions.InvalidSequenceException;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -16,7 +18,7 @@ import java.util.regex.Pattern;
  * A TARGET is valid if the number of TARGET_MATCH_PATTERN matches are within TARGET_MATCH_MIN and TARGET_MATCH_MAX (inclusive).
  */
 @Log
-public class Sequence {
+public class CrisprSequence {
 
     // Unprocessed string
     @Getter
@@ -58,7 +60,7 @@ public class Sequence {
     private final boolean valid;
 
     @SneakyThrows
-    public Sequence(String raw, int index) {
+    public CrisprSequence(String raw, int index) {
         if(raw.length() != RAW_LENGTH) {
             throw new InvalidSequenceException("Raw sequence has length " + raw.length() + " but expected " + RAW_LENGTH);
         }
@@ -81,14 +83,14 @@ public class Sequence {
             throw new Exception("This sequence has already processed a list of genomes. Something is wrong");
         }
         for(Genome genome : genomes) {
-            processSequenceComparison(genome.getValidSequences());
-            processSequenceComparison(genome.getValidComplementSequences());
-            otherGenomeSequencesProcessed += genome.getValidSequences().size() + genome.getValidComplementSequences().size();
+            //processSequenceComparison(genome.getValidSequences());
+            //processSequenceComparison(genome.getValidComplementSequences());
+            ///otherGenomeSequencesProcessed += genome.getValidSequences().size() + genome.getValidComplementSequences().size();
         }
     }
 
-    private void processSequenceComparison(List<Sequence> sequences) {
-        for(Sequence sequence : sequences) {
+    private void processSequenceComparison(List<CrisprSequence> sequences) {
+        for(CrisprSequence sequence : sequences) {
             if(sequence.equals(this)) {
                 exactMatchesInOtherGenome++;
             }
@@ -98,7 +100,7 @@ public class Sequence {
         }
     }
 
-    protected boolean isPartialMatch(Sequence sequence) {
+    protected boolean isPartialMatch(CrisprSequence sequence) {
         if(isPamDifferent(sequence)) {
             // The PAM is not equal so sequence is not candidate for partial match
             return false;
@@ -126,7 +128,7 @@ public class Sequence {
         return isSeedMatch;
     }
 
-    private boolean isPamDifferent(Sequence sequence) {
+    private boolean isPamDifferent(CrisprSequence sequence) {
         return this.pam.compareTo(sequence.getPam()) != 0;
     }
 
@@ -134,7 +136,7 @@ public class Sequence {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Sequence sequence = (Sequence) o;
+        CrisprSequence sequence = (CrisprSequence) o;
         return raw.compareTo(sequence.getRaw()) == 0;
     }
 
@@ -170,7 +172,7 @@ public class Sequence {
         return 100 * TARGET_MATCH_MIN / TARGET_LENGTH;
     }
 
-    public Sequence getComplement() throws Exception {
+    public CrisprSequence getComplement() throws Exception {
         String complement = "";
         for(int i=0; i<raw.length(); i++) {
             char character = raw.charAt(i);
@@ -192,7 +194,7 @@ public class Sequence {
             }
         }
         log.fine(raw + " " + complement);
-        Sequence complementSequence = new Sequence(complement, index);
+        CrisprSequence complementSequence = new CrisprSequence(complement, index);
         complementSequence.setComplement(true);
         return complementSequence;
     }

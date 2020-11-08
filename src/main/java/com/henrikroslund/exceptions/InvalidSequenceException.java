@@ -1,4 +1,4 @@
-package exceptions;
+package com.henrikroslund.exceptions;
 
 public class InvalidSequenceException extends Exception {
 

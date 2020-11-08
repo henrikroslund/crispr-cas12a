@@ -1,12 +1,14 @@
-import exceptions.InvalidSequenceException;
+package com.henrikroslund;
+
+import com.henrikroslund.exceptions.InvalidSequenceException;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class SequenceTest {
+public class CrisprSequenceTest {
 
     @Test
     public void testValidSequence() {
-        Sequence sequence = new Sequence("TTTAGTGAGGACTCCTTCATCGTG", 5);
+        CrisprSequence sequence = new CrisprSequence("TTTAGTGAGGACTCCTTCATCGTG", 5);
         Assert.assertTrue(sequence.isPamMatch());
         Assert.assertTrue(sequence.isTargetMatch());
         Assert.assertTrue(sequence.isValid());
@@ -24,7 +26,7 @@ public class SequenceTest {
 
     @Test
     public void testMismatchPam() {
-        Sequence sequence = new Sequence("TATAGTGAGGACTCCTTCATCGTG", 5);
+        CrisprSequence sequence = new CrisprSequence("TATAGTGAGGACTCCTTCATCGTG", 5);
         Assert.assertFalse(sequence.isPamMatch());
         Assert.assertTrue(sequence.isTargetMatch());
         Assert.assertFalse(sequence.isValid());
@@ -32,7 +34,7 @@ public class SequenceTest {
 
     @Test
     public void testTargetMatchTooFew() {
-        Sequence sequence = new Sequence("TTTACCCCCAAAAACCCAAAAAAA", 5);
+        CrisprSequence sequence = new CrisprSequence("TTTACCCCCAAAAACCCAAAAAAA", 5);
         Assert.assertTrue(sequence.isPamMatch());
         Assert.assertFalse(sequence.isTargetMatch());
         Assert.assertFalse(sequence.isValid());
@@ -40,7 +42,7 @@ public class SequenceTest {
 
     @Test
     public void testTargetMatchTooMany() {
-        Sequence sequence = new Sequence("TTTACCCCCAAAAACCCCCAAACC", 5);
+        CrisprSequence sequence = new CrisprSequence("TTTACCCCCAAAAACCCCCAAACC", 5);
         Assert.assertTrue(sequence.isPamMatch());
         Assert.assertFalse(sequence.isTargetMatch());
         Assert.assertFalse(sequence.isValid());
@@ -50,7 +52,7 @@ public class SequenceTest {
     public void testGetComplement() throws Exception {
         String originalsq = "TTTACCCCCAAAAACCCCCAAAAG";
         String complement = "CTTTTGGGGGTTTTTGGGGGTAAA";
-        Sequence sequence = new Sequence(originalsq, 5);
+        CrisprSequence sequence = new CrisprSequence(originalsq, 5);
         Assert.assertEquals(sequence.getRaw(), originalsq);
         Assert.assertEquals(sequence.getComplement().getRaw(), complement);
     }
@@ -59,8 +61,8 @@ public class SequenceTest {
     public void testIsPartialMatchPamDifferent() {
         String originalSequence =  "TTTACCCCCAAAAACCCCCAAAAA";
         String compareToSequence = "TTTCAAAAACCCCCAAAAACCCCC";
-        Sequence original = new Sequence(originalSequence, 5);
-        Sequence compareTo = new Sequence(compareToSequence, 5);
+        CrisprSequence original = new CrisprSequence(originalSequence, 5);
+        CrisprSequence compareTo = new CrisprSequence(compareToSequence, 5);
         Assert.assertFalse(original.isPartialMatch(compareTo));
     }
 
@@ -68,8 +70,8 @@ public class SequenceTest {
     public void testIsPartialMatchIdentical() {
         String originalSequence =  "TTTACCCCCAAAAACCCCCAAAAA";
         String compareToSequence = "TTTACCCCCAAAAACCCCCAAAAA";
-        Sequence original = new Sequence(originalSequence, 5);
-        Sequence compareTo = new Sequence(compareToSequence, 5);
+        CrisprSequence original = new CrisprSequence(originalSequence, 5);
+        CrisprSequence compareTo = new CrisprSequence(compareToSequence, 5);
         Assert.assertTrue(original.isPartialMatch(compareTo));
     }
 
@@ -77,8 +79,8 @@ public class SequenceTest {
     public void testIsPartialMatchSamePamOneConsecutiveMismatch() {
         String originalSequence =  "TTTACCCCCCCCCCCCCCCCCCCC";
         String compareToSequence = "TTTACCACCCCCCCCCCCCCCCCC";
-        Sequence original = new Sequence(originalSequence, 5);
-        Sequence compareTo = new Sequence(compareToSequence, 5);
+        CrisprSequence original = new CrisprSequence(originalSequence, 5);
+        CrisprSequence compareTo = new CrisprSequence(compareToSequence, 5);
         Assert.assertTrue(original.isPartialMatch(compareTo));
     }
 
@@ -86,8 +88,8 @@ public class SequenceTest {
     public void testIsPartialMatchSamePamTwoConsecutiveMismatch() {
         String originalSequence =  "TTTACCCCCCCCCCCCCCCCCCCC";
         String compareToSequence = "TTTACCAACCCCCCCCCCCCCCCC";
-        Sequence original = new Sequence(originalSequence, 5);
-        Sequence compareTo = new Sequence(compareToSequence, 5);
+        CrisprSequence original = new CrisprSequence(originalSequence, 5);
+        CrisprSequence compareTo = new CrisprSequence(compareToSequence, 5);
         Assert.assertFalse(original.isPartialMatch(compareTo));
     }
 
@@ -95,8 +97,8 @@ public class SequenceTest {
     public void testIsPartialMatchSamePamThreeConsecutiveMismatch() {
         String originalSequence =  "TTTACCCCCCCCCCCCCCCCCCCC";
         String compareToSequence = "TTTACCCAAACCCCCCCCCCCCCC";
-        Sequence original = new Sequence(originalSequence, 5);
-        Sequence compareTo = new Sequence(compareToSequence, 5);
+        CrisprSequence original = new CrisprSequence(originalSequence, 5);
+        CrisprSequence compareTo = new CrisprSequence(compareToSequence, 5);
         Assert.assertFalse(original.isPartialMatch(compareTo));
     }
 }

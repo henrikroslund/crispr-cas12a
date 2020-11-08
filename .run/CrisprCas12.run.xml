@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="CrisprCas12" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.henrikroslund.Main" />
+    <module name="crispr-cas12a" />
+    <option name="VM_PARAMETERS" value="-Xmx10G -Xms10G" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
