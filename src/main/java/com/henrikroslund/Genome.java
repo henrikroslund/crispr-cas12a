@@ -75,8 +75,8 @@ public class Genome {
     }
 
     public void saveSequences() throws  Exception {
-        saveSequence(sequences, Main.OUTPUT_FOLDER, outputFilename);
-        saveSequence(complementSequences, Main.OUTPUT_FOLDER, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX);
+        saveSequence(sequences, Main.OUTPUT_INPUT_FOLDER, outputFilename);
+        saveSequence(complementSequences, Main.OUTPUT_INPUT_FOLDER, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX);
     }
 
     private void saveSequence(List<Sequence> sequences, String outputFolder, String filename) throws Exception {

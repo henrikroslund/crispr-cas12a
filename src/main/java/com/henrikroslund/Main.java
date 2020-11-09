@@ -8,6 +8,7 @@ import com.henrikroslund.sequence.Sequence;
 import com.henrikroslund.sequence.SequenceReader;
 import com.opencsv.exceptions.CsvException;
 import lombok.extern.java.Log;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +24,7 @@ public class Main {
     private static final String INPUT_FOLDER_OLD = "input_old/";
 
     public static final String OUTPUT_FOLDER = "output/" + new Date().toString() + "/";
+    public static final String OUTPUT_INPUT_FOLDER = OUTPUT_FOLDER + "input/";
     public static final String OUTPUT_COMPLEMENT_SUFFIX = "_complement";
 
     private static List<Genome> genomes = Collections.synchronizedList(new ArrayList<>());
@@ -39,15 +41,20 @@ public class Main {
 
         // Create output folders
         new File(OUTPUT_FOLDER).mkdirs();
+        new File(OUTPUT_INPUT_FOLDER).mkdirs();
 
-        genomeFeature =new GenomeFeature(new File("CP018908.1 feature table.txt"));
+        File genomeFeatureFile = new File("CP018908.1 feature table.txt");
+        FileUtils.copyFile(genomeFeatureFile, new File(OUTPUT_FOLDER+genomeFeatureFile.getName()));
+        genomeFeature =new GenomeFeature(genomeFeatureFile);
 
-        suis_ss2_1 = new Genome(new File(INPUT_FOLDER_OLD+"Suis strain SS2-1 sequence.fasta"));
+        File suisGenomeFile = new File(INPUT_FOLDER_OLD+"Suis strain SS2-1 sequence.fasta");
+        FileUtils.copyFile(suisGenomeFile, new File(OUTPUT_FOLDER+suisGenomeFile.getName()));
+        suis_ss2_1 = new Genome(suisGenomeFile);
 
         loadGenomes();
         writeGenomes();
         processJake("jake_pam_only_mism_v2.csv");
-        processJake("seed_only_mism_v2.csv");
+        processJake("jake_seed_only_mism_v2.csv");
         processJake("jake_seed_andPam_mism_v2.csv");
 
         printMemoryStat();
