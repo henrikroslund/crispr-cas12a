@@ -1,4 +1,4 @@
-package com.henrikroslund;
+package com.henrikroslund.sequence;
 
 import com.henrikroslund.exceptions.InvalidSequenceException;
 import lombok.Getter;
@@ -16,15 +16,23 @@ import java.util.Objects;
  * A TARGET is valid if the number of TARGET_MATCH_PATTERN matches are within TARGET_MATCH_MIN and TARGET_MATCH_MAX (inclusive).
  */
 @Log
-public class Sequence {
+public class Sequence implements Comparable<Sequence> {
 
     @Getter
     private final String raw;
-    // Index from original string for first character
-    private final int index;
+    // Index of start of sequence. The index is always based on the positive strand.
+    @Getter
+    private final int startIndex;
+    @Getter
+    private final int endIndex;
 
     private static final int PAM_INDEX_START = 0;
     private static final int PAM_LENGTH = 4;
+
+    // First three must be Ts and the forth must Not be T for crispr
+    private static final String CRISPR_PAM_MATCH_REGEXP = "^[T]{3}[^T]";
+    @Getter
+    private final boolean isCrispr;
 
     @Getter
     private static final int TARGET_LENGTH = 20;
@@ -38,13 +46,23 @@ public class Sequence {
     private String genome;
 
     @SneakyThrows
-    public Sequence(String raw, int index, String genome) {
+    public Sequence(String raw, int startIndex, String genome) {
         if(raw.length() != RAW_LENGTH) {
             throw new InvalidSequenceException("Raw sequence has length " + raw.length() + " but expected " + RAW_LENGTH);
         }
         this.raw = raw;
-        this.index = index;
+        this.startIndex = startIndex;
+        this.endIndex = startIndex + RAW_LENGTH - 1;
         this.genome = genome;
+        this.isCrispr = getPAM().matches(CRISPR_PAM_MATCH_REGEXP);
+    }
+
+    public boolean getIsComplement() {
+        return isComplement;
+    }
+
+    private String getPAM() {
+        return raw.substring(0, PAM_LENGTH);
     }
 
     private boolean isPamDifferent(Sequence sequence) {
@@ -73,7 +91,7 @@ public class Sequence {
             }
         }
         log.fine(raw + " " + complement);
-        Sequence complementSequence = new Sequence(complement.reverse().toString(), index, genome);
+        Sequence complementSequence = new Sequence(complement.reverse().toString(), startIndex +(raw.length()-1), genome);
         complementSequence.setComplement(true);
         return complementSequence;
     }
@@ -93,6 +111,26 @@ public class Sequence {
 
     @Override
     public String toString() {
-        return raw + " " + (isComplement ? "-" : "+") + " " + index + (genome != null ? " " + genome : "");
+        return raw + " " + (isComplement ? "-" : "+") + " " + startIndex + (genome != null ? " " + genome : "");
+    }
+
+    /**
+     * Compares the start index of the sequences.
+     * A lower index number is considered to be greater.
+     * Complement is always considered to be greater.
+     */
+    @Override
+    public int compareTo(Sequence o) {
+        int genomeCompare = this.genome.compareTo(o.genome);
+        if(genomeCompare != 0) {
+            return genomeCompare;
+        }
+        if(this.isComplement != o.isComplement) {
+            return this.isComplement ? 1 : -1;
+        }
+        if(this.startIndex == o.startIndex) {
+            return 0;
+        }
+        return this.startIndex < o.startIndex ? -1 : 1;
     }
 }

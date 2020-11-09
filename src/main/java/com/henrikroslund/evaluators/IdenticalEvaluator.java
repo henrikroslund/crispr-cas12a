@@ -1,6 +1,6 @@
 package com.henrikroslund.evaluators;
 
-import com.henrikroslund.Sequence;
+import com.henrikroslund.sequence.Sequence;
 
 public class IdenticalEvaluator implements SequenceEvaluator {
 

@@ -1,6 +1,7 @@
 package com.henrikroslund;
 
 import com.henrikroslund.evaluators.SequenceEvaluator;
+import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
@@ -10,6 +11,7 @@ import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Log
@@ -53,8 +55,18 @@ public class Genome {
         int stepsPerPercent = data.length() / 100;
         for(int i = 0; i < data.length() - (Sequence.RAW_LENGTH-1); i++) {
             Sequence sequence = new Sequence(data.substring(i, i+Sequence.RAW_LENGTH), i, outputFilename);
-            sequences.add(sequence);
-            complementSequences.add(sequence.getComplement());
+            Sequence complement = sequence.getComplement();
+            if(Main.ONLY_CRISPER) {
+                if(sequence.isCrispr()) {
+                    sequences.add(sequence);
+                }
+                if(complement.isCrispr()) {
+                    complementSequences.add(complement);
+                }
+            } else {
+                sequences.add(sequence);
+                complementSequences.add(complement);
+            }
             if(i % stepsPerPercent == 0) {
                 log.info("Finished " + i/stepsPerPercent + "%");
             }
@@ -79,7 +91,7 @@ public class Genome {
     }
 
     List<Sequence> getMatchingSequences(SequenceEvaluator evaluator) {
-        List<Sequence> results = new ArrayList<>();
+        List<Sequence> results = Collections.synchronizedList(new ArrayList<>());
         sequences.parallelStream().forEach(sequence -> {
             if(evaluator.evaluate(sequence)) {
                 results.add(sequence);

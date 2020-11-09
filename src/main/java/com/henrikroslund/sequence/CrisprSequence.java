@@ -1,5 +1,6 @@
-package com.henrikroslund;
+package com.henrikroslund.sequence;
 
+import com.henrikroslund.Genome;
 import com.henrikroslund.exceptions.InvalidSequenceException;
 import lombok.Getter;
 import lombok.Setter;

@@ -2,6 +2,10 @@ package com.henrikroslund;
 
 import com.henrikroslund.evaluators.IdenticalEvaluator;
 import com.henrikroslund.formats.JakeCsv;
+import com.henrikroslund.genomeFeature.Feature;
+import com.henrikroslund.genomeFeature.GenomeFeature;
+import com.henrikroslund.sequence.Sequence;
+import com.henrikroslund.sequence.SequenceReader;
 import com.opencsv.exceptions.CsvException;
 import lombok.extern.java.Log;
 
@@ -16,11 +20,16 @@ public class Main {
     private static final long MEGABYTE_FACTOR = 1024L * 1024L;
 
     private static final String INPUT_FOLDER = "input/";
+    private static final String INPUT_FOLDER_OLD = "input_old/";
 
     public static final String OUTPUT_FOLDER = "output/" + new Date().toString() + "/";
     public static final String OUTPUT_COMPLEMENT_SUFFIX = "_complement";
 
     private static List<Genome> genomes = Collections.synchronizedList(new ArrayList<>());
+    private static Genome suis_ss2_1;
+    private static GenomeFeature genomeFeature;
+
+    public static final boolean ONLY_CRISPER = true;
 
     public static void main(String[] args) throws Exception {
         long start = new Date().getTime();
@@ -30,6 +39,10 @@ public class Main {
 
         // Create output folders
         new File(OUTPUT_FOLDER).mkdirs();
+
+        genomeFeature =new GenomeFeature(new File("CP018908.1 feature table.txt"));
+
+        suis_ss2_1 = new Genome(new File(INPUT_FOLDER_OLD+"Suis strain SS2-1 sequence.fasta"));
 
         loadGenomes();
         writeGenomes();
@@ -46,9 +59,9 @@ public class Main {
 
         for(int i=0; i<jakeCsv.getRows().size(); i++) {
             Sequence sequence = jakeCsv.getRowSequence(i);
-            List<Sequence> matchedSequences = new ArrayList<>();
+            List<Sequence> matchedSequences = Collections.synchronizedList(new ArrayList<>());
             AtomicInteger matchedGenomes = new AtomicInteger();
-            genomes.stream().forEach(genome -> {
+            genomes.parallelStream().forEach(genome -> {
                 List<Sequence> matches = genome.getMatchingSequences(new IdenticalEvaluator(sequence));
                 if(!matches.isEmpty()) {
                     matchedSequences.addAll(matches);
@@ -57,7 +70,9 @@ public class Main {
             });
             if(matchedGenomes.get() == genomes.size()) {
                 log.info("matches in all genomes");
-                jakeCsv.addMatches(matchedSequences, i);
+                List<Sequence> suisMaches = suis_ss2_1.getMatchingSequences(new IdenticalEvaluator(sequence));
+                List<Feature> suisFeatures = genomeFeature.getMatchingFeatures(suisMaches);
+                jakeCsv.addMatches(matchedSequences, i, suisMaches, suisFeatures);
             }
             log.info(i + "/" + jakeCsv.getRows().size());
         }
