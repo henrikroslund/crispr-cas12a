@@ -1,5 +1,6 @@
 package com.henrikroslund.sequence;
 
+import com.henrikroslund.TestUtils;
 import com.henrikroslund.exceptions.InvalidSequenceException;
 import com.henrikroslund.sequence.Sequence;
 import org.junit.Assert;
@@ -23,11 +24,9 @@ public class SequenceTest {
 
     @Test
     public void testGetComplement() throws Exception {
-        String originalsq = "TTTACCCCCAAAAACCCCCAAAAG";
-        String complement = "CTTTTGGGGGTTTTTGGGGGTAAA";
-        Sequence sequence = new Sequence(originalsq, 5, "test");
-        Assert.assertEquals(originalsq, sequence.getRaw());
-        Assert.assertEquals(complement, sequence.getComplement().getRaw());
+        Sequence sequence = new Sequence(TestUtils.VALID_CRISPR_SEQUENCE, 5, "test");
+        Assert.assertEquals(TestUtils.VALID_CRISPR_SEQUENCE, sequence.getRaw());
+        Assert.assertEquals(TestUtils.VALID_CRISPR_SEQUENCE_COMPLEMENT, sequence.getComplement().getRaw());
     }
 
     @Test

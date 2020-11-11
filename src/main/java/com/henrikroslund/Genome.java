@@ -27,14 +27,11 @@ public class Genome {
 
     private static final String OUTPUT_COMPLEMENT_SUFFIX = "_complement";
 
-    private final boolean onlyCrisper;
-
-    public Genome(File file, Boolean onlyCrisper) throws Exception {
-        this.onlyCrisper = onlyCrisper;
+    public Genome(File file, List<SequenceEvaluator> criteria) throws Exception {
         this.outputFilename = file.getName().replace(".fasta", "");
         this.firstRow = Utils.getFirstRow(file.getAbsolutePath());
         this.data = getFileContent(file.getAbsolutePath()).substring(firstRow.length());
-        createSequences();
+        createSequences(criteria);
     }
 
     /**
@@ -53,23 +50,19 @@ public class Genome {
     }
 
     /**
-     * Will create the sequences and store them in the appropriate list
+     * Will create the sequences and store them in the appropriate list.
+     * @param criteria a list of filters to determine if sequence should be added to gnome
      */
-    private void createSequences() {
+    private void createSequences(List<SequenceEvaluator> criteria) {
         log.info("Will process " + data.length() + " potential sequences");
         int stepsPerPercent = data.length() / 100;
         for(int i = 0; i < data.length() - (Sequence.RAW_LENGTH-1); i++) {
             Sequence sequence = new Sequence(data.substring(i, i+Sequence.RAW_LENGTH), i, outputFilename);
-            Sequence complement = sequence.getComplement();
-            if(onlyCrisper) {
-                if(sequence.isCrispr()) {
-                    sequences.add(sequence);
-                }
-                if(complement.isCrispr()) {
-                    complementSequences.add(complement);
-                }
-            } else {
+            if(SequenceEvaluator.matchAll(criteria, sequence)) {
                 sequences.add(sequence);
+            }
+            Sequence complement = sequence.getComplement();
+            if(SequenceEvaluator.matchAll(criteria, complement)) {
                 complementSequences.add(complement);
             }
             if(i % stepsPerPercent == 0) {
@@ -95,7 +88,7 @@ public class Genome {
         writer.close();
     }
 
-    List<Sequence> getMatchingSequences(SequenceEvaluator evaluator) {
+    public List<Sequence> getMatchingSequences(SequenceEvaluator evaluator) {
         List<Sequence> results = Collections.synchronizedList(new ArrayList<>());
         sequences.parallelStream().forEach(sequence -> {
             if(evaluator.evaluate(sequence)) {

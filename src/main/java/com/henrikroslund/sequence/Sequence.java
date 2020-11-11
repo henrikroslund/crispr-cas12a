@@ -31,8 +31,6 @@ public class Sequence implements Comparable<Sequence> {
 
     // First three must be Ts and the forth must Not be T for crispr
     private static final String CRISPR_PAM_MATCH_REGEXP = "^[T]{3}[^T]";
-    @Getter
-    private final boolean isCrispr;
 
     @Getter
     private static final int TARGET_LENGTH = 20;
@@ -54,15 +52,10 @@ public class Sequence implements Comparable<Sequence> {
         this.startIndex = startIndex;
         this.endIndex = startIndex + RAW_LENGTH - 1;
         this.genome = genome;
-        this.isCrispr = getPAM().matches(CRISPR_PAM_MATCH_REGEXP);
     }
 
     public boolean getIsComplement() {
         return isComplement;
-    }
-
-    private String getPAM() {
-        return raw.substring(0, PAM_LENGTH);
     }
 
     private boolean isPamDifferent(Sequence sequence) {

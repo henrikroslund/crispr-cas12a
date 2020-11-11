@@ -1,8 +1,6 @@
 package com.henrikroslund.sequence;
 
 import com.henrikroslund.exceptions.InvalidSequenceException;
-import com.henrikroslund.sequence.CrisprSequence;
-import com.henrikroslund.sequence.Sequence;
 import org.junit.Assert;
 import org.junit.Test;
 

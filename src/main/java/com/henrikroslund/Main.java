@@ -1,6 +1,8 @@
 package com.henrikroslund;
 
+import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.IdenticalEvaluator;
+import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.formats.JakeCsv;
 import com.henrikroslund.genomeFeature.Feature;
 import com.henrikroslund.genomeFeature.GenomeFeature;
@@ -27,6 +29,8 @@ public class Main {
     static ScheduledFuture<?> memUsageHandle = scheduler.scheduleAtFixedRate(Main::printMemoryStat, 1, 5, TimeUnit.SECONDS);
     static long maxMemUsage = 0;
 
+    static final boolean DEBUG = false;
+
     public static void main(String[] args) throws Exception {
         long start = new Date().getTime();
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
@@ -34,11 +38,26 @@ public class Main {
         log.info("Started Crispr-cas12a");
 
         runJake();
+        //runPop();
 
         memUsageHandle.cancel(false);
         scheduler.shutdown();
         printMemoryStat();
         log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
+    }
+
+    private static void runPop() throws Exception {
+        String inputFolder = "input/pop";
+        String outputFolder = "output/" + new Date().toString() + " pop/";
+        String outputInputFolder = outputFolder + "input/";
+        // Create output folders
+        new File(outputFolder).mkdirs();
+        new File(outputInputFolder).mkdirs();
+
+        File suisGenomeFile = new File(inputFolder + "Suis strain SS2-1 sequence.fasta");
+        FileUtils.copyFile(suisGenomeFile, new File(outputFolder+suisGenomeFile.getName()));
+        Genome suis_ss2_1 = new Genome(suisGenomeFile, Collections.singletonList(new CrisprPamEvaluator()));
+
     }
 
     private static void runJake() throws Exception {
@@ -55,9 +74,9 @@ public class Main {
 
         File suisGenomeFile = new File(inputFolder + "Suis strain SS2-1 sequence.fasta");
         FileUtils.copyFile(suisGenomeFile, new File(outputFolder+suisGenomeFile.getName()));
-        Genome suis_ss2_1 = new Genome(suisGenomeFile, true);
+        Genome suis_ss2_1 = new Genome(suisGenomeFile, Collections.singletonList(new CrisprPamEvaluator()));
 
-        List<Genome> genomes = loadGenomes(inputFolder+"genomes/", true);
+        List<Genome> genomes = loadGenomes(inputFolder+"genomes/", Collections.singletonList(new CrisprPamEvaluator()));
         writeGenomes(genomes, outputInputFolder);
 
         processJake(new File(inputFolder+"jake_pam_only_mism_v2.csv"), suis_ss2_1, genomes, outputFolder, genomeFeature);
@@ -91,12 +110,13 @@ public class Main {
         jakeCsv.writeToFile(outputFolder + file.getName().replace(".csv", "_results.csv"));
     }
 
-    private static List<Genome> loadGenomes(String path, boolean onlyCrisper) {
+    private static List<Genome> loadGenomes(String path, List<SequenceEvaluator> criteria) {
         List<Genome> genomes = Collections.synchronizedList(new ArrayList<>());
         File[] genomeFiles = getFilesInFolder(path);
-        Arrays.stream(genomeFiles).parallel().forEach(file -> {
+        (DEBUG ? Arrays.stream(genomeFiles) : Arrays.stream(genomeFiles).parallel())
+                .forEach(file -> {
             try {
-                genomes.add(new Genome(file, onlyCrisper));
+                genomes.add(new Genome(file, criteria));
             } catch (Exception e) {
                 log.severe("Error creating genome from file " + file.getAbsolutePath() + " " + e.getMessage());
                 System.exit(1);
