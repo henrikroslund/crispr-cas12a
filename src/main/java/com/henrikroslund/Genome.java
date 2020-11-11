@@ -25,7 +25,12 @@ public class Genome {
     private final List<Sequence> sequences = new ArrayList<>();
     private final List<Sequence> complementSequences = new ArrayList<>();
 
-    public Genome(File file) throws Exception {
+    private static final String OUTPUT_COMPLEMENT_SUFFIX = "_complement";
+
+    private final boolean onlyCrisper;
+
+    public Genome(File file, Boolean onlyCrisper) throws Exception {
+        this.onlyCrisper = onlyCrisper;
         this.outputFilename = file.getName().replace(".fasta", "");
         this.firstRow = Utils.getFirstRow(file.getAbsolutePath());
         this.data = getFileContent(file.getAbsolutePath()).substring(firstRow.length());
@@ -56,7 +61,7 @@ public class Genome {
         for(int i = 0; i < data.length() - (Sequence.RAW_LENGTH-1); i++) {
             Sequence sequence = new Sequence(data.substring(i, i+Sequence.RAW_LENGTH), i, outputFilename);
             Sequence complement = sequence.getComplement();
-            if(Main.ONLY_CRISPER) {
+            if(onlyCrisper) {
                 if(sequence.isCrispr()) {
                     sequences.add(sequence);
                 }
@@ -74,9 +79,9 @@ public class Genome {
         log.info("Finished processing sequences");
     }
 
-    public void saveSequences() throws  Exception {
-        saveSequence(sequences, Main.OUTPUT_INPUT_FOLDER, outputFilename);
-        saveSequence(complementSequences, Main.OUTPUT_INPUT_FOLDER, outputFilename + Main.OUTPUT_COMPLEMENT_SUFFIX);
+    public void writeSequences(String outputFolder) throws  Exception {
+        saveSequence(sequences, outputFolder, outputFilename);
+        saveSequence(complementSequences, outputFolder, outputFilename + OUTPUT_COMPLEMENT_SUFFIX);
     }
 
     private void saveSequence(List<Sequence> sequences, String outputFolder, String filename) throws Exception {
