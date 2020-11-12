@@ -1,8 +1,6 @@
 package com.henrikroslund;
 
-import com.henrikroslund.evaluators.CrisprPamEvaluator;
-import com.henrikroslund.evaluators.IdenticalEvaluator;
-import com.henrikroslund.evaluators.SequenceEvaluator;
+import com.henrikroslund.evaluators.*;
 import com.henrikroslund.formats.JakeCsv;
 import com.henrikroslund.genomeFeature.Feature;
 import com.henrikroslund.genomeFeature.GenomeFeature;
@@ -37,8 +35,8 @@ public class Main {
 
         log.info("Started Crispr-cas12a");
 
-        runJake();
-        //runPop();
+        //runJake();
+        runPop();
 
         memUsageHandle.cancel(false);
         scheduler.shutdown();
@@ -47,17 +45,53 @@ public class Main {
     }
 
     private static void runPop() throws Exception {
-        String inputFolder = "input/pop";
+        String inputFolder = "input/pop/";
         String outputFolder = "output/" + new Date().toString() + " pop/";
         String outputInputFolder = outputFolder + "input/";
         // Create output folders
         new File(outputFolder).mkdirs();
         new File(outputInputFolder).mkdirs();
 
+        // Read the original suis genome
         File suisGenomeFile = new File(inputFolder + "Suis strain SS2-1 sequence.fasta");
-        FileUtils.copyFile(suisGenomeFile, new File(outputFolder+suisGenomeFile.getName()));
-        Genome suis_ss2_1 = new Genome(suisGenomeFile, Collections.singletonList(new CrisprPamEvaluator()));
+        FileUtils.copyFile(suisGenomeFile, new File(outputInputFolder+suisGenomeFile.getName()));
+        Genome suis_ss2_1 = new Genome(suisGenomeFile, Arrays.asList(
+                new CrisprPamEvaluator(), new NoTripletN1N20Evaluator(), new GCContentN1N20Evaluator()), true);
+        suis_ss2_1.writeSequences(outputInputFolder);
 
+        List<File> files = getFilesInFolder(inputFolder+"genomes/", ".fasta");
+        log.info("Found " + files.size() + " genome files");
+        int count = 0;
+        // Loop over all genomes used for filtering and remove sequences which are disqualified from the original suis
+        for(File file: files) {
+            Genome genome = new Genome(file, Collections.EMPTY_LIST, true);
+            int countBefore = suis_ss2_1.getSequences().size() + suis_ss2_1.getComplementSequences().size();
+            log.info("Suis count remaining: " + countBefore);
+
+            List<Sequence> matches = Collections.synchronizedList(new ArrayList<>());
+            for(Sequence sequence: suis_ss2_1.getSequences()) {
+                matches.addAll(genome.getSequencesMatchingAnyEvaluator(
+                        Arrays.asList(new IdenticalEvaluator(sequence), new PamAndSeedIdenticalMatcher(sequence))));
+            }
+            log.info("Found " + matches.size() + " matches");
+            for(Sequence sequence: matches) {
+                suis_ss2_1.removeMatchingSequences(new IdenticalEvaluator(sequence));
+            }
+
+            matches.clear();
+            for(Sequence sequence: suis_ss2_1.getComplementSequences()) {
+                matches.addAll(genome.getSequencesMatchingAnyEvaluator(
+                        Arrays.asList(new IdenticalEvaluator(sequence), new PamAndSeedIdenticalMatcher(sequence))));
+            }
+            log.info("Found " + matches.size() + " complement matches");
+            for(Sequence sequence: matches) {
+                suis_ss2_1.removeMatchingSequences(new IdenticalEvaluator(sequence));
+            }
+
+            int countAfter = suis_ss2_1.getSequences().size() + suis_ss2_1.getComplementSequences().size();
+            count++;
+            log.info("Processed " + count + "/" + files.size() + " Removed: " + (countBefore - countAfter));
+        }
     }
 
     private static void runJake() throws Exception {
@@ -74,7 +108,7 @@ public class Main {
 
         File suisGenomeFile = new File(inputFolder + "Suis strain SS2-1 sequence.fasta");
         FileUtils.copyFile(suisGenomeFile, new File(outputFolder+suisGenomeFile.getName()));
-        Genome suis_ss2_1 = new Genome(suisGenomeFile, Collections.singletonList(new CrisprPamEvaluator()));
+        Genome suis_ss2_1 = new Genome(suisGenomeFile, Collections.singletonList(new CrisprPamEvaluator()), false);
 
         List<Genome> genomes = loadGenomes(inputFolder+"genomes/", Collections.singletonList(new CrisprPamEvaluator()));
         writeGenomes(genomes, outputInputFolder);
@@ -93,7 +127,10 @@ public class Main {
             List<Sequence> matchedSequences = Collections.synchronizedList(new ArrayList<>());
             AtomicInteger matchedGenomes = new AtomicInteger();
             genomes.parallelStream().forEach(genome -> {
-                List<Sequence> matches = genome.getMatchingSequences(new IdenticalEvaluator(sequence));
+
+                List<Sequence> matches = genome.getSequencesMatchingAnyEvaluator(
+                        Collections.singletonList(new IdenticalEvaluator(sequence)));
+
                 if(!matches.isEmpty()) {
                     matchedSequences.addAll(matches);
                     matchedGenomes.getAndIncrement();
@@ -101,8 +138,11 @@ public class Main {
             });
             if(matchedGenomes.get() == genomes.size()) {
                 log.info("matches in all genomes");
-                List<Sequence> suisMaches = suis_ss2_1.getMatchingSequences(new IdenticalEvaluator(sequence));
+
+                List<Sequence> suisMaches = suis_ss2_1.getSequencesMatchingAnyEvaluator(
+                        Collections.singletonList(new IdenticalEvaluator(sequence)));
                 List<Feature> suisFeatures = genomeFeature.getMatchingFeatures(suisMaches);
+
                 jakeCsv.addMatches(matchedSequences, i, suisMaches, suisFeatures);
             }
             log.info(i + "/" + jakeCsv.getRows().size());
@@ -110,13 +150,13 @@ public class Main {
         jakeCsv.writeToFile(outputFolder + file.getName().replace(".csv", "_results.csv"));
     }
 
-    private static List<Genome> loadGenomes(String path, List<SequenceEvaluator> criteria) {
+    private static List<Genome> loadGenomes(String path, List<SequenceEvaluator> criteria) throws Exception {
         List<Genome> genomes = Collections.synchronizedList(new ArrayList<>());
-        File[] genomeFiles = getFilesInFolder(path);
-        (DEBUG ? Arrays.stream(genomeFiles) : Arrays.stream(genomeFiles).parallel())
+        List<File> genomeFiles = getFilesInFolder(path, ".fasta");
+        (DEBUG ? genomeFiles.stream() : genomeFiles.parallelStream())
                 .forEach(file -> {
             try {
-                genomes.add(new Genome(file, criteria));
+                genomes.add(new Genome(file, criteria, false));
             } catch (Exception e) {
                 log.severe("Error creating genome from file " + file.getAbsolutePath() + " " + e.getMessage());
                 System.exit(1);
@@ -136,13 +176,24 @@ public class Main {
         });
     }
 
-    private static File[] getFilesInFolder(String folder) {
+    private static List<File> getFilesInFolder(String folder, String suffix) throws Exception {
         File directoryPath = new File(folder);
-        return directoryPath.listFiles();
+        List<File> results = new ArrayList();
+        for(File file: directoryPath.listFiles()) {
+            if(file.isFile()) {
+                if(file.getName().endsWith(suffix)) {
+                    results.add(file);
+                }
+            } else if(file.isDirectory()) {
+                results.addAll(getFilesInFolder(file.getPath(), suffix));
+            } else {
+                throw new Exception("Something whent wrong when reading all files");
+            }
+        }
+        return results;
     }
 
     private static void printMemoryStat() {
-        //System.gc();
         Runtime rt = Runtime.getRuntime();
 
         long total = rt.totalMemory() / MEGABYTE_FACTOR;
@@ -151,8 +202,8 @@ public class Main {
         long used = total - free;
         if(used > maxMemUsage) {
             maxMemUsage = used;
+            log.info("Total Memory: " + total + " MB, Used: " + used + ", Free: " + free + ", MaxUsed: " + maxMemUsage);
         }
-        log.info("Total Memory: " + total + " MB, Used: " + used + ", Free: " + free + ", MaxUsed: " + maxMemUsage);
     }
 
 }

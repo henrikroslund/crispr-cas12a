@@ -27,15 +27,12 @@ public class Sequence implements Comparable<Sequence> {
     private final int endIndex;
 
     private static final int PAM_INDEX_START = 0;
-    private static final int PAM_LENGTH = 4;
-
-    // First three must be Ts and the forth must Not be T for crispr
-    private static final String CRISPR_PAM_MATCH_REGEXP = "^[T]{3}[^T]";
+    public static final int PAM_LENGTH = 4;
 
     @Getter
-    private static final int TARGET_LENGTH = 20;
-
+    public static final int TARGET_LENGTH = 20;
     public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
+    public static final int SEED_LENGTH = 6;
 
     @Setter
     private boolean isComplement = false;
@@ -94,7 +91,7 @@ public class Sequence implements Comparable<Sequence> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Sequence sequence = (Sequence) o;
-        return raw.compareTo(sequence.getRaw()) == 0;
+        return raw.equals(sequence.getRaw());
     }
 
     @Override

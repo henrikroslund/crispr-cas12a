@@ -8,9 +8,7 @@ public interface SequenceEvaluator {
     boolean evaluate(Sequence sequence);
 
     /**
-     * Will return true of all the evaluators returns true
-     * @param evaluators
-     * @return
+     * Will return true if ALL the evaluators returns true
      */
     static boolean matchAll(List<SequenceEvaluator> evaluators, Sequence sequence) {
         for(SequenceEvaluator evaluator : evaluators) {
@@ -19,5 +17,17 @@ public interface SequenceEvaluator {
             }
         }
         return true;
-    };
+    }
+
+    /**
+     * Will return true if ANY the evaluators returns true
+     */
+    static boolean matchAny(List<SequenceEvaluator> evaluators, Sequence sequence) {
+        for(SequenceEvaluator evaluator : evaluators) {
+            if(evaluator.evaluate(sequence)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
