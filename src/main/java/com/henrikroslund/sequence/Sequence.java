@@ -21,18 +21,25 @@ public class Sequence implements Comparable<Sequence> {
     @Getter
     private final String raw;
     // Index of start of sequence. The index is always based on the positive strand.
-    @Getter
-    private final int startIndex;
-    @Getter
-    private final int endIndex;
+    protected final int rawHash;
+    protected final int pamHash;
+    protected final int seedHash;
 
     private static final int PAM_INDEX_START = 0;
     public static final int PAM_LENGTH = 4;
 
-    @Getter
-    public static final int TARGET_LENGTH = 20;
+    private static final int SEED_LENGTH = 6;
+    private static final int SEED_INDEX_START = PAM_INDEX_START + PAM_LENGTH;
+    private static final int SEED_INDEX_END = SEED_INDEX_START + SEED_LENGTH;
+
+    private static final int TARGET_LENGTH = 20;
+
     public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
-    public static final int SEED_LENGTH = 6;
+
+    @Getter
+    private final int startIndex;
+    @Getter
+    private final int endIndex;
 
     @Setter
     private boolean isComplement = false;
@@ -46,17 +53,24 @@ public class Sequence implements Comparable<Sequence> {
             throw new InvalidSequenceException("Raw sequence has length " + raw.length() + " but expected " + RAW_LENGTH);
         }
         this.raw = raw;
+        this.rawHash = raw.hashCode();
+        this.pamHash = raw.substring(PAM_INDEX_START, PAM_LENGTH).hashCode();
+        this.seedHash = raw.substring(SEED_INDEX_START, SEED_INDEX_END).hashCode();
         this.startIndex = startIndex;
         this.endIndex = startIndex + RAW_LENGTH - 1;
         this.genome = genome;
     }
 
-    public boolean getIsComplement() {
-        return isComplement;
+    public boolean equalsPam(Sequence sequence) {
+        return this.pamHash == sequence.pamHash;
     }
 
-    private boolean isPamDifferent(Sequence sequence) {
-        return raw.regionMatches(PAM_INDEX_START, sequence.getRaw(), PAM_INDEX_START, PAM_LENGTH);
+    public boolean equalsSeed(Sequence sequence) {
+        return this.seedHash == sequence.seedHash;
+    }
+
+    public boolean getIsComplement() {
+        return isComplement;
     }
 
     public Sequence getComplement() {
@@ -86,17 +100,18 @@ public class Sequence implements Comparable<Sequence> {
         return complementSequence;
     }
 
+    // Equals and hashcode only cares about the raw string
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Sequence sequence = (Sequence) o;
-        return raw.equals(sequence.getRaw());
+        return rawHash == sequence.rawHash;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(raw);
+        return rawHash;
     }
 
     @Override

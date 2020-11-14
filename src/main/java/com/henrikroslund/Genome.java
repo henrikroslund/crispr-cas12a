@@ -1,6 +1,5 @@
 package com.henrikroslund;
 
-import com.henrikroslund.evaluators.IdenticalEvaluator;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
@@ -11,9 +10,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Log
 public class Genome {
@@ -24,13 +21,21 @@ public class Genome {
     private final String data;
 
     @Getter
-    private final List<Sequence> sequences = Collections.synchronizedList(new ArrayList<>());
+    private final Collection<Sequence> sequences;
     @Getter
-    private final List<Sequence> complementSequences = Collections.synchronizedList(new ArrayList<>());
+    private final Collection<Sequence> complementSequences;
 
     private static final String OUTPUT_COMPLEMENT_SUFFIX = "_complement";
 
     public Genome(File file, List<SequenceEvaluator> criteria, boolean skipDuplicates) throws Exception {
+        if(skipDuplicates) {
+            sequences = Collections.synchronizedSet(new HashSet<>());
+            complementSequences = Collections.synchronizedSet(new HashSet<>());
+        } else {
+            sequences = Collections.synchronizedList(new ArrayList<>());
+            complementSequences = Collections.synchronizedList(new ArrayList<>());
+        }
+
         this.outputFilename = file.getName().replace(".fasta", "");
         this.firstRow = Utils.getFirstRow(file.getAbsolutePath());
         this.data = getFileContent(file.getAbsolutePath()).substring(firstRow.length());
@@ -62,17 +67,25 @@ public class Genome {
         int skipCount = 0;
         for(int i = 0; i < data.length() - (Sequence.RAW_LENGTH-1); i++) {
             Sequence sequence = new Sequence(data.substring(i, i+Sequence.RAW_LENGTH), i, outputFilename);
-            if(shouldAdd(criteria, sequence, skipDuplicates)) {
+
+            int beforeCount = sequences.size();
+            if(shouldAdd(criteria, sequence)) {
                 sequences.add(sequence);
-            } else {
+            }
+            if(beforeCount == sequences.size()) {
                 skipCount++;
             }
+
+            beforeCount = complementSequences.size();
             Sequence complement = sequence.getComplement();
-            if(shouldAdd(criteria, complement, skipDuplicates)) {
+            if(shouldAdd(criteria, complement)) {
                 complementSequences.add(complement);
-            } else {
+            }
+            if(beforeCount == complementSequences.size()) {
                 skipCount++;
             }
+
+
             if(i % stepsPerPercent == 0) {
                 log.info("Creating Sequences " + i/stepsPerPercent + "%");
             }
@@ -80,11 +93,8 @@ public class Genome {
         log.info("Finished creating " + getTotalSequences() + " sequences for " + outputFilename + " with " + skipCount + " skipped ");
     }
 
-    private boolean shouldAdd(List<SequenceEvaluator> criteria, Sequence sequence, boolean skipDuplicates) {
+    private boolean shouldAdd(List<SequenceEvaluator> criteria, Sequence sequence) {
         if(SequenceEvaluator.matchAll(criteria, sequence)) {
-            if(skipDuplicates) {
-                return getSequencesMatchingAnyEvaluator(Collections.singletonList(new IdenticalEvaluator(sequence))).isEmpty();
-            }
             return true;
         }
         return false;
@@ -95,7 +105,7 @@ public class Genome {
         saveSequence(complementSequences, outputFolder, outputFilename + OUTPUT_COMPLEMENT_SUFFIX);
     }
 
-    private void saveSequence(List<Sequence> sequences, String outputFolder, String filename) throws Exception {
+    private void saveSequence(Collection<Sequence> sequences, String outputFolder, String filename) throws Exception {
         BufferedWriter writer = new BufferedWriter(new FileWriter(outputFolder + filename, true));
         writer.append(firstRow);
 
@@ -111,15 +121,37 @@ public class Genome {
      */
     public List<Sequence> getSequencesMatchingAnyEvaluator(List<SequenceEvaluator> evaluators) {
         List<Sequence> results = Collections.synchronizedList(new ArrayList<>());
-        sequences.parallelStream().forEach(sequence -> {
-            if(SequenceEvaluator.matchAny(evaluators, sequence))
+        sequences.stream().forEach(sequence -> {
+            if(SequenceEvaluator.matchAny(evaluators, sequence)) {
                 results.add(sequence);
+            }
         });
-        complementSequences.parallelStream().forEach(sequence -> {
-            if(SequenceEvaluator.matchAny(evaluators, sequence))
+        complementSequences.stream().forEach(sequence -> {
+            if(SequenceEvaluator.matchAny(evaluators, sequence)) {
                 results.add(sequence);
+            }
         });
         return results;
+    }
+
+    public boolean hasAnyMatchToAnyEvaluator(List<SequenceEvaluator> evaluators) {
+        for(Sequence sequence : sequences) {
+            if (SequenceEvaluator.matchAny(evaluators, sequence)) {
+                return true;
+            }
+        }
+        for(Sequence sequence : complementSequences) {
+            if (SequenceEvaluator.matchAny(evaluators, sequence)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean removeAll(List<Sequence> sequences) {
+        boolean removed = this.sequences.removeAll(sequences);
+        boolean removedComplement = complementSequences.removeAll(sequences);
+        return removed || removedComplement;
     }
 
     public boolean removeMatchingSequences(SequenceEvaluator evaluator) {

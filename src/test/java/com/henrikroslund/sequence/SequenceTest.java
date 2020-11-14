@@ -30,6 +30,22 @@ public class SequenceTest {
     }
 
     @Test
+    public void testPamNotEqual() {
+        Sequence sequence1 = new Sequence("CGCTATCAAGAATGTTAGTATCAA", 5, "test");
+        Sequence sequence2 = new Sequence("TTTGCCTATACAAGAGGACCGGCT", 10, "test");
+        Assert.assertFalse(sequence1.equalsPam(sequence2));
+    }
+
+    @Test
+    public void testHashCalculations() {
+        String pam = "CGCG";
+        String seed = "TATATA";
+        Sequence sequence1 = new Sequence(pam + seed + "AATGTTAGTATCAA", 5, "test");
+        Assert.assertEquals(pam.hashCode(), sequence1.pamHash);
+        Assert.assertEquals(seed.hashCode(), sequence1.seedHash);
+    }
+
+    @Test
     public void testCompareTo() {
         String originalsq = "TTTACCCCCAAAAACCCCCAAAAG";
         Sequence sequence1 = new Sequence(originalsq, 5, "test");

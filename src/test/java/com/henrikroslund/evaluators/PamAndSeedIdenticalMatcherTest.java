@@ -11,6 +11,7 @@ public class PamAndSeedIdenticalMatcherTest {
     public void testEvaluateEqual() {
         Sequence sequence = new Sequence("TTTAGCGCGCGCGTTTTTTTTTTT", 5, "test");
         assertTrue(new IdenticalEvaluator(sequence).evaluate(sequence));
+        assertTrue(new IdenticalEvaluator(sequence).evaluate(new Sequence("TTTAGCGCGCGCGTTTTTTTTTTT", 5, "test")));
     }
 
     @Test

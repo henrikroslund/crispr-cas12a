@@ -12,6 +12,6 @@ public class IdenticalEvaluator implements SequenceEvaluator {
 
     @Override
     public boolean evaluate(Sequence sequence) {
-        return this.sequence.getRaw().equals(sequence.getRaw());
+        return this.sequence.equals(sequence);
     }
 }

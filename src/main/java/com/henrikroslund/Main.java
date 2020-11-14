@@ -69,24 +69,32 @@ public class Main {
             log.info("Suis count remaining: " + countBefore);
 
             List<Sequence> matches = Collections.synchronizedList(new ArrayList<>());
-            for(Sequence sequence: suis_ss2_1.getSequences()) {
-                matches.addAll(genome.getSequencesMatchingAnyEvaluator(
-                        Arrays.asList(new IdenticalEvaluator(sequence), new PamAndSeedIdenticalMatcher(sequence))));
-            }
-            log.info("Found " + matches.size() + " matches");
-            for(Sequence sequence: matches) {
-                suis_ss2_1.removeMatchingSequences(new IdenticalEvaluator(sequence));
-            }
+            AtomicInteger index = new AtomicInteger(0);
+            suis_ss2_1.getSequences().parallelStream().forEach(sequence -> {
+                if(genome.hasAnyMatchToAnyEvaluator(
+                        Arrays.asList(new IdenticalEvaluator(sequence), new PamAndSeedIdenticalMatcher(sequence)))) {
+                    matches.add(sequence);
+                }
+                index.incrementAndGet();
+                log.info(index + "/" + suis_ss2_1.getSequences().size());
+            });
+
+            log.info("Found " + matches.size() + " matches in " + genome.getOutputFilename());
+            suis_ss2_1.removeAll(matches);
 
             matches.clear();
-            for(Sequence sequence: suis_ss2_1.getComplementSequences()) {
-                matches.addAll(genome.getSequencesMatchingAnyEvaluator(
-                        Arrays.asList(new IdenticalEvaluator(sequence), new PamAndSeedIdenticalMatcher(sequence))));
-            }
+            index.set(0);
+            suis_ss2_1.getComplementSequences().parallelStream().forEach(sequence -> {
+                if(genome.hasAnyMatchToAnyEvaluator(
+                        Arrays.asList(new IdenticalEvaluator(sequence), new PamAndSeedIdenticalMatcher(sequence)))) {
+                    matches.add(sequence);
+                }
+                index.incrementAndGet();
+                log.info(index + "/" + suis_ss2_1.getComplementSequences().size());
+            });
+
             log.info("Found " + matches.size() + " complement matches");
-            for(Sequence sequence: matches) {
-                suis_ss2_1.removeMatchingSequences(new IdenticalEvaluator(sequence));
-            }
+            suis_ss2_1.removeAll(matches);
 
             int countAfter = suis_ss2_1.getSequences().size() + suis_ss2_1.getComplementSequences().size();
             count++;
@@ -127,10 +135,8 @@ public class Main {
             List<Sequence> matchedSequences = Collections.synchronizedList(new ArrayList<>());
             AtomicInteger matchedGenomes = new AtomicInteger();
             genomes.parallelStream().forEach(genome -> {
-
                 List<Sequence> matches = genome.getSequencesMatchingAnyEvaluator(
                         Collections.singletonList(new IdenticalEvaluator(sequence)));
-
                 if(!matches.isEmpty()) {
                     matchedSequences.addAll(matches);
                     matchedGenomes.getAndIncrement();
