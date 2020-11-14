@@ -7,6 +7,9 @@ import java.util.List;
 public interface SequenceEvaluator {
     boolean evaluate(Sequence sequence);
 
+    Sequence getMatch();
+    void setMatch(Sequence sequence);
+
     /**
      * Will return true if ALL the evaluators returns true
      */
@@ -22,12 +25,13 @@ public interface SequenceEvaluator {
     /**
      * Will return true if ANY the evaluators returns true
      */
-    static boolean matchAny(List<SequenceEvaluator> evaluators, Sequence sequence) {
+    static SequenceEvaluator matchAny(List<SequenceEvaluator> evaluators, Sequence sequence) {
         for(SequenceEvaluator evaluator : evaluators) {
             if(evaluator.evaluate(sequence)) {
-                return true;
+                return evaluator;
             }
         }
-        return false;
+        return null;
     }
+
 }

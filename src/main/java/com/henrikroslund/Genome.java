@@ -122,30 +122,35 @@ public class Genome {
     public List<Sequence> getSequencesMatchingAnyEvaluator(List<SequenceEvaluator> evaluators) {
         List<Sequence> results = Collections.synchronizedList(new ArrayList<>());
         sequences.stream().forEach(sequence -> {
-            if(SequenceEvaluator.matchAny(evaluators, sequence)) {
+            if(SequenceEvaluator.matchAny(evaluators, sequence) != null) {
                 results.add(sequence);
             }
         });
         complementSequences.stream().forEach(sequence -> {
-            if(SequenceEvaluator.matchAny(evaluators, sequence)) {
+            if(SequenceEvaluator.matchAny(evaluators, sequence) != null) {
                 results.add(sequence);
             }
         });
         return results;
     }
 
-    public boolean hasAnyMatchToAnyEvaluator(List<SequenceEvaluator> evaluators) {
+    public SequenceEvaluator hasAnyMatchToAnyEvaluator(List<SequenceEvaluator> evaluators) {
+        SequenceEvaluator matchingEvaluator = null;
         for(Sequence sequence : sequences) {
-            if (SequenceEvaluator.matchAny(evaluators, sequence)) {
-                return true;
+            matchingEvaluator = SequenceEvaluator.matchAny(evaluators, sequence);
+            if(matchingEvaluator != null) {
+                matchingEvaluator.setMatch(sequence);
+                return matchingEvaluator;
             }
         }
         for(Sequence sequence : complementSequences) {
-            if (SequenceEvaluator.matchAny(evaluators, sequence)) {
-                return true;
+            matchingEvaluator = SequenceEvaluator.matchAny(evaluators, sequence);
+            if(matchingEvaluator != null) {
+                matchingEvaluator.setMatch(sequence);
+                return matchingEvaluator;
             }
         }
-        return false;
+        return null;
     }
 
     public boolean removeAll(List<Sequence> sequences) {

@@ -10,7 +10,9 @@ import com.opencsv.exceptions.CsvException;
 import lombok.extern.java.Log;
 import org.apache.commons.io.FileUtils;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -68,29 +70,45 @@ public class Main {
             int countBefore = suis_ss2_1.getSequences().size() + suis_ss2_1.getComplementSequences().size();
             log.info("Suis count remaining: " + countBefore);
 
+            BufferedWriter writer = new BufferedWriter(new FileWriter(outputFolder + "suis_sequences_removed_by_"+genome.getOutputFilename(), true));
+            writer.append("Sequences in this file are suis ss2-1 which were removed by matches in genome " + genome.getOutputFilename() + "\n");
+
             List<Sequence> matches = Collections.synchronizedList(new ArrayList<>());
             AtomicInteger index = new AtomicInteger(0);
             suis_ss2_1.getSequences().parallelStream().forEach(sequence -> {
-                if(genome.hasAnyMatchToAnyEvaluator(
-                        Arrays.asList(new IdenticalEvaluator(sequence), new PamAndSeedIdenticalMatcher(sequence)))) {
+                SequenceEvaluator matchingEvaluator = genome.hasAnyMatchToAnyEvaluator(
+                        Arrays.asList(new IdenticalEvaluator(sequence), new PamAndSeedIdenticalMatcher(sequence)));
+                if(matchingEvaluator != null)
+                {
+                    try {
+                        writer.append(sequence.toString() + " removed by " + matchingEvaluator.toString() + "\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
                     matches.add(sequence);
                 }
                 index.incrementAndGet();
-                log.info(index + "/" + suis_ss2_1.getSequences().size());
+                log.info(index + "/" + (suis_ss2_1.getSequences().size()+suis_ss2_1.getComplementSequences().size()));
             });
 
             log.info("Found " + matches.size() + " matches in " + genome.getOutputFilename());
-            suis_ss2_1.removeAll(matches);
 
-            matches.clear();
-            index.set(0);
             suis_ss2_1.getComplementSequences().parallelStream().forEach(sequence -> {
-                if(genome.hasAnyMatchToAnyEvaluator(
-                        Arrays.asList(new IdenticalEvaluator(sequence), new PamAndSeedIdenticalMatcher(sequence)))) {
+                SequenceEvaluator matchingEvaluator = genome.hasAnyMatchToAnyEvaluator(
+                        Arrays.asList(new IdenticalEvaluator(sequence), new PamAndSeedIdenticalMatcher(sequence)));
+                if(matchingEvaluator != null)
+                {
+                    try {
+                        writer.append(sequence.toString() + " removed by " + matchingEvaluator.toString() + "\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
                     matches.add(sequence);
                 }
                 index.incrementAndGet();
-                log.info(index + "/" + suis_ss2_1.getComplementSequences().size());
+                log.info(index + "/" + (suis_ss2_1.getSequences().size()+suis_ss2_1.getComplementSequences().size()));
             });
 
             log.info("Found " + matches.size() + " complement matches");
@@ -99,7 +117,10 @@ public class Main {
             int countAfter = suis_ss2_1.getSequences().size() + suis_ss2_1.getComplementSequences().size();
             count++;
             log.info("Processed " + count + "/" + files.size() + " Removed: " + (countBefore - countAfter));
+
+            writer.close();
         }
+        suis_ss2_1.writeSequences(outputFolder);
     }
 
     private static void runJake() throws Exception {
