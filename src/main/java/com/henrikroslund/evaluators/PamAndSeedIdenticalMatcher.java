@@ -2,15 +2,13 @@ package com.henrikroslund.evaluators;
 
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
-import lombok.Setter;
 
 public class PamAndSeedIdenticalMatcher implements SequenceEvaluator {
 
     private final Sequence sequence;
 
     @Getter
-    @Setter
-    private Sequence match;
+    private Sequence match = null;
 
 
     public PamAndSeedIdenticalMatcher(Sequence sequence) {
@@ -19,7 +17,13 @@ public class PamAndSeedIdenticalMatcher implements SequenceEvaluator {
 
     @Override
     public boolean evaluate(Sequence sequence) {
-        return this.sequence.equalsPam(sequence) && this.sequence.equalsSeed(sequence);
+        boolean result = this.sequence.equalsPam(sequence) && this.sequence.equalsSeed(sequence);
+        if(result) {
+            match = sequence;
+        } else {
+            match = null;
+        }
+        return result;
     }
 
     @Override

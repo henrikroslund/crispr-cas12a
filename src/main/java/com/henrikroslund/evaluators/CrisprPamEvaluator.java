@@ -2,7 +2,6 @@ package com.henrikroslund.evaluators;
 
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
-import lombok.Setter;
 
 public class CrisprPamEvaluator implements SequenceEvaluator {
 
@@ -10,12 +9,16 @@ public class CrisprPamEvaluator implements SequenceEvaluator {
     private static final String CRISPR_PAM_MATCH_REGEXP = "^[T]{3}[^T].*";
 
     @Getter
-    @Setter
-    private Sequence match;
+    private Sequence match = null;
 
     @Override
     public boolean evaluate(Sequence sequence) {
         boolean result = sequence.getRaw().matches(CRISPR_PAM_MATCH_REGEXP);
+        if(result) {
+            match = sequence;
+        } else {
+            match = null;
+        }
         return result;
     }
 

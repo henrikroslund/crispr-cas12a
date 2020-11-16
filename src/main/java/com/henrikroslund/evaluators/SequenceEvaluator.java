@@ -8,7 +8,6 @@ public interface SequenceEvaluator {
     boolean evaluate(Sequence sequence);
 
     Sequence getMatch();
-    void setMatch(Sequence sequence);
 
     /**
      * Will return true if ALL the evaluators returns true

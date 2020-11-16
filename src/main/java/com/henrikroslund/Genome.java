@@ -139,14 +139,12 @@ public class Genome {
         for(Sequence sequence : sequences) {
             matchingEvaluator = SequenceEvaluator.matchAny(evaluators, sequence);
             if(matchingEvaluator != null) {
-                matchingEvaluator.setMatch(sequence);
                 return matchingEvaluator;
             }
         }
         for(Sequence sequence : complementSequences) {
             matchingEvaluator = SequenceEvaluator.matchAny(evaluators, sequence);
             if(matchingEvaluator != null) {
-                matchingEvaluator.setMatch(sequence);
                 return matchingEvaluator;
             }
         }

@@ -2,7 +2,6 @@ package com.henrikroslund.evaluators;
 
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
-import lombok.Setter;
 
 public class GCContentN1N20Evaluator implements SequenceEvaluator {
 
@@ -10,8 +9,7 @@ public class GCContentN1N20Evaluator implements SequenceEvaluator {
     private static final int HIGH_LIMIT = 11; //20*0.55
 
     @Getter
-    @Setter
-    private Sequence match;
+    private Sequence match = null;
 
     @Override
     public boolean evaluate(Sequence sequence) {
@@ -22,7 +20,13 @@ public class GCContentN1N20Evaluator implements SequenceEvaluator {
                 count++;
             }
         }
-        return count >= LOW_LIMIT && count <= HIGH_LIMIT;
+        boolean result = count >= LOW_LIMIT && count <= HIGH_LIMIT;
+        if(result) {
+            match = sequence;
+        } else {
+            match = null;
+        }
+        return result;
     }
 
     @Override

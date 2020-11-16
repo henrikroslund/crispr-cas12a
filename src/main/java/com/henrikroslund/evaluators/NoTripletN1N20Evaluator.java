@@ -2,7 +2,6 @@ package com.henrikroslund.evaluators;
 
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.regex.Pattern;
 
@@ -12,15 +11,20 @@ public class NoTripletN1N20Evaluator implements SequenceEvaluator {
     private static final Pattern TARGET_MATCH_TRIPLETS_CONTENT_PATTERN = Pattern.compile("(?:....)(.)\\1{2}");
 
     @Getter
-    @Setter
-    private Sequence match;
+    private Sequence match = null;
 
     /**
      * Returns true of there are no tripples in the N1 to N20, otherwise false
      */
     @Override
     public boolean evaluate(Sequence sequence) {
-        return !TARGET_MATCH_TRIPLETS_CONTENT_PATTERN.matcher(sequence.getRaw()).lookingAt();
+        boolean result = !TARGET_MATCH_TRIPLETS_CONTENT_PATTERN.matcher(sequence.getRaw()).lookingAt();
+        if(result) {
+            match = sequence;
+        } else {
+            match = null;
+        }
+        return result;
     }
 
     @Override

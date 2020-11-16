@@ -2,16 +2,13 @@ package com.henrikroslund.evaluators;
 
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
-import lombok.Setter;
 
 public class IdenticalEvaluator implements SequenceEvaluator {
 
-    Sequence sequence;
+    final Sequence sequence;
 
     @Getter
-    @Setter
-    private Sequence match;
-
+    private Sequence match = null;
 
     public IdenticalEvaluator(Sequence sequence) {
         this.sequence = sequence;
@@ -19,7 +16,13 @@ public class IdenticalEvaluator implements SequenceEvaluator {
 
     @Override
     public boolean evaluate(Sequence sequence) {
-        return this.sequence.equals(sequence);
+        boolean result = this.sequence.equals(sequence);
+        if(result) {
+            match = sequence;
+        } else {
+            match = null;
+        }
+        return result;
     }
 
     @Override
