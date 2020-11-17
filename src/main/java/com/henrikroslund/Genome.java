@@ -116,6 +116,10 @@ public class Genome {
         writer.close();
     }
 
+    public boolean exists(Sequence sequence) {
+        return sequences.contains(sequence);
+    }
+
     /**
      * Will return sequences that match any of the evaluators
      */

@@ -1,6 +1,8 @@
 package com.henrikroslund;
 
 import com.henrikroslund.evaluators.*;
+import com.henrikroslund.evaluators.comparisons.ComparisonEvaluator;
+import com.henrikroslund.evaluators.comparisons.SingleMismatch;
 import com.henrikroslund.formats.JakeCsv;
 import com.henrikroslund.genomeFeature.Feature;
 import com.henrikroslund.genomeFeature.GenomeFeature;
@@ -46,6 +48,9 @@ public class Main {
         log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
     }
 
+    // TODO - I could actually remove duplicate by just searching the whole raw string in the genome... will be so much faster.
+    // but I have to create the complement also because I don't have that one...
+
     private static void runPop() throws Exception {
         String inputFolder = "input/pop/";
         String outputFolder = "output/" + new Date().toString() + " pop/";
@@ -63,11 +68,11 @@ public class Main {
 
         List<File> files = getFilesInFolder(inputFolder+"genomes/", ".fasta");
         log.info("Found " + files.size() + " genome files");
-        int count = 0;
+        int numberOfFilesProcessed = 0;
         // Loop over all genomes used for filtering and remove sequences which are disqualified from the original suis
         for(File file: files) {
             Genome genome = new Genome(file, Collections.EMPTY_LIST, true);
-            int countBefore = suis_ss2_1.getSequences().size() + suis_ss2_1.getComplementSequences().size();
+            int countBefore = suis_ss2_1.getTotalSequences();
             log.info("Suis count remaining: " + countBefore);
 
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputFolder + "suis_sequences_removed_by_"+genome.getOutputFilename(), true));
@@ -75,52 +80,59 @@ public class Main {
 
             List<Sequence> matches = Collections.synchronizedList(new ArrayList<>());
             AtomicInteger index = new AtomicInteger(0);
-            suis_ss2_1.getSequences().parallelStream().forEach(sequence -> {
-                SequenceEvaluator matchingEvaluator = genome.hasAnyMatchToAnyEvaluator(
-                        Arrays.asList(new IdenticalEvaluator(sequence), new PamAndSeedIdenticalMatcher(sequence)));
-                if(matchingEvaluator != null)
-                {
-                    try {
-                        writer.append(sequence.toString() + " removed by " + matchingEvaluator.toString() + "\n");
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        System.exit(1);
-                    }
-                    matches.add(sequence);
-                }
-                index.incrementAndGet();
-                log.info(index + "/" + (suis_ss2_1.getSequences().size()+suis_ss2_1.getComplementSequences().size()));
-            });
 
+            removeIdentical(suis_ss2_1.getSequences(), genome, writer, matches, index);
+            //popProcessGenome(suis_ss2_1.getSequences(), genome, writer, matches, index);
             log.info("Found " + matches.size() + " matches in " + genome.getOutputFilename());
-
-            suis_ss2_1.getComplementSequences().parallelStream().forEach(sequence -> {
-                SequenceEvaluator matchingEvaluator = genome.hasAnyMatchToAnyEvaluator(
-                        Arrays.asList(new IdenticalEvaluator(sequence), new PamAndSeedIdenticalMatcher(sequence)));
-                if(matchingEvaluator != null)
-                {
-                    try {
-                        writer.append(sequence.toString() + " removed by " + matchingEvaluator.toString() + "\n");
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        System.exit(1);
-                    }
-                    matches.add(sequence);
-                }
-                index.incrementAndGet();
-                log.info(index + "/" + (suis_ss2_1.getSequences().size()+suis_ss2_1.getComplementSequences().size()));
-            });
-
+            index.set(0);
+            removeIdentical(suis_ss2_1.getComplementSequences(), genome, writer, matches, index);
+            //popProcessGenome(suis_ss2_1.getComplementSequences(), genome, writer, matches, index);
             log.info("Found " + matches.size() + " complement matches");
+
             suis_ss2_1.removeAll(matches);
 
-            int countAfter = suis_ss2_1.getSequences().size() + suis_ss2_1.getComplementSequences().size();
-            count++;
-            log.info("Processed " + count + "/" + files.size() + " Removed: " + (countBefore - countAfter));
+            int countAfter = suis_ss2_1.getTotalSequences();
+            numberOfFilesProcessed++;
+            log.info("Processed " + numberOfFilesProcessed + "/" + files.size() + " Removed: " + (countBefore - countAfter));
 
             writer.close();
         }
         suis_ss2_1.writeSequences(outputFolder);
+    }
+    private static void removeIdentical(Collection<Sequence> suis_ss2_1, Genome genome, BufferedWriter writer, List<Sequence> matches, AtomicInteger index) {
+        suis_ss2_1.parallelStream().forEach(sequence -> {
+            if(genome.exists(sequence))
+            {
+                try {
+                    writer.append(sequence.toString() + " removed because an identical sequence exists\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+                matches.add(sequence);
+            }
+            index.incrementAndGet();
+            log.info(index + "/" + (suis_ss2_1.size()));
+        });
+    }
+
+    private static void popProcessGenome(Collection<Sequence> suis_ss2_1, Genome genome, BufferedWriter writer, List<Sequence> matches, AtomicInteger index) {
+        suis_ss2_1.parallelStream().forEach(sequence -> {
+            SequenceEvaluator matchingEvaluator = genome.hasAnyMatchToAnyEvaluator(Arrays.asList(
+                    new IdenticalEvaluator(sequence)));
+            if(matchingEvaluator != null)
+            {
+                try {
+                    writer.append(sequence.toString() + " removed by " + matchingEvaluator.toString() + "\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+                matches.add(sequence);
+            }
+            index.incrementAndGet();
+            log.info(index + "/" + (suis_ss2_1.size()));
+        });
     }
 
     private static void runJake() throws Exception {

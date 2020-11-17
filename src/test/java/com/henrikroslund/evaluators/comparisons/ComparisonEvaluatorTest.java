@@ -1,4 +1,4 @@
-package com.henrikroslund.evaluators;
+package com.henrikroslund.evaluators.comparisons;
 
 import com.henrikroslund.TestUtils;
 import com.henrikroslund.sequence.Sequence;
@@ -15,11 +15,9 @@ public class ComparisonEvaluatorTest {
 
         assertTrue(evaluator.evaluate(sequence));
         assertSame(sequence, evaluator.getMatch());
-        assertEquals(24, evaluator.getMatches());
 
         assertFalse(evaluator.evaluate(new Sequence("ATTTTTTTTTTTTTTTTTTTTTTT", 0, "Test")));
         assertNull(evaluator.getMatch());
-        assertEquals(-1, evaluator.getMatches());
     }
 
     @Test
@@ -28,7 +26,6 @@ public class ComparisonEvaluatorTest {
         ComparisonEvaluator evaluator = new ComparisonEvaluator(sequence, 0, 0);
         assertTrue(evaluator.evaluate(new Sequence("AAAAAAAAAAAAAAAAAAAAAAAA", 0, "Test")));
         assertNotSame(sequence, evaluator.getMatch());
-        assertEquals(0, evaluator.getMatches());
     }
 
     @Test

@@ -25,14 +25,14 @@ public class Sequence implements Comparable<Sequence> {
     protected final int pamHash;
     protected final int seedHash;
 
-    private static final int PAM_INDEX_START = 0;
+    public static final int PAM_INDEX_START = 0;
     public static final int PAM_LENGTH = 4;
 
-    private static final int SEED_LENGTH = 6;
-    private static final int SEED_INDEX_START = PAM_INDEX_START + PAM_LENGTH;
-    private static final int SEED_INDEX_END = SEED_INDEX_START + SEED_LENGTH;
+    public static final int SEED_LENGTH = 6;
+    public static final int SEED_INDEX_START = PAM_INDEX_START + PAM_LENGTH;
+    public static final int SEED_INDEX_END = SEED_INDEX_START + SEED_LENGTH;
 
-    private static final int TARGET_LENGTH = 20;
+    public static final int TARGET_LENGTH = 20;
 
     public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
 
