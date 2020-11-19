@@ -5,12 +5,14 @@ import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Stream;
 
 @Log
 public class Genome {
@@ -18,7 +20,7 @@ public class Genome {
     @Getter
     private final String outputFilename;
     private final String firstRow;
-    private final String data;
+    private String data;
 
     @Getter
     private final Collection<Sequence> sequences;
@@ -27,7 +29,10 @@ public class Genome {
 
     private static final String OUTPUT_COMPLEMENT_SUFFIX = "_complement";
 
-    public Genome(File file, List<SequenceEvaluator> criteria, boolean skipDuplicates) throws Exception {
+    private final boolean skipDuplicates;
+
+    public Genome(boolean skipDuplicates, String outputFilename, String firstRow) {
+        this.skipDuplicates = skipDuplicates;
         if(skipDuplicates) {
             sequences = Collections.synchronizedSet(new HashSet<>());
             complementSequences = Collections.synchronizedSet(new HashSet<>());
@@ -35,11 +40,21 @@ public class Genome {
             sequences = Collections.synchronizedList(new ArrayList<>());
             complementSequences = Collections.synchronizedList(new ArrayList<>());
         }
+        this.outputFilename = outputFilename;
+        this.firstRow = firstRow;
+    }
 
-        this.outputFilename = file.getName().replace(".fasta", "");
-        this.firstRow = Utils.getFirstRow(file.getAbsolutePath());
+    public Genome(File file, List<SequenceEvaluator> criteria, boolean skipDuplicates) throws Exception {
+        this(skipDuplicates, file.getName().replace(".fasta", ""), Utils.getFirstRow(file.getAbsolutePath()));
         this.data = getFileContent(file.getAbsolutePath()).substring(firstRow.length());
-        createSequences(criteria, skipDuplicates);
+        createSequences(criteria);
+    }
+
+    public Collection<Sequence> getAllSequences() {
+        Collection<Sequence> result = skipDuplicates ? Collections.synchronizedSet(new HashSet<>()) : Collections.synchronizedList(new ArrayList<>());
+        result.addAll(sequences);
+        result.addAll(complementSequences);
+        return result;
     }
 
     /**
@@ -61,7 +76,7 @@ public class Genome {
      * Will create the sequences and store them in the appropriate list.
      * @param criteria a list of filters to determine if sequence should be added to gnome
      */
-    private void createSequences(List<SequenceEvaluator> criteria, boolean skipDuplicates) {
+    private void createSequences(List<SequenceEvaluator> criteria) {
         log.info("Will process " + data.length() + " potential sequences");
         int stepsPerPercent = data.length() / 100;
         int skipCount = 0;
@@ -101,8 +116,23 @@ public class Genome {
     }
 
     public void writeSequences(String outputFolder) throws  Exception {
-        saveSequence(sequences, outputFolder, outputFilename);
-        saveSequence(complementSequences, outputFolder, outputFilename + OUTPUT_COMPLEMENT_SUFFIX);
+        saveSequence(getAllSequences(), outputFolder, outputFilename);
+        //saveSequence(complementSequences, outputFolder, outputFilename + OUTPUT_COMPLEMENT_SUFFIX);
+    }
+
+    public static Genome loadGenome(File file) throws Exception {
+        Path filePath = Path.of(file.getAbsolutePath());
+        BufferedReader reader = Files.newBufferedReader(filePath);
+        Genome genome = new Genome(true, file.getName(), reader.readLine());
+        reader.lines().forEach(line -> {
+            Sequence sequence = Sequence.parseFromToString(line);
+            if(sequence.getIsComplement()) {
+                genome.complementSequences.add(sequence);
+            } else {
+                genome.sequences.add(sequence);
+            }
+        });
+        return genome;
     }
 
     private void saveSequence(Collection<Sequence> sequences, String outputFolder, String filename) throws Exception {
@@ -117,6 +147,9 @@ public class Genome {
     }
 
     public boolean exists(Sequence sequence) {
+        if(!skipDuplicates) {
+            throw new IllegalArgumentException("Not supported");
+        }
         return sequences.contains(sequence);
     }
 

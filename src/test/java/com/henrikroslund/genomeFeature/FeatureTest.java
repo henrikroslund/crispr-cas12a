@@ -33,7 +33,7 @@ public class FeatureTest {
         Feature feature = new Feature(100,200,"", new ArrayList<>());
         Sequence sequence = new Sequence("TTTACCCCCAAAAACCCCCAAAAA", 200, "");
         assertTrue(feature.isMatch(sequence));
-        sequence.setComplement(true);
+        sequence = new Sequence("TTTACCCCCAAAAACCCCCAAAAA", 200, "", true);
         assertFalse(feature.isMatch(sequence));
     }
 }

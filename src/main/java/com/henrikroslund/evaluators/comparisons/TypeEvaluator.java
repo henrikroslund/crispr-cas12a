@@ -4,10 +4,11 @@ import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
 
-public class ComparisonEvaluator implements SequenceEvaluator {
+public class TypeEvaluator implements SequenceEvaluator {
 
     public enum Type {
-        TYPE_DISCARD,
+        TYPE_DISCARD_A,
+        TYPE_DISCARD_B,
         TYPE_1,
         TYPE_2,
         TYPE_3,
@@ -15,8 +16,6 @@ public class ComparisonEvaluator implements SequenceEvaluator {
     }
 
     final Sequence sequence;
-    final int minMismatches;
-    final int maxMismatches;
 
     @Getter
     private Sequence match = null;
@@ -25,17 +24,32 @@ public class ComparisonEvaluator implements SequenceEvaluator {
     @Getter
     private Type matchType = null;
 
-    public ComparisonEvaluator(Sequence sequence, int minMismatches, int maxMismatches) {
+    public TypeEvaluator(Sequence sequence) {
         this.sequence = sequence;
-        if(minMismatches > maxMismatches) {
-            throw new IllegalArgumentException("minMatches should not be greater than maxMatches");
-        }
-        this.minMismatches = minMismatches;
-        this.maxMismatches = maxMismatches;
     }
 
+    private void reset() {
+        match = null;
+        mismatches = -1;
+        matchType = null;
+    }
+
+    public boolean isDiscardType() {
+        return matchType == Type.TYPE_DISCARD_A || matchType == Type.TYPE_DISCARD_B;
+    }
+
+    // Will return true if the evaluation resulted in a matchType
     @Override
     public boolean evaluate(Sequence sequence) {
+        reset();
+
+        // Check complete match
+        if(sequence.equals(this.sequence)) {
+            match = sequence;
+            mismatches = 0;
+            matchType = Type.TYPE_DISCARD_A;
+        }
+
         int numberOfMismatches = 0;
 
         // Check pam
@@ -69,21 +83,22 @@ public class ComparisonEvaluator implements SequenceEvaluator {
             }
         }
 
-        if(numberOfMismatches >= minMismatches && numberOfMismatches <= maxMismatches) {
-            this.match = sequence;
-            this.mismatches = numberOfMismatches;
-            this.matchType = getType(pamMismatches, seedMismatchesInARow);
-            return true;
-        } else {
-            this.mismatches = -1;
-            this.match = null;
-            this.matchType = null;
-            return false;
-        }
+        matchType = getType(pamMismatches, seedMismatchesInARow, numberOfMismatches);
+        match = sequence;
+        mismatches = numberOfMismatches;
+        return matchType != null;
     }
 
-    private Type getType(int pamMismatches, int seedMismatchesInARow) {
-        Type result = null;
+    private Type getType(int pamMismatches, int seedMismatchesInARow, int totalMismatches) {
+        if(totalMismatches <= 1) {
+            return Type.TYPE_DISCARD_A;
+        }
+
+        if(totalMismatches >= 12) {
+            return Type.TYPE_4;
+        }
+
+        Type result = Type.TYPE_DISCARD_B;
         if(pamMismatches >= 2) {
             result = Type.TYPE_1;
         }
@@ -99,9 +114,12 @@ public class ComparisonEvaluator implements SequenceEvaluator {
 
     @Override
     public String toString() {
-        return "ComparisonEvaluator(" + minMismatches + "-" + maxMismatches + ") " +
-                "matches(" + mismatches + ") " +
-                "type(" + matchType.name() + ") " +
-                match.toString();
+        if(match == null) {
+            return "NO MATCH: " + sequence.toString();
+        }
+        if(matchType == null) {
+            return "NO MATCH TYPE: " + sequence.toString();
+        }
+        return matchType.name() + " " + match.toString();
     }
 }

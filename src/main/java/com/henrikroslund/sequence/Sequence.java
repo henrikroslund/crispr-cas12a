@@ -2,11 +2,8 @@ package com.henrikroslund.sequence;
 
 import com.henrikroslund.exceptions.InvalidSequenceException;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
-
-import java.util.Objects;
 
 /**
  * This class represents a sequence.
@@ -20,7 +17,6 @@ public class Sequence implements Comparable<Sequence> {
 
     @Getter
     private final String raw;
-    // Index of start of sequence. The index is always based on the positive strand.
     protected final int rawHash;
     protected final int pamHash;
     protected final int seedHash;
@@ -36,19 +32,23 @@ public class Sequence implements Comparable<Sequence> {
 
     public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
 
+    // Index of start of sequence. The index is always based on the positive strand.
     @Getter
     private final int startIndex;
     @Getter
     private final int endIndex;
 
-    @Setter
-    private boolean isComplement = false;
+    private final boolean isComplement;
 
-    @Setter
-    private String genome;
+    private final String genome;
 
     @SneakyThrows
     public Sequence(String raw, int startIndex, String genome) {
+        this(raw, startIndex, genome, false);
+    }
+
+    @SneakyThrows
+    public Sequence(String raw, int startIndex, String genome, boolean isComplement) {
         if(raw.length() != RAW_LENGTH) {
             throw new InvalidSequenceException("Raw sequence has length " + raw.length() + " but expected " + RAW_LENGTH);
         }
@@ -58,7 +58,8 @@ public class Sequence implements Comparable<Sequence> {
         this.seedHash = raw.substring(SEED_INDEX_START, SEED_INDEX_END).hashCode();
         this.startIndex = startIndex;
         this.endIndex = startIndex + RAW_LENGTH - 1;
-        this.genome = genome;
+        this.genome = genome.replaceAll("\\s","");
+        this.isComplement = isComplement;
     }
 
     public boolean equalsPam(Sequence sequence) {
@@ -95,8 +96,7 @@ public class Sequence implements Comparable<Sequence> {
             }
         }
         log.fine(raw + " " + complement);
-        Sequence complementSequence = new Sequence(complement.reverse().toString(), startIndex +(raw.length()-1), genome);
-        complementSequence.setComplement(true);
+        Sequence complementSequence = new Sequence(complement.reverse().toString(), startIndex +(raw.length()-1), genome, true);
         return complementSequence;
     }
 
@@ -117,6 +117,14 @@ public class Sequence implements Comparable<Sequence> {
     @Override
     public String toString() {
         return raw + " " + (isComplement ? "-" : "+") + " " + startIndex + (genome != null ? " " + genome : "");
+    }
+
+    public static Sequence parseFromToString(String line) {
+        String[] parts = line.split(" ");
+        if(parts.length != 4) {
+            throw new IllegalArgumentException("Unexpected amount of parts " + parts.length + " in line " + line);
+        }
+        return new Sequence(parts[0], Integer.parseInt(parts[2]), parts[3], parts[1].compareTo("-") == 0);
     }
 
     /**
