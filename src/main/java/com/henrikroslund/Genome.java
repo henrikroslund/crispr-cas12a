@@ -12,7 +12,6 @@ import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Stream;
 
 @Log
 public class Genome {
@@ -24,8 +23,6 @@ public class Genome {
 
     @Getter
     private final Collection<Sequence> sequences;
-    @Getter
-    private final Collection<Sequence> complementSequences;
 
     private static final String OUTPUT_COMPLEMENT_SUFFIX = "_complement";
 
@@ -35,10 +32,8 @@ public class Genome {
         this.skipDuplicates = skipDuplicates;
         if(skipDuplicates) {
             sequences = Collections.synchronizedSet(new HashSet<>());
-            complementSequences = Collections.synchronizedSet(new HashSet<>());
         } else {
             sequences = Collections.synchronizedList(new ArrayList<>());
-            complementSequences = Collections.synchronizedList(new ArrayList<>());
         }
         this.outputFilename = outputFilename;
         this.firstRow = firstRow;
@@ -48,13 +43,6 @@ public class Genome {
         this(skipDuplicates, file.getName().replace(".fasta", ""), Utils.getFirstRow(file.getAbsolutePath()));
         this.data = getFileContent(file.getAbsolutePath()).substring(firstRow.length());
         createSequences(criteria);
-    }
-
-    public Collection<Sequence> getAllSequences() {
-        Collection<Sequence> result = skipDuplicates ? Collections.synchronizedSet(new HashSet<>()) : Collections.synchronizedList(new ArrayList<>());
-        result.addAll(sequences);
-        result.addAll(complementSequences);
-        return result;
     }
 
     /**
@@ -91,16 +79,6 @@ public class Genome {
                 skipCount++;
             }
 
-            beforeCount = complementSequences.size();
-            Sequence complement = sequence.getComplement();
-            if(shouldAdd(criteria, complement)) {
-                complementSequences.add(complement);
-            }
-            if(beforeCount == complementSequences.size()) {
-                skipCount++;
-            }
-
-
             if(i % stepsPerPercent == 0) {
                 log.info("Creating Sequences " + i/stepsPerPercent + "%");
             }
@@ -116,8 +94,11 @@ public class Genome {
     }
 
     public void writeSequences(String outputFolder) throws  Exception {
-        saveSequence(getAllSequences(), outputFolder, outputFilename);
-        //saveSequence(complementSequences, outputFolder, outputFilename + OUTPUT_COMPLEMENT_SUFFIX);
+        writeSequences(outputFolder, "");
+    }
+
+    public void writeSequences(String outputFolder, String suffix) throws  Exception {
+        saveSequence(sequences, outputFolder, outputFilename + suffix);
     }
 
     public static Genome loadGenome(File file) throws Exception {
@@ -125,12 +106,7 @@ public class Genome {
         BufferedReader reader = Files.newBufferedReader(filePath);
         Genome genome = new Genome(true, file.getName(), reader.readLine());
         reader.lines().forEach(line -> {
-            Sequence sequence = Sequence.parseFromToString(line);
-            if(sequence.getIsComplement()) {
-                genome.complementSequences.add(sequence);
-            } else {
-                genome.sequences.add(sequence);
-            }
+            genome.sequences.add(Sequence.parseFromToString(line));
         });
         return genome;
     }
@@ -163,11 +139,6 @@ public class Genome {
                 results.add(sequence);
             }
         });
-        complementSequences.stream().forEach(sequence -> {
-            if(SequenceEvaluator.matchAny(evaluators, sequence) != null) {
-                results.add(sequence);
-            }
-        });
         return results;
     }
 
@@ -179,28 +150,18 @@ public class Genome {
                 return matchingEvaluator;
             }
         }
-        for(Sequence sequence : complementSequences) {
-            matchingEvaluator = SequenceEvaluator.matchAny(evaluators, sequence);
-            if(matchingEvaluator != null) {
-                return matchingEvaluator;
-            }
-        }
         return null;
     }
 
-    public boolean removeAll(List<Sequence> sequences) {
-        boolean removed = this.sequences.removeAll(sequences);
-        boolean removedComplement = complementSequences.removeAll(sequences);
-        return removed || removedComplement;
+    public boolean removeAll(Collection<Sequence> sequences) {
+        return this.sequences.removeAll(sequences);
     }
 
     public boolean removeMatchingSequences(SequenceEvaluator evaluator) {
-        boolean didRemoveSequence = sequences.removeIf(sequence -> evaluator.evaluate(sequence));
-        boolean didRemoveComplement = complementSequences.removeIf(sequence -> evaluator.evaluate(sequence));
-        return didRemoveSequence || didRemoveComplement;
+        return sequences.removeIf(sequence -> evaluator.evaluate(sequence));
     }
 
     public int getTotalSequences() {
-        return sequences.size() + complementSequences.size();
+        return sequences.size();
     }
 }
