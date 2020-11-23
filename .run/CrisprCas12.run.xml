@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="CrisprCas12" type="Application" factoryName="Application">
+    <output_file path="$PROJECT_DIR$/logs/log.txt" is_save="true" />
     <option name="MAIN_CLASS_NAME" value="com.henrikroslund.Main" />
     <module name="crispr-cas12a" />
     <option name="VM_PARAMETERS" value="-Xmx10G -Xms10G" />

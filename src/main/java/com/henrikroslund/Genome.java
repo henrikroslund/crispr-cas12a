@@ -12,6 +12,9 @@ import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Log
 public class Genome {
@@ -67,8 +70,12 @@ public class Genome {
     private void createSequences(List<SequenceEvaluator> criteria) {
         log.info("Will process " + data.length() + " potential sequences");
         int stepsPerPercent = data.length() / 100;
-        int skipCount = 0;
-        for(int i = 0; i < data.length() - (Sequence.RAW_LENGTH-1); i++) {
+        AtomicInteger skipCount = new AtomicInteger();
+
+        List<Integer> range = IntStream.rangeClosed(0, data.length() - (Sequence.RAW_LENGTH-1) - 1)
+                .boxed().collect(Collectors.toList());
+
+        range.parallelStream().forEach(i -> {
             Sequence sequence = new Sequence(data.substring(i, i+Sequence.RAW_LENGTH), i, outputFilename);
 
             int beforeCount = sequences.size();
@@ -76,13 +83,18 @@ public class Genome {
                 sequences.add(sequence);
             }
             if(beforeCount == sequences.size()) {
-                skipCount++;
+                skipCount.getAndIncrement();
             }
 
-            if(i % stepsPerPercent == 0) {
-                log.info("Creating Sequences " + i/stepsPerPercent + "%");
+            Sequence complement = sequence.getComplement();
+            beforeCount = sequences.size();
+            if(shouldAdd(criteria, complement)) {
+                sequences.add(complement);
             }
-        }
+            if(beforeCount == sequences.size()) {
+                skipCount.getAndIncrement();
+            }
+        });
         log.info("Finished creating " + getTotalSequences() + " sequences for " + outputFilename + " with " + skipCount + " skipped ");
     }
 
