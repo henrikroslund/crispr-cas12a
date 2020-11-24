@@ -7,7 +7,9 @@ import lombok.Getter;
 public class MismatchEvaluator implements SequenceEvaluator {
 
     final Sequence sequence;
+    @Getter
     final int minMismatches;
+    @Getter
     final int maxMismatches;
 
     @Getter

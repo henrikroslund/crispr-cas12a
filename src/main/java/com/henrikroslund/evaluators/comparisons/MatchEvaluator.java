@@ -7,7 +7,9 @@ import lombok.Getter;
 public class MatchEvaluator implements SequenceEvaluator {
 
     final Sequence sequence;
+    @Getter
     final int minMatches;
+    @Getter
     final int maxMatches;
 
     @Getter

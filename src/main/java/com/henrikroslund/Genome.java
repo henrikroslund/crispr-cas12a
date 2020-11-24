@@ -31,7 +31,7 @@ public class Genome {
 
     private final boolean skipDuplicates;
 
-    public Genome(boolean skipDuplicates, String outputFilename, String firstRow) {
+    private Genome(boolean skipDuplicates, String outputFilename, String firstRow) {
         this.skipDuplicates = skipDuplicates;
         if(skipDuplicates) {
             sequences = Collections.synchronizedSet(new HashSet<>());
@@ -116,7 +116,7 @@ public class Genome {
     public static Genome loadGenome(File file) throws Exception {
         Path filePath = Path.of(file.getAbsolutePath());
         BufferedReader reader = Files.newBufferedReader(filePath);
-        Genome genome = new Genome(true, file.getName(), reader.readLine());
+        Genome genome = new Genome(true, file.getName(), reader.readLine()+ "\n");
         reader.lines().forEach(line -> {
             genome.sequences.add(Sequence.parseFromToString(line));
         });
@@ -144,6 +144,9 @@ public class Genome {
     /**
      * Will return sequences that match any of the evaluators
      */
+    public List<Sequence> getSequencesMatchingAnyEvaluator(SequenceEvaluator evaluator) {
+        return getSequencesMatchingAnyEvaluator(Arrays.asList(evaluator));
+    }
     public List<Sequence> getSequencesMatchingAnyEvaluator(List<SequenceEvaluator> evaluators) {
         List<Sequence> results = Collections.synchronizedList(new ArrayList<>());
         sequences.stream().forEach(sequence -> {

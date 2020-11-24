@@ -64,7 +64,7 @@ public class TypeEvaluator implements SequenceEvaluator {
         // Check seed
         int seedMismatchesInARow = 0;
         int currentMismatches = 0;
-        for(int i=Sequence.SEED_INDEX_START; i<Sequence.SEED_LENGTH; i++) {
+        for(int i=Sequence.SEED_INDEX_START; i<Sequence.SEED_INDEX_END; i++) {
             if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
                 numberOfMismatches++;
                 currentMismatches++;

@@ -10,7 +10,6 @@ import com.henrikroslund.genomeFeature.GenomeFeature;
 import com.henrikroslund.sequence.Sequence;
 import com.henrikroslund.sequence.SequenceReader;
 import com.opencsv.exceptions.CsvException;
-import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import org.apache.commons.io.FileUtils;
 
@@ -23,30 +22,57 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.FileHandler;
+import java.util.logging.SimpleFormatter;
+
+import static com.henrikroslund.Utils.*;
 
 @Log
 public class Main {
 
-    private static final long MEGABYTE_FACTOR = 1024L * 1024L;
     static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    static ScheduledFuture<?> memUsageHandle = scheduler.scheduleAtFixedRate(Main::printMemoryStat, 1, 5, TimeUnit.SECONDS);
-    static long maxMemUsage = 0;
+    static ScheduledFuture<?> memUsageHandle = scheduler.scheduleAtFixedRate(Utils::printMemoryStat, 1, 5, TimeUnit.SECONDS);
 
     static final boolean DEBUG = false;
 
     public static void main(String[] args) throws Exception {
         long start = new Date().getTime();
+
+        String inputFolder = "input/pop/";
+        String outputFolder = "output/" + new Date().toString() + " pop/";
+        String outputInputFolder = outputFolder + "input/";
+        // Create output folders
+        new File(outputFolder).mkdirs();
+        new File(outputInputFolder).mkdirs();
+
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
+        FileHandler fh = new FileHandler(outputFolder + "log.txt");
+        SimpleFormatter simpleFormatter = new SimpleFormatter();
+        fh.setFormatter(simpleFormatter);
+        log.addHandler(fh);
 
         log.info("Started Crispr-cas12a");
 
         //runJake();
         //runPop();
         //runPopV2();
-        for(int minMatches = 12; minMatches<= 24; minMatches++) {
-            runPopV3(minMatches);
+
+        for(int minMatches = 10; minMatches<= 24; minMatches++) {
+            Genome suis_ss2_1 = getPopSuis(inputFolder, outputInputFolder);
+            log.info("Read suis genome with " + suis_ss2_1.getTotalSequences() + " sequences");
+
+            alignWithSuis(suis_ss2_1, outputFolder, inputFolder);
+            removeIdenticalMatchesWithAllGenomes(suis_ss2_1, outputFolder, inputFolder);
+            removeDiscardType(suis_ss2_1, outputFolder, inputFolder, new MatchEvaluator(null, minMatches, 24), "_"+minMatches);
         }
+        //for(int minMatches = 12; minMatches<= 21; minMatches++) {
+        //    removeIfTooManyMatchesWithOtherGenomes(minMatches);
+        //}
+
+        //suis_ss2_1 = getPopSuis(inputFolder, outputInputFolder, "Suis strain SS2-1 sequence_result_minMatches_19");
+        //removeDiscardType(suis_ss2_1, outputFolder, inputFolder);
 
         memUsageHandle.cancel(false);
         scheduler.shutdown();
@@ -54,32 +80,95 @@ public class Main {
         log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
     }
 
-    private static void runPopV3(int minMatches) throws Exception {
-        String inputFolder = "input/pop/";
-        String outputFolder = "output/" + new Date().toString() + " pop/";
-        String outputInputFolder = outputFolder + "input/";
-        // Create output folders
-        new File(outputFolder).mkdirs();
-        new File(outputInputFolder).mkdirs();
-        Genome suis_ss2_1 = getPopSuis(inputFolder, outputInputFolder);
-        log.info("Read suis genome with " + suis_ss2_1.getTotalSequences() + " sequences");
+    private static Genome removeDiscardType(Genome suis_ss2_1, String outputFolder, String inputFolder, SequenceEvaluator matcher, String outputSuffix) throws Exception {
+        BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + suis_ss2_1.getOutputFilename() + "_removeDiscardType" + outputSuffix, true));
 
-        BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + suis_ss2_1.getOutputFilename() + "_evaluations", true));
-        BufferedWriter candidateWriter = new BufferedWriter(new FileWriter(outputFolder + suis_ss2_1.getOutputFilename() + "_candidates", true));
+        // Remove any duplicates found in other genomes
+        int fileNumber = 0;
+        List<File> otherGenomes = Utils.getFilesInFolder(inputFolder+"genomes/", ".fasta");
+        for(File file : otherGenomes) {
+            fileNumber++;
+            Collection<Sequence> found = Collections.synchronizedSet(new HashSet<>());
+            Date startTime = new Date();
+            Genome genome = new Genome(file, Collections.emptyList(), true);
+            AtomicInteger counter = new AtomicInteger(0);
+
+            suis_ss2_1.getSequences().parallelStream().forEach(suisSequence -> {
+
+                SequenceEvaluator evaluator = new MismatchEvaluator(suisSequence, 0, 4);
+                if(matcher instanceof MismatchEvaluator) {
+                    evaluator = new MismatchEvaluator(suisSequence, ((MismatchEvaluator) matcher).getMinMismatches(), ((MismatchEvaluator) matcher).getMaxMismatches());
+                } else if(matcher instanceof MatchEvaluator) {
+                    evaluator = new MatchEvaluator(suisSequence, ((MatchEvaluator) matcher).getMinMatches(), ((MatchEvaluator) matcher).getMaxMatches());
+                } else {
+                    log.severe("Not supported match evaluator");
+                    System.exit(1);
+                }
+
+                Collection<Sequence> allMatchesInOtherGenomes = genome.getSequencesMatchingAnyEvaluator(evaluator);
+                // Check the type of the matches to see if it should discard
+                AtomicBoolean shouldBeRemoved = new AtomicBoolean(false);
+                allMatchesInOtherGenomes.forEach(sequence -> {
+                    TypeEvaluator typeEvaluator = new TypeEvaluator(suisSequence);
+                    typeEvaluator.evaluate(sequence);
+                    switch(typeEvaluator.getMatchType()) {
+                        case TYPE_DISCARD_A:
+                        case TYPE_DISCARD_B:
+                            shouldBeRemoved.set(true);
+                            break;
+                        case TYPE_1:
+                        case TYPE_2:
+                        case TYPE_3:
+                        case TYPE_4:
+                            break;
+                            // Do nothing for now
+                    }
+                    log.info("allMatches: " + allMatchesInOtherGenomes.size() + " " + suisSequence.toString() + " " + typeEvaluator.toString());
+                });
+                if(shouldBeRemoved.get()) {
+                    found.add(suisSequence);
+                }
+                counter.incrementAndGet();
+                if (counter.get() % 10 == 0) {
+                    log.info("Found: " + found.size() + " Counter: " + counter + "/" + suis_ss2_1.getSequences().size());
+                }
+            });
+
+            log.info("Finished processing file " + fileNumber + " in " + (new Date().getTime() - startTime.getTime()) / 1000 + " seconds");
+            log.info("Will remove " + found.size() + " sequences which was found in file " + file.getName());
+            for(Sequence sequence : found) {
+                discardWriter.append(sequence.toString()).append(" removed because it was found in ").append(file.getName()).append("\n");
+            }
+            suis_ss2_1.removeAll(found);
+            log.info("Candidate size: " + suis_ss2_1.getTotalSequences());
+            if (suis_ss2_1.getSequences().isEmpty()) {
+                break;
+            }
+        }
+        log.info("Candidate size: " + suis_ss2_1.getTotalSequences());
+        suis_ss2_1.writeSequences(outputFolder, "_candidates_removeDiscardType" + outputSuffix);
+        discardWriter.close();
+        return suis_ss2_1;
+    }
+
+    private static Genome alignWithSuis(Genome suis_ss2_1, String outputFolder, String inputFolder) throws Exception {
+        BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + suis_ss2_1.getOutputFilename() + "_evaluations_alignWithSuis", true));
 
         // Only keep the ones which also exist in all the suis genomes
         List<File> suisFiles = Utils.getFilesInFolder(inputFolder+"suisGenomes/", ".fasta");
         for(File file : suisFiles) {
             Collection<Sequence> notFound =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
-            Genome genome = new Genome(file, Collections.EMPTY_LIST, true);
+            Genome genome = new Genome(file, Collections.emptyList(), true);
             AtomicInteger counter = new AtomicInteger(0);
             suis_ss2_1.getSequences().parallelStream().forEach(sequence -> {
                 if(!genome.exists(sequence)) {
                     notFound.add(sequence);
                 }
                 counter.incrementAndGet();
-                log.info("NotFound: " + notFound.size() + " Counter: " + counter + "/" + suis_ss2_1.getSequences().size());
+                if (counter.get() % 10 == 0) {
+                    log.info("NotFound: " + notFound.size() + " Counter: " + counter + "/" + suis_ss2_1.getSequences().size());
+                }
             });
             log.info("Finished processing file in " + (new Date().getTime() - startTime.getTime())/1000 + " seconds");
             log.info("Will remove " + notFound.size() + " sequences which was not found in file " + file.getName());
@@ -89,29 +178,44 @@ public class Main {
             suis_ss2_1.removeAll(notFound);
             log.info("Candidate size: " + suis_ss2_1.getTotalSequences());
         }
+        discardWriter.close();
+        suis_ss2_1.writeSequences(outputFolder, "_candidates_alignWithSuis");
+        return suis_ss2_1;
+    }
 
-        // Remove any duplicates found in other genomes
+    private static Genome removeIdenticalMatchesWithAllGenomes(Genome suis_ss2_1, String outputFolder, String inputFolder) throws  Exception {
+        BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + suis_ss2_1.getOutputFilename() + "_evaluations_removeIdenticalMatchesWithAllGenomes", true));
         List<File> otherGenomes = Utils.getFilesInFolder(inputFolder+"genomes/", ".fasta");
         for(File file : otherGenomes) {
             Collection<Sequence> found =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
-            Genome genome = new Genome(file, Collections.EMPTY_LIST, true);
+            Genome genome = new Genome(file, Collections.emptyList(), true);
             AtomicInteger counter = new AtomicInteger(0);
             suis_ss2_1.getSequences().parallelStream().forEach(sequence -> {
                 if(genome.exists(sequence)) {
                     found.add(sequence);
                 }
                 counter.incrementAndGet();
-                log.info("Found: " + found.size() + " Counter: " + counter + "/" + suis_ss2_1.getSequences().size());
+                if (counter.get() % 10 == 0) {
+                    log.info("Found: " + found.size() + " Counter: " + counter + "/" + suis_ss2_1.getSequences().size());
+                }
             });
             log.info("Finished processing file in " + (new Date().getTime() - startTime.getTime())/1000 + " seconds");
             log.info("Will remove " + found.size() + " sequences which was found in file " + file.getName());
             for(Sequence sequence : found) {
-                discardWriter.append(sequence.toString() + " removed because it was found in " + file.getName() + "\n");
+                discardWriter.append(sequence.toString()).append(" removed because it was found in ").append(file.getName()).append("\n");
             }
             suis_ss2_1.removeAll(found);
             log.info("Candidate size: " + suis_ss2_1.getTotalSequences());
         }
+        discardWriter.close();
+        return suis_ss2_1;
+    }
+
+    private static Genome removeIfTooManyMatchesWithOtherGenomes(Genome suis_ss2_1, int minMatches, String outputFolder, String inputFolder) throws Exception {
+        BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + suis_ss2_1.getOutputFilename() + "_removeIfTooManyMatchesWithOtherGenomes", true));
+
+        List<File> otherGenomes = Utils.getFilesInFolder(inputFolder+"genomes/", ".fasta");
 
         // Go through all the genomes and remove the ones which has sequence which are too similar to the candidates
         int fileNumber = 0;
@@ -120,23 +224,24 @@ public class Main {
             Collection<Sequence> found = Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
             AtomicInteger counter = new AtomicInteger(0);
-            Genome genome = new Genome(file, Collections.EMPTY_LIST, true);
-            int finalMinMatches = minMatches;
+            Genome genome = new Genome(file, Collections.emptyList(), true);
             suis_ss2_1.getSequences().parallelStream().forEach(suisSequence -> {
                 for (Sequence genomeSequence : genome.getSequences()) {
-                    MatchEvaluator evaluator = new MatchEvaluator(suisSequence, finalMinMatches, 24);
+                    MatchEvaluator evaluator = new MatchEvaluator(suisSequence, minMatches, 24);
                     if (evaluator.evaluate(genomeSequence)) {
                         found.add(suisSequence);
                         break;
                     }
                 }
                 counter.incrementAndGet();
-                log.info("Found: " + found.size() + " Counter: " + counter + "/" + suis_ss2_1.getSequences().size());
+                if (counter.get() % 10 == 0) {
+                    log.info("Found: " + found.size() + " Counter: " + counter + "/" + suis_ss2_1.getSequences().size());
+                }
             });
             log.info("Finished processing file " + fileNumber + " in " + (new Date().getTime() - startTime.getTime()) / 1000 + " seconds");
             log.info("Will remove " + found.size() + " sequences which was found in file " + file.getName() + " with minMatches: " + minMatches);
             for (Sequence sequence : found) {
-                discardWriter.append(sequence.toString() + " removed because it was found in " + file.getName() + "\n");
+                discardWriter.append(sequence.toString()).append(" removed because it was found in ").append(file.getName()).append("\n");
             }
             suis_ss2_1.removeAll(found);
             log.info("Candidate size: " + suis_ss2_1.getTotalSequences());
@@ -149,42 +254,22 @@ public class Main {
         suis_ss2_1.writeSequences(outputFolder, "_result_minMatches_" + minMatches);
 
         discardWriter.close();
-    }
-
-    private static Genome getPopSuis(String inputFolder, String outputInputFolder) throws Exception {
-        // Read the original suis genome
-        File suisGenomeFile = new File(inputFolder + "Suis strain SS2-1 sequence.fasta");
-        FileUtils.copyFile(suisGenomeFile, new File(outputInputFolder+suisGenomeFile.getName()));
-        Genome suis_ss2_1 = new Genome(suisGenomeFile, Arrays.asList(
-                new CrisprPamEvaluator(), new NoTripletN1N20Evaluator(), new GCContentN1N20Evaluator()), true);
-        suis_ss2_1.writeSequences(outputInputFolder);
         return suis_ss2_1;
     }
 
-    private static Collection<Sequence> getDuplicates(Collection<Sequence> sequences, List<File> files) {
-        Collection<Sequence> duplicates = Collections.synchronizedSet(new HashSet<>());
-        files.stream().forEach(file -> {
-            try {
-                Date startTime = new Date();
-                Genome genome = new Genome(file, Collections.EMPTY_LIST, true);
-                AtomicInteger counter = new AtomicInteger(0);
-                for(Sequence sequence: sequences) {
-                    SequenceEvaluator evaluator = genome.hasAnyMatchToAnyEvaluator(Arrays.asList(new IdenticalEvaluator(sequence)));
-                    if(evaluator != null) {
-                        duplicates.add(sequence);
-                        log.info("Number of duplicates: " + duplicates.size());
-                    }
-                    counter.incrementAndGet();
-                    log.info("Counter: " + counter + " total: " + sequences.size());
-                }
-                log.info("Finished processing file in " + (new Date().getTime() - startTime.getTime()));
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-        });
-        log.info("Found " + duplicates.size() + " duplicates");
-        return duplicates;
+    private static Genome getPopSuis(String inputFolder, String outputInputFolder) throws Exception {
+        return getPopSuis(inputFolder, outputInputFolder, "Suis strain SS2-1 sequence.fasta");
+    }
+
+    private static Genome getPopSuis(String inputFolder, String outputInputFolder, String filename) throws Exception {
+        // Read the original suis genome
+        File suisGenomeFile = new File(inputFolder + filename);
+        FileUtils.copyFile(suisGenomeFile, new File(outputInputFolder+suisGenomeFile.getName()));
+        Genome suis_ss2_1 = filename.endsWith(".fasta") ?
+                new Genome(suisGenomeFile, Arrays.asList(new CrisprPamEvaluator(), new NoTripletN1N20Evaluator(), new GCContentN1N20Evaluator()), true) :
+                Genome.loadGenome(suisGenomeFile);
+        suis_ss2_1.writeSequences(outputInputFolder);
+        return suis_ss2_1;
     }
 
     private static void runPopV2() throws Exception {
@@ -322,7 +407,7 @@ public class Main {
             if(genome.exists(sequence))
             {
                 try {
-                    writer.append(sequence.toString() + " removed because an identical sequence exists\n");
+                    writer.append(sequence.toString()).append(" removed because an identical sequence exists\n");
                 } catch (IOException e) {
                     e.printStackTrace();
                     System.exit(1);
@@ -405,45 +490,6 @@ public class Main {
             log.info(i + "/" + jakeCsv.getRows().size());
         }
         jakeCsv.writeToFile(outputFolder + file.getName().replace(".csv", "_results.csv"));
-    }
-
-    private static List<Genome> loadGenomes(String path, List<SequenceEvaluator> criteria) throws Exception {
-        List<Genome> genomes = Collections.synchronizedList(new ArrayList<>());
-        List<File> genomeFiles = Utils.getFilesInFolder(path, ".fasta");
-        (DEBUG ? genomeFiles.stream() : genomeFiles.parallelStream())
-                .forEach(file -> {
-            try {
-                genomes.add(new Genome(file, criteria, false));
-            } catch (Exception e) {
-                log.severe("Error creating genome from file " + file.getAbsolutePath() + " " + e.getMessage());
-                System.exit(1);
-            }
-        });
-        return genomes;
-    }
-
-    private static void writeGenomes(List<Genome> genomes, String outputFolder) {
-        genomes.parallelStream().forEach(genome -> {
-            try {
-                genome.writeSequences(outputFolder);
-            } catch (Exception e) {
-                log.severe("Error when processing genomes and saving sequences: " + e.getMessage());
-                System.exit(1);
-            }
-        });
-    }
-
-    private static void printMemoryStat() {
-        Runtime rt = Runtime.getRuntime();
-
-        long total = rt.totalMemory() / MEGABYTE_FACTOR;
-        long free = rt.freeMemory() / MEGABYTE_FACTOR;
-
-        long used = total - free;
-        if(used > maxMemUsage) {
-            maxMemUsage = used;
-            log.info("Total Memory: " + total + " MB, Used: " + used + ", Free: " + free + ", MaxUsed: " + maxMemUsage);
-        }
     }
 
 }
