@@ -267,6 +267,7 @@ public class Main {
         FileUtils.copyFile(suisGenomeFile, new File(outputInputFolder+suisGenomeFile.getName()));
         int gcContentMin = 9;
         int gcContentMax = 11;
+        log.info("Using gcContentMin: " + gcContentMin + " gcContentMax: " + gcContentMax);
         Genome suis_ss2_1 = filename.endsWith(".fasta") ?
                 new Genome(suisGenomeFile, Arrays.asList(new CrisprPamEvaluator(), new NoTripletN1N20Evaluator(), new GCContentN1N20Evaluator(gcContentMin, gcContentMax)), true) :
                 Genome.loadGenome(suisGenomeFile);
