@@ -59,7 +59,7 @@ public class Main {
         //runPop();
         //runPopV2();
 
-        for(int minMatches = 10; minMatches<= 24; minMatches++) {
+        for(int minMatches = 16; minMatches<= 20; minMatches++) {
             Genome suis_ss2_1 = getPopSuis(inputFolder, outputInputFolder);
             log.info("Read suis genome with " + suis_ss2_1.getTotalSequences() + " sequences");
 
@@ -265,8 +265,10 @@ public class Main {
         // Read the original suis genome
         File suisGenomeFile = new File(inputFolder + filename);
         FileUtils.copyFile(suisGenomeFile, new File(outputInputFolder+suisGenomeFile.getName()));
+        int gcContentMin = 9;
+        int gcContentMax = 11;
         Genome suis_ss2_1 = filename.endsWith(".fasta") ?
-                new Genome(suisGenomeFile, Arrays.asList(new CrisprPamEvaluator(), new NoTripletN1N20Evaluator(), new GCContentN1N20Evaluator()), true) :
+                new Genome(suisGenomeFile, Arrays.asList(new CrisprPamEvaluator(), new NoTripletN1N20Evaluator(), new GCContentN1N20Evaluator(gcContentMin, gcContentMax)), true) :
                 Genome.loadGenome(suisGenomeFile);
         suis_ss2_1.writeSequences(outputInputFolder);
         return suis_ss2_1;

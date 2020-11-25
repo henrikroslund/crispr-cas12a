@@ -5,11 +5,21 @@ import lombok.Getter;
 
 public class GCContentN1N20Evaluator implements SequenceEvaluator {
 
-    private static final int LOW_LIMIT = 9; //20*0.45
-    private static final int HIGH_LIMIT = 11; //20*0.55
+    private final int LOW_LIMIT;
+    private final int HIGH_LIMIT;
 
     @Getter
     private Sequence match = null;
+
+    public GCContentN1N20Evaluator() {
+        LOW_LIMIT = 9;
+        HIGH_LIMIT = 11;
+    }
+
+    public GCContentN1N20Evaluator(int minCount, int maxCount) {
+        LOW_LIMIT = minCount;
+        HIGH_LIMIT = maxCount;
+    }
 
     @Override
     public boolean evaluate(Sequence sequence) {

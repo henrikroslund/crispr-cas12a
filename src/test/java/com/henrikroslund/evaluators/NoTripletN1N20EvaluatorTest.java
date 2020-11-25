@@ -16,7 +16,8 @@ public class NoTripletN1N20EvaluatorTest {
     @Test
     public void testHasTriplets() {
         NoTripletN1N20Evaluator evaluator = new NoTripletN1N20Evaluator();
+        assertFalse(evaluator.evaluate(new Sequence("TTTCACACAGGCACCCCGTCATTA",0,"test")));
         assertFalse(evaluator.evaluate(new Sequence("GCGCTTTCGCGCGCGCGCGCGCGC",0,"test")));
+        assertFalse(evaluator.evaluate(new Sequence("GCGCGCGCGCGCGCGCGCGCGTTT",0,"test")));
     }
-
 }
