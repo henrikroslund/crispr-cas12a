@@ -1,9 +1,11 @@
 package com.henrikroslund.genomeFeature;
 
 import com.henrikroslund.sequence.Sequence;
+import lombok.extern.java.Log;
 
 import java.util.List;
 
+@Log
 public class Feature {
     int startIndex;
     int endIndex;
@@ -19,8 +21,8 @@ public class Feature {
         this.features = features;
     }
 
-    public boolean isMatch(Sequence sequence) {
-        if(sequence.getIsComplement() != isComplement) {
+    public boolean isMatch(Sequence sequence, boolean mustMatchStrand) {
+        if(mustMatchStrand && sequence.getIsComplement() != isComplement) {
             return false;
         }
         return sequence.getStartIndex() <= endIndex && sequence.getEndIndex() >= startIndex;

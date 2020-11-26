@@ -60,11 +60,11 @@ public class GenomeFeature {
         return !line.startsWith("\t");
     }
 
-    public List<Feature> getMatchingFeatures(List<Sequence> sequences) {
+    public List<Feature> getMatchingFeatures(List<Sequence> sequences, boolean mustMatchStrand) {
         List<Feature> matches = new ArrayList<>();
         for(Feature feature : features) {
             for(Sequence sequence : sequences) {
-                if(feature.isMatch(sequence)) {
+                if(feature.isMatch(sequence, mustMatchStrand)) {
                     matches.add(feature);
                     break;
                 }

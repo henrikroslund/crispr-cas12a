@@ -42,7 +42,7 @@ public class JakeCsv {
         return new Sequence(row.get(PAM_COLUMN_INDEX) + row.get(N1_N20_COLUMN_INDEX),index, "");
     }
 
-    public void addMatches(List<Sequence> sequences, int rowIndex, List<Sequence> suis, List<Feature> suisFeatures) {
+    public void addFeatureMatches(List<Sequence> sequences, int rowIndex, List<Sequence> suis, List<Feature> suisFeatures) {
         rows.get(rowIndex).add(sequencesToString(sequences));
         rows.get(rowIndex).add("" + sequences.size());
         rows.get(rowIndex).add(sequencesToString(suis));

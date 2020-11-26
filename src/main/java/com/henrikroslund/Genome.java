@@ -27,8 +27,6 @@ public class Genome {
     @Getter
     private final Collection<Sequence> sequences;
 
-    private static final String OUTPUT_COMPLEMENT_SUFFIX = "_complement";
-
     private final boolean skipDuplicates;
 
     private Genome(boolean skipDuplicates, String outputFilename, String firstRow) {
