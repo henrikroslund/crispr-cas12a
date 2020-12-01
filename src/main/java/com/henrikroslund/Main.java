@@ -5,6 +5,7 @@ import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.formats.JakeCsv;
+import com.henrikroslund.formats.PopCsv;
 import com.henrikroslund.genomeFeature.Feature;
 import com.henrikroslund.genomeFeature.GenomeFeature;
 import com.henrikroslund.sequence.Sequence;
@@ -41,15 +42,15 @@ public class Main {
         long start = new Date().getTime();
 
         String inputFolder = "input/pop/";
-        String outputFolder = "output/" + new Date().toString() + " pop/";
-        String outputInputFolder = outputFolder + "input/";
+        String baseOutputFolder = "output/" + new Date().toString() + " pop/";
+        String baseOutputInputFolder = baseOutputFolder + "input/";
         // Create output folders
-        new File(outputFolder).mkdirs();
-        new File(outputInputFolder).mkdirs();
+        new File(baseOutputFolder).mkdirs();
+        new File(baseOutputInputFolder).mkdirs();
 
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
-        FileHandler fh = new FileHandler(outputFolder + "log.txt");
         SimpleFormatter simpleFormatter = new SimpleFormatter();
+        FileHandler fh = new FileHandler(baseOutputFolder + "application.log");
         fh.setFormatter(simpleFormatter);
         log.addHandler(fh);
 
@@ -59,21 +60,36 @@ public class Main {
         //runPop();
         //runPopV2();
 
-        /*
-        for(int minMatches = 16; minMatches<= 20; minMatches++) {
+
+        for(int minMatches = 18; minMatches<= 19; minMatches++) {
+            String outputFolder = baseOutputFolder + " minMatches_"+minMatches+"/";
+            String outputInputFolder = outputFolder + "input/";
+            new File(outputFolder).mkdirs();
+            new File(outputInputFolder).mkdirs();
+
+            FileHandler tmpLogHandler = new FileHandler(outputFolder + "application" + minMatches + ".log");
+            tmpLogHandler.setFormatter(simpleFormatter);
+            log.addHandler(tmpLogHandler);
+
+            GenomeFeature genomeFeature = createGenomeFeatures(inputFolder, outputInputFolder);
+
             Genome suis_ss2_1 = getPopSuis(inputFolder, outputInputFolder, true);
             log.info("Read suis genome with " + suis_ss2_1.getTotalSequences() + " sequences");
 
             alignWithSuis(suis_ss2_1, outputFolder, inputFolder);
             removeIdenticalMatchesWithAllGenomes(suis_ss2_1, outputFolder, inputFolder);
             removeDiscardType(suis_ss2_1, outputFolder, inputFolder, new MatchEvaluator(null, minMatches, 24), "_"+minMatches);
-        }
-        */
 
-        GenomeFeature genomeFeature = createGenomeFeatures(inputFolder, outputInputFolder);
-        Genome suis_candidates = getPopSuis(inputFolder, outputInputFolder, "Suis strain SS2-1 sequence_candidates_removeDiscardType_19", false);
-        Genome suisWithDuplicates = getPopSuis(inputFolder, outputInputFolder, false);
-        processFeatures(suis_candidates, suisWithDuplicates, genomeFeature, outputFolder);
+            Genome suisWithDuplicates = getPopSuis(inputFolder, outputInputFolder, false);
+            processFeatures(suis_ss2_1, suisWithDuplicates, genomeFeature, outputFolder);
+
+            log.removeHandler(tmpLogHandler);
+        }
+
+        //GenomeFeature genomeFeature = createGenomeFeatures(inputFolder, baseOutputInputFolder);
+        //Genome suis_candidates = getPopSuis(inputFolder, outputInputFolder, "Suis strain SS2-1 sequence_candidates_removeDiscardType_19", false);
+        //Genome suisWithDuplicates = getPopSuis(inputFolder, outputInputFolder, false);
+        //processFeatures(suis_candidates, suisWithDuplicates, genomeFeature, outputFolder);
 
         memUsageHandle.cancel(false);
         scheduler.shutdown();
@@ -82,7 +98,7 @@ public class Main {
     }
 
     private static void processFeatures(Genome suis_candidates, Genome suisWithDuplicates, GenomeFeature genomeFeature, String outputFolder) throws Exception {
-        BufferedWriter featureWriter = new BufferedWriter(new FileWriter(outputFolder + suis_candidates.getOutputFilename() + "_with_features", true));
+        PopCsv popCsv = new PopCsv();
         BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + suis_candidates.getOutputFilename() + "_discarded_no_features", true));
 
         for(Sequence candidate : suis_candidates.getSequences()) {
@@ -98,16 +114,10 @@ public class Main {
             if(suisFeatures.isEmpty()) {
                 discardWriter.append(candidate.toString()).append("\n");
             } else {
-                for(Sequence sequence : suisMaches) {
-                    featureWriter.append(sequence.toString()).append("\n");
-                }
-                for(Feature feature : suisFeatures) {
-                    featureWriter.append(feature.toString());
-                }
-                featureWriter.append("\n\n");
+                popCsv.addFeatureMatches(suisMaches, suisFeatures);
             }
         }
-        featureWriter.close();
+        popCsv.writeToFile(outputFolder + suis_candidates.getOutputFilename() + "_with_features.csv");
         discardWriter.close();
     }
 
@@ -144,6 +154,11 @@ public class Main {
                 }
 
                 Collection<Sequence> allMatchesInOtherGenomes = genome.getSequencesMatchingAnyEvaluator(evaluator);
+
+                if(allMatchesInOtherGenomes.isEmpty()) {
+                    log.info("There were not matches for sequence " + suisSequence.toString() + " in genome " + genome.getOutputFilename());
+                }
+
                 // Check the type of the matches to see if it should discard
                 AtomicBoolean shouldBeRemoved = new AtomicBoolean(false);
                 allMatchesInOtherGenomes.forEach(sequence -> {

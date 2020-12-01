@@ -24,6 +24,10 @@ public class TypeEvaluator implements SequenceEvaluator {
     @Getter
     private Type matchType = null;
 
+    private String[] matchRepresentation = new String[24];
+    private static final String MATCH_CHAR = "=";
+    private static final String MISMATCH_CHAR = "X";
+
     public TypeEvaluator(Sequence sequence) {
         this.sequence = sequence;
     }
@@ -48,6 +52,8 @@ public class TypeEvaluator implements SequenceEvaluator {
             match = sequence;
             mismatches = 0;
             matchType = Type.TYPE_DISCARD_A;
+            matchRepresentation = new String[]{"========================"};
+            return true;
         }
 
         int numberOfMismatches = 0;
@@ -58,6 +64,9 @@ public class TypeEvaluator implements SequenceEvaluator {
             if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
                 numberOfMismatches++;
                 pamMismatches++;
+                matchRepresentation[i] = MISMATCH_CHAR;
+            } else {
+                matchRepresentation[i] = MATCH_CHAR;
             }
         }
 
@@ -68,8 +77,10 @@ public class TypeEvaluator implements SequenceEvaluator {
             if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
                 numberOfMismatches++;
                 currentMismatches++;
+                matchRepresentation[i] = MISMATCH_CHAR;
             } else {
                 currentMismatches = 0;
+                matchRepresentation[i] = MATCH_CHAR;
             }
             if(currentMismatches > seedMismatchesInARow) {
                 seedMismatchesInARow = currentMismatches;
@@ -77,9 +88,12 @@ public class TypeEvaluator implements SequenceEvaluator {
         }
 
         // Check rest of the raw
-        for(int i=Sequence.SEED_INDEX_END+1; i<Sequence.RAW_LENGTH; i++) {
+        for(int i=Sequence.SEED_INDEX_END; i<Sequence.RAW_LENGTH; i++) {
             if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
                 numberOfMismatches++;
+                matchRepresentation[i] = MISMATCH_CHAR;
+            } else {
+                matchRepresentation[i] = MATCH_CHAR;
             }
         }
 
@@ -120,6 +134,31 @@ public class TypeEvaluator implements SequenceEvaluator {
         if(matchType == null) {
             return "NO MATCH TYPE: " + sequence.toString();
         }
-        return matchType.name() + " " + match.toString();
+        return matchType.name() + " ( "
+                + matchRepresentation[0]
+                + matchRepresentation[1]
+                + matchRepresentation[2]
+                + matchRepresentation[3] + " "
+                + matchRepresentation[4]
+                + matchRepresentation[5]
+                + matchRepresentation[6]
+                + matchRepresentation[7]
+                + matchRepresentation[8] + " "
+                + matchRepresentation[9]
+                + matchRepresentation[10]
+                + matchRepresentation[11]
+                + matchRepresentation[12]
+                + matchRepresentation[13] + " "
+                + matchRepresentation[14]
+                + matchRepresentation[15]
+                + matchRepresentation[16]
+                + matchRepresentation[17]
+                + matchRepresentation[18] + " "
+                + matchRepresentation[19]
+                + matchRepresentation[20]
+                + matchRepresentation[21]
+                + matchRepresentation[22]
+                + matchRepresentation[23] + " ) "
+                + match.toString();
     }
 }

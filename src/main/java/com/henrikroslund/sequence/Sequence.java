@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This class represents a sequence.
  * A sequence consists of two parts, PEM and TARGET and is exactly PAM length + TARGET length = 24 characters long.
@@ -32,6 +35,9 @@ public class Sequence implements Comparable<Sequence> {
 
     public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
 
+    // Will only be initialized on first get
+    private Integer gcCount = null;
+
     // Index of start of sequence. The index is always based on the positive strand.
     @Getter
     private final int startIndex;
@@ -41,6 +47,9 @@ public class Sequence implements Comparable<Sequence> {
     private final boolean isComplement;
 
     private final String genome;
+
+    // metaData is created upon first get to save memory
+    private Map<String, String> metaData = null;
 
     @SneakyThrows
     public Sequence(String raw, int startIndex, String genome) {
@@ -60,6 +69,13 @@ public class Sequence implements Comparable<Sequence> {
         this.endIndex = startIndex + RAW_LENGTH - 1;
         this.genome = genome.replaceAll("\\s","");
         this.isComplement = isComplement;
+    }
+
+    public Map<String, String> getMetaData() {
+        if(metaData == null) {
+            metaData = new HashMap<>();
+        }
+        return metaData;
     }
 
     public boolean equalsPam(Sequence sequence) {
@@ -145,5 +161,19 @@ public class Sequence implements Comparable<Sequence> {
             return 0;
         }
         return this.startIndex < o.startIndex ? -1 : 1;
+    }
+
+    public int getGCCount() {
+        if(gcCount == null) {
+            int count = 0;
+            for(int i=Sequence.PAM_LENGTH; i<RAW_LENGTH; i++) {
+                char currentChar = raw.charAt(i);
+                if(currentChar == 'G' || currentChar == 'C') {
+                    count++;
+                }
+            }
+            gcCount = count;
+        }
+        return gcCount;
     }
 }
