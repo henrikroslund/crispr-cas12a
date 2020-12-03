@@ -38,7 +38,7 @@ public class GCContentN1N20Evaluator implements SequenceEvaluator {
 
     @Override
     public String toString() {
-        return "GCContentN1N20Evaluator " + match.toString();
+        return describe() + " " +  match.toString();
     }
 
 }

@@ -3,27 +3,23 @@ package com.henrikroslund.evaluators.comparisons;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
+import org.apache.commons.lang3.Range;
 
 public class MatchEvaluator implements SequenceEvaluator {
 
     final Sequence sequence;
+
     @Getter
-    final int minMatches;
-    @Getter
-    final int maxMatches;
+    private final Range<Integer> range;
 
     @Getter
     private Sequence match = null;
     @Getter
     private int matches = -1;
 
-    public MatchEvaluator(Sequence sequence, int minMatches, int maxMatches) {
+    public MatchEvaluator(Sequence sequence, Range<Integer> range) {
+        this.range = range;
         this.sequence = sequence;
-        if(minMatches > maxMatches) {
-            throw new IllegalArgumentException("minMatches should not be greater than maxMatches");
-        }
-        this.minMatches = minMatches;
-        this.maxMatches = maxMatches;
     }
 
     @Override
@@ -36,7 +32,7 @@ public class MatchEvaluator implements SequenceEvaluator {
             }
         }
 
-        if(numberOfMatches >= minMatches && numberOfMatches <= maxMatches) {
+        if(range.contains(numberOfMatches)) {
             this.match = sequence;
             this.matches = numberOfMatches;
             return true;
@@ -49,13 +45,11 @@ public class MatchEvaluator implements SequenceEvaluator {
 
     @Override
     public String describe() {
-        return "MatchEvaluator(" + minMatches + "-" + maxMatches + ") ";
+        return "MatchEvaluator(" + range + ")";
     }
 
     @Override
     public String toString() {
-        return "MatchEvaluator(" + minMatches + "-" + maxMatches + ") " +
-                "matches(" + matches + ") " +
-                match.toString();
+        return describe() + " matches(" + matches + ") " + match.toString();
     }
 }

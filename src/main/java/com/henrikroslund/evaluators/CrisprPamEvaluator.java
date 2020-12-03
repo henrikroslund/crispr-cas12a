@@ -29,6 +29,6 @@ public class CrisprPamEvaluator implements SequenceEvaluator {
 
     @Override
     public String toString() {
-        return "CrisprPamEvaluator " + match.toString();
+        return describe() + " " + match.toString();
     }
 }

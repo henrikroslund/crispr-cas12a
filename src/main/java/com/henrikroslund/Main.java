@@ -57,11 +57,6 @@ public class Main {
 
         log.info("Started Crispr-cas12a");
 
-        //runJake();
-        //runPop();
-        //runPopV2();
-
-
         for(int minMatches = 18; minMatches<= 19; minMatches++) {
             String outputFolder = baseOutputFolder + " minMatches_"+minMatches+"/";
             String outputInputFolder = outputFolder + "input/";
@@ -79,7 +74,7 @@ public class Main {
 
             alignWithSuis(suis_ss2_1, outputFolder, inputFolder);
             removeIdenticalMatchesWithAllGenomes(suis_ss2_1, outputFolder, inputFolder);
-            removeDiscardType(suis_ss2_1, outputFolder, inputFolder, new MatchEvaluator(null, minMatches, 24), "_"+minMatches);
+            removeDiscardType(suis_ss2_1, outputFolder, inputFolder, new MatchEvaluator(null, Range.between(minMatches, 24)), "_"+minMatches);
 
             Genome suisWithDuplicates = getPopSuis(inputFolder, outputInputFolder, false);
             processFeatures(suis_ss2_1, suisWithDuplicates, genomeFeature, outputFolder);
@@ -144,11 +139,11 @@ public class Main {
 
             suis_ss2_1.getSequences().parallelStream().forEach(suisSequence -> {
 
-                SequenceEvaluator evaluator = new MismatchEvaluator(suisSequence, Range.between(0, 4));
+                SequenceEvaluator evaluator = null;
                 if(bindCriteria instanceof MismatchEvaluator) {
                     evaluator = new MismatchEvaluator(suisSequence, ((MismatchEvaluator) bindCriteria).getMismatchRange());
                 } else if(bindCriteria instanceof MatchEvaluator) {
-                    evaluator = new MatchEvaluator(suisSequence, ((MatchEvaluator) bindCriteria).getMinMatches(), ((MatchEvaluator) bindCriteria).getMaxMatches());
+                    evaluator = new MatchEvaluator(suisSequence, ((MatchEvaluator) bindCriteria).getRange());
                 } else {
                     log.severe("Not supported match evaluator");
                     System.exit(1);
@@ -280,6 +275,7 @@ public class Main {
             AtomicInteger counter = new AtomicInteger(0);
             Genome genome = new Genome(file, Collections.emptyList(), true);
             suis_ss2_1.getSequences().parallelStream().forEach(suisSequence -> {
+                // TODO we probably cannot reuse the evaluator here becase that would not be thread safe...
                 for (Sequence genomeSequence : genome.getSequences()) {
                     if (evaluator.evaluate(genomeSequence)) {
                         found.add(suisSequence);
@@ -326,59 +322,4 @@ public class Main {
         suis_ss2_1.writeSequences(outputInputFolder, "_sequences");
         return suis_ss2_1;
     }
-
-    private static void runJake() throws Exception {
-        String inputFolder = "input/jake/";
-        String outputFolder = "output/" + new Date().toString() + " Jake/";
-        String outputInputFolder = outputFolder + "input/";
-        // Create output folders
-        new File(outputFolder).mkdirs();
-        new File(outputInputFolder).mkdirs();
-
-        File genomeFeatureFile = new File(inputFolder + "CP018908.1 feature table.txt");
-        FileUtils.copyFile(genomeFeatureFile, new File(outputFolder+genomeFeatureFile.getName()));
-        GenomeFeature genomeFeature =new GenomeFeature(genomeFeatureFile);
-
-        File suisGenomeFile = new File(inputFolder + "Suis strain SS2-1 sequence.fasta");
-        FileUtils.copyFile(suisGenomeFile, new File(outputFolder+suisGenomeFile.getName()));
-        Genome suis_ss2_1 = new Genome(suisGenomeFile, Collections.singletonList(new CrisprPamEvaluator()), false);
-
-        List<Genome> genomes = loadGenomes(inputFolder+"genomes/", Collections.singletonList(new CrisprPamEvaluator()));
-        writeGenomes(genomes, outputInputFolder);
-
-        processJake(new File(inputFolder+"jake_pam_only_mism_v2.csv"), suis_ss2_1, genomes, outputFolder, genomeFeature);
-        processJake(new File(inputFolder+"jake_seed_only_mism_v2.csv"), suis_ss2_1, genomes, outputFolder, genomeFeature);
-        processJake(new File(inputFolder+"jake_seed_andPam_mism_v2.csv"), suis_ss2_1,genomes, outputFolder, genomeFeature);
-    }
-
-    private static void processJake(File file, Genome suis_ss2_1, List<Genome> genomes,
-                                    String outputFolder, GenomeFeature genomeFeature) throws IOException, CsvException {
-        JakeCsv jakeCsv = SequenceReader.JakeCsvReader(file);
-
-        for(int i=0; i<jakeCsv.getRows().size(); i++) {
-            Sequence sequence = jakeCsv.getRowSequence(i);
-            List<Sequence> matchedSequences = Collections.synchronizedList(new ArrayList<>());
-            AtomicInteger matchedGenomes = new AtomicInteger();
-            genomes.parallelStream().forEach(genome -> {
-                List<Sequence> matches = genome.getSequencesMatchingAnyEvaluator(
-                        Collections.singletonList(new IdenticalEvaluator(sequence)));
-                if(!matches.isEmpty()) {
-                    matchedSequences.addAll(matches);
-                    matchedGenomes.getAndIncrement();
-                }
-            });
-            if(matchedGenomes.get() == genomes.size()) {
-                log.info("matches in all genomes");
-
-                List<Sequence> suisMaches = suis_ss2_1.getSequencesMatchingAnyEvaluator(
-                        Collections.singletonList(new IdenticalEvaluator(sequence)));
-                List<Feature> suisFeatures = genomeFeature.getMatchingFeatures(suisMaches, true);
-
-                jakeCsv.addFeatureMatches(matchedSequences, i, suisMaches, suisFeatures);
-            }
-            log.info(i + "/" + jakeCsv.getRows().size());
-        }
-        jakeCsv.writeToFile(outputFolder + file.getName().replace(".csv", "_results.csv"));
-    }
-
 }

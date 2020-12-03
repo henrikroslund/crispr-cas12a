@@ -103,11 +103,6 @@ public class TypeEvaluator implements SequenceEvaluator {
         return matchType != null;
     }
 
-    @Override
-    public String describe() {
-        return "TypeEvaluator";
-    }
-
     private Type getType(int pamMismatches, int seedMismatchesInARow, int totalMismatches) {
         if(totalMismatches <= 1) {
             return Type.TYPE_DISCARD_A;
@@ -132,14 +127,19 @@ public class TypeEvaluator implements SequenceEvaluator {
     }
 
     @Override
+    public String describe() {
+        return "TypeEvaluator";
+    }
+
+    @Override
     public String toString() {
         if(match == null) {
-            return "NO MATCH: " + sequence.toString();
+            return describe() + " NO MATCH: " + sequence.toString();
         }
         if(matchType == null) {
-            return "NO MATCH TYPE: " + sequence.toString();
+            return describe() + " NO MATCH TYPE: " + sequence.toString();
         }
-        return matchType.name() + " ( "
+        return describe() + " " + matchType.name() + " ( "
                 + matchRepresentation[0]
                 + matchRepresentation[1]
                 + matchRepresentation[2]

@@ -37,6 +37,6 @@ public class NoTripletN1N20Evaluator implements SequenceEvaluator {
 
     @Override
     public String toString() {
-        return "NoTripletN1N20Evaluator " + match.toString();
+        return describe() + " " + match.toString();
     }
 }

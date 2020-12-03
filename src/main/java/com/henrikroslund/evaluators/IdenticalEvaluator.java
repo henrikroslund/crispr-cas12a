@@ -32,6 +32,6 @@ public class IdenticalEvaluator implements SequenceEvaluator {
 
     @Override
     public String toString() {
-        return "IdenticalEvaluator " + match.toString();
+        return describe() + " " + match.toString();
     }
 }

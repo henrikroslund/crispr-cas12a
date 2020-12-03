@@ -50,8 +50,6 @@ public class MismatchEvaluator implements SequenceEvaluator {
 
     @Override
     public String toString() {
-        return "MismatchEvaluator(" + mismatchRange + ") " +
-                "matches(" + mismatches + ") " +
-                match.toString();
+        return describe() + " matches(" + mismatches + ") " +  match.toString();
     }
 }
