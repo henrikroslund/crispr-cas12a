@@ -26,6 +26,11 @@ public class IdenticalEvaluator implements SequenceEvaluator {
     }
 
     @Override
+    public String describe() {
+        return "IdenticalEvaluator";
+    }
+
+    @Override
     public String toString() {
         return "IdenticalEvaluator " + match.toString();
     }

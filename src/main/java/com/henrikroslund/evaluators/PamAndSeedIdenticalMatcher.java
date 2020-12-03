@@ -27,6 +27,11 @@ public class PamAndSeedIdenticalMatcher implements SequenceEvaluator {
     }
 
     @Override
+    public String describe() {
+        return "PamAndSeedIdenticalMatcher";
+    }
+
+    @Override
     public String toString() {
         return "PamAndSeedIdenticalMatcher " + match.toString();
     }

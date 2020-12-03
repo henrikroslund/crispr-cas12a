@@ -33,4 +33,6 @@ public interface SequenceEvaluator {
         return null;
     }
 
+    String describe();
+
 }

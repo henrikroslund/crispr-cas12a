@@ -48,8 +48,13 @@ public class MatchEvaluator implements SequenceEvaluator {
     }
 
     @Override
+    public String describe() {
+        return "MatchEvaluator(" + minMatches + "-" + maxMatches + ") ";
+    }
+
+    @Override
     public String toString() {
-        return "ComparisonEvaluator(" + minMatches + "-" + maxMatches + ") " +
+        return "MatchEvaluator(" + minMatches + "-" + maxMatches + ") " +
                 "matches(" + matches + ") " +
                 match.toString();
     }

@@ -3,65 +3,36 @@ package com.henrikroslund.evaluators.comparisons;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
+import org.apache.commons.lang3.Range;
 
 public class MismatchEvaluator implements SequenceEvaluator {
 
     final Sequence sequence;
+
     @Getter
-    final int minMismatches;
-    @Getter
-    final int maxMismatches;
+    private final Range<Integer> mismatchRange;
 
     @Getter
     private Sequence match = null;
     @Getter
     private int mismatches = -1;
 
-    public MismatchEvaluator(Sequence sequence, int minMismatches, int maxMismatches) {
+    public MismatchEvaluator(Sequence sequence, Range<Integer> mismatchRange) {
+        this.mismatchRange = mismatchRange;
         this.sequence = sequence;
-        if(minMismatches > maxMismatches) {
-            throw new IllegalArgumentException("minMatches should not be greater than maxMatches");
-        }
-        this.minMismatches = minMismatches;
-        this.maxMismatches = maxMismatches;
     }
 
     @Override
     public boolean evaluate(Sequence sequence) {
         int numberOfMismatches = 0;
 
-        // Check pam
-        int pamMismatches = 0;
-        for(int i=Sequence.PAM_INDEX_START; i<Sequence.PAM_LENGTH; i++) {
-            if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
-                numberOfMismatches++;
-                pamMismatches++;
-            }
-        }
-
-        // Check seed
-        int seedMismatchesInARow = 0;
-        int currentMismatches = 0;
-        for(int i=Sequence.SEED_INDEX_START; i<Sequence.SEED_LENGTH; i++) {
-            if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
-                numberOfMismatches++;
-                currentMismatches++;
-            } else {
-                currentMismatches = 0;
-            }
-            if(currentMismatches > seedMismatchesInARow) {
-                seedMismatchesInARow = currentMismatches;
-            }
-        }
-
-        // Check rest of the raw
-        for(int i=Sequence.SEED_INDEX_END+1; i<Sequence.RAW_LENGTH; i++) {
+        for(int i=0; i<Sequence.RAW_LENGTH; i++) {
             if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
                 numberOfMismatches++;
             }
         }
 
-        if(numberOfMismatches >= minMismatches && numberOfMismatches <= maxMismatches) {
+        if(mismatchRange.contains(numberOfMismatches)) {
             this.match = sequence;
             this.mismatches = numberOfMismatches;
             return true;
@@ -73,8 +44,13 @@ public class MismatchEvaluator implements SequenceEvaluator {
     }
 
     @Override
+    public String describe() {
+        return "MismatchEvaluator(" + mismatchRange + ")";
+    }
+
+    @Override
     public String toString() {
-        return "ComparisonEvaluator(" + minMismatches + "-" + maxMismatches + ") " +
+        return "MismatchEvaluator(" + mismatchRange + ") " +
                 "matches(" + mismatches + ") " +
                 match.toString();
     }

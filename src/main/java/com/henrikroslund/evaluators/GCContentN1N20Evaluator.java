@@ -2,35 +2,38 @@ package com.henrikroslund.evaluators;
 
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
+import org.apache.commons.lang3.Range;
 
 public class GCContentN1N20Evaluator implements SequenceEvaluator {
 
-    private final int LOW_LIMIT;
-    private final int HIGH_LIMIT;
+    private final Range<Integer> range;
 
     @Getter
     private Sequence match = null;
 
     public GCContentN1N20Evaluator() {
-        LOW_LIMIT = 9;
-        HIGH_LIMIT = 11;
+        range = Range.between(9,11);
     }
 
-    public GCContentN1N20Evaluator(int minCount, int maxCount) {
-        LOW_LIMIT = minCount;
-        HIGH_LIMIT = maxCount;
+    public GCContentN1N20Evaluator(Range<Integer> range) {
+        this.range = range;
     }
 
     @Override
     public boolean evaluate(Sequence sequence) {
         int gcCount = sequence.getGCCount();
-        boolean result = gcCount >= LOW_LIMIT && gcCount <= HIGH_LIMIT;
-        if(result) {
+        if(range.contains(gcCount)) {
             match = sequence;
+            return true;
         } else {
             match = null;
+            return false;
         }
-        return result;
+    }
+
+    @Override
+    public String describe() {
+        return "GCContentN1N20Evaluator(" + range + ")";
     }
 
     @Override

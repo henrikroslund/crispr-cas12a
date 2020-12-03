@@ -24,7 +24,7 @@ public class TypeEvaluator implements SequenceEvaluator {
     @Getter
     private Type matchType = null;
 
-    private String[] matchRepresentation = new String[24];
+    private String[] matchRepresentation = new String[]{"????????????????????????"};
     private static final String MATCH_CHAR = "=";
     private static final String MISMATCH_CHAR = "X";
 
@@ -101,6 +101,11 @@ public class TypeEvaluator implements SequenceEvaluator {
         match = sequence;
         mismatches = numberOfMismatches;
         return matchType != null;
+    }
+
+    @Override
+    public String describe() {
+        return "TypeEvaluator";
     }
 
     private Type getType(int pamMismatches, int seedMismatchesInARow, int totalMismatches) {

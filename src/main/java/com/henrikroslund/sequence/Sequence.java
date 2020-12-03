@@ -163,6 +163,10 @@ public class Sequence implements Comparable<Sequence> {
         return this.startIndex < o.startIndex ? -1 : 1;
     }
 
+    /**
+     * Will return GC count excluding PAM
+     * @return
+     */
     public int getGCCount() {
         if(gcCount == null) {
             int count = 0;
