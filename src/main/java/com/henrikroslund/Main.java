@@ -262,7 +262,7 @@ public class Main {
     }
 
     private static Genome removeIfEvaluatorMatchInAnySequence(Genome suis_ss2_1, String outputFolder, String inputFolder, SequenceEvaluator evaluator) throws Exception {
-        BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + suis_ss2_1.getOutputFilename() + "_removeIfTooManyMatchesWithOtherGenomes", true));
+        BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + suis_ss2_1.getOutputFilename() + "_" + evaluator.describe(), true));
 
         List<File> otherGenomes = Utils.getFilesInFolder(inputFolder+"genomes/", ".fasta");
 
@@ -300,7 +300,7 @@ public class Main {
             }
         }
         log.info("Candidate size: " + suis_ss2_1.getTotalSequences());
-        suis_ss2_1.writeSequences(outputFolder, "_result_minMatches_removeIfEvaluatorMatchInAnySequence");
+        suis_ss2_1.writeSequences(outputFolder, "_result_"+evaluator.describe());
 
         discardWriter.close();
         return suis_ss2_1;

@@ -15,6 +15,11 @@ public class NoTripletN1N20Evaluator implements SequenceEvaluator {
     @Getter
     private Sequence match = null;
 
+    @Override
+    public SequenceEvaluator clone() {
+        return new NoTripletN1N20Evaluator();
+    }
+
     /**
      * Returns true of there are no tripples in the N1 to N20, otherwise false
      */

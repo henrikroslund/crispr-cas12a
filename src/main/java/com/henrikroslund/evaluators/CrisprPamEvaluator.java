@@ -12,6 +12,11 @@ public class CrisprPamEvaluator implements SequenceEvaluator {
     private Sequence match = null;
 
     @Override
+    public SequenceEvaluator clone() {
+        return new CrisprPamEvaluator();
+    }
+
+    @Override
     public boolean evaluate(Sequence sequence) {
         boolean result = sequence.getRaw().matches(CRISPR_PAM_MATCH_REGEXP);
         if(result) {

@@ -5,6 +5,9 @@ import com.henrikroslund.sequence.Sequence;
 import java.util.List;
 
 public interface SequenceEvaluator {
+
+    SequenceEvaluator clone();
+
     boolean evaluate(Sequence sequence);
 
     Sequence getMatch();

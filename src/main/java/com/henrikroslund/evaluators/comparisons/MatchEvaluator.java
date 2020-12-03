@@ -23,6 +23,11 @@ public class MatchEvaluator implements SequenceEvaluator {
     }
 
     @Override
+    public SequenceEvaluator clone() {
+        return new MatchEvaluator(this.sequence, this.range);
+    }
+
+    @Override
     public boolean evaluate(Sequence sequence) {
         int numberOfMatches = 0;
 

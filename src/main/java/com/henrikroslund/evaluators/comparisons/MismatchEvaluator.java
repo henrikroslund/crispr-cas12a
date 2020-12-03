@@ -23,6 +23,11 @@ public class MismatchEvaluator implements SequenceEvaluator {
     }
 
     @Override
+    public SequenceEvaluator clone() {
+        return new MismatchEvaluator(this.sequence, this.mismatchRange);
+    }
+
+    @Override
     public boolean evaluate(Sequence sequence) {
         int numberOfMismatches = 0;
 

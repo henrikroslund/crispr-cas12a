@@ -42,6 +42,11 @@ public class TypeEvaluator implements SequenceEvaluator {
         return matchType == Type.TYPE_DISCARD_A || matchType == Type.TYPE_DISCARD_B;
     }
 
+    @Override
+    public SequenceEvaluator clone() {
+        return new TypeEvaluator(this.sequence);
+    }
+
     // Will return true if the evaluation resulted in a matchType
     @Override
     public boolean evaluate(Sequence sequence) {
