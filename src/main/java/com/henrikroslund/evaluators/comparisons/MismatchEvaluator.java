@@ -16,6 +16,7 @@ public class MismatchEvaluator implements SequenceEvaluator {
     private Sequence match = null;
     @Getter
     private int mismatches = -1;
+    private String[] matchRepresentation = new String[]{"????????????????????????"};
 
     public MismatchEvaluator(Sequence sequence, Range<Integer> mismatchRange) {
         this.mismatchRange = mismatchRange;
@@ -34,6 +35,9 @@ public class MismatchEvaluator implements SequenceEvaluator {
         for(int i=0; i<Sequence.RAW_LENGTH; i++) {
             if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
                 numberOfMismatches++;
+                matchRepresentation[i] = MISMATCH_CHAR;
+            } else {
+                matchRepresentation[i] = MATCH_CHAR;
             }
         }
 
@@ -55,6 +59,7 @@ public class MismatchEvaluator implements SequenceEvaluator {
 
     @Override
     public String toString() {
-        return describe() + " matches(" + mismatches + ") " +  match.toString();
+        return describe() + " mismatches: " + mismatches + " ( "
+                + SequenceEvaluator.toMatchRepresentation(matchRepresentation) +  " ) " + match.toString();
     }
 }

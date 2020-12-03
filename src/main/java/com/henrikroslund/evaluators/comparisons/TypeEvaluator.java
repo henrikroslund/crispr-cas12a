@@ -25,8 +25,6 @@ public class TypeEvaluator implements SequenceEvaluator {
     private Type matchType = null;
 
     private String[] matchRepresentation = new String[]{"????????????????????????"};
-    private static final String MATCH_CHAR = "=";
-    private static final String MISMATCH_CHAR = "X";
 
     public TypeEvaluator(Sequence sequence) {
         this.sequence = sequence;
@@ -144,31 +142,8 @@ public class TypeEvaluator implements SequenceEvaluator {
         if(matchType == null) {
             return describe() + " NO MATCH TYPE: " + sequence.toString();
         }
-        return describe() + " " + matchType.name() + " ( "
-                + matchRepresentation[0]
-                + matchRepresentation[1]
-                + matchRepresentation[2]
-                + matchRepresentation[3] + " "
-                + matchRepresentation[4]
-                + matchRepresentation[5]
-                + matchRepresentation[6]
-                + matchRepresentation[7]
-                + matchRepresentation[8] + " "
-                + matchRepresentation[9]
-                + matchRepresentation[10]
-                + matchRepresentation[11]
-                + matchRepresentation[12]
-                + matchRepresentation[13] + " "
-                + matchRepresentation[14]
-                + matchRepresentation[15]
-                + matchRepresentation[16]
-                + matchRepresentation[17]
-                + matchRepresentation[18] + " "
-                + matchRepresentation[19]
-                + matchRepresentation[20]
-                + matchRepresentation[21]
-                + matchRepresentation[22]
-                + matchRepresentation[23] + " ) "
+        return describe() + " " + matchType.name()
+                + " ( " + SequenceEvaluator.toMatchRepresentation(matchRepresentation)+ " ) "
                 + match.toString();
     }
 }

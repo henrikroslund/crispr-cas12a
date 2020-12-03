@@ -275,9 +275,8 @@ public class Main {
             AtomicInteger counter = new AtomicInteger(0);
             Genome genome = new Genome(file, Collections.emptyList(), true);
             suis_ss2_1.getSequences().parallelStream().forEach(suisSequence -> {
-                // TODO we probably cannot reuse the evaluator here becase that would not be thread safe...
                 for (Sequence genomeSequence : genome.getSequences()) {
-                    if (evaluator.evaluate(genomeSequence)) {
+                    if (evaluator.clone().evaluate(genomeSequence)) {
                         found.add(suisSequence);
                         break;
                     }
