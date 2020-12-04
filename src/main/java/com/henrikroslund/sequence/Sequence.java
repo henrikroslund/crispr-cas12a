@@ -1,5 +1,6 @@
 package com.henrikroslund.sequence;
 
+import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.exceptions.InvalidSequenceException;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -29,7 +30,7 @@ public class Sequence implements Comparable<Sequence> {
 
     public static final int SEED_LENGTH = 6;
     public static final int SEED_INDEX_START = PAM_INDEX_START + PAM_LENGTH;
-    public static final int SEED_INDEX_END = SEED_INDEX_START + SEED_LENGTH;
+    public static final int SEED_INDEX_END = SEED_INDEX_START + SEED_LENGTH - 1;
 
     public static final int TARGET_LENGTH = 20;
 
@@ -49,7 +50,7 @@ public class Sequence implements Comparable<Sequence> {
     private final String genome;
 
     // metaData is created upon first get to save memory
-    private Map<String, String> metaData = null;
+    private Map<TypeEvaluator.Type, Integer> metaData = null;
 
     @SneakyThrows
     public Sequence(String raw, int startIndex, String genome) {
@@ -64,18 +65,27 @@ public class Sequence implements Comparable<Sequence> {
         this.raw = raw;
         this.rawHash = raw.hashCode();
         this.pamHash = raw.substring(PAM_INDEX_START, PAM_LENGTH).hashCode();
-        this.seedHash = raw.substring(SEED_INDEX_START, SEED_INDEX_END).hashCode();
+        this.seedHash = raw.substring(SEED_INDEX_START, SEED_INDEX_END+1).hashCode();
         this.startIndex = startIndex;
         this.endIndex = startIndex + RAW_LENGTH - 1;
         this.genome = genome.replaceAll("\\s","");
         this.isComplement = isComplement;
     }
 
-    public Map<String, String> getMetaData() {
+    public Map<TypeEvaluator.Type, Integer> getMetaData() {
         if(metaData == null) {
             metaData = new HashMap<>();
+            for(TypeEvaluator.Type type : TypeEvaluator.Type.values()) {
+                metaData.put(type, 0);
+            }
         }
         return metaData;
+    }
+
+    public void increaseMetaDataCounter(TypeEvaluator.Type key) {
+        Integer value = getMetaData().get(key);
+        value++;
+        metaData.put(key, value);
     }
 
     public boolean equalsPam(Sequence sequence) {
@@ -130,9 +140,20 @@ public class Sequence implements Comparable<Sequence> {
         return rawHash;
     }
 
+    public String metaDataToString() {
+        if(metaData == null) {
+            return "";
+        }
+        StringBuilder result = new StringBuilder();
+        metaData.forEach((s, s2) -> {
+            result.append(s).append("=").append(s2);
+        });
+        return result.toString();
+    }
+
     @Override
     public String toString() {
-        return raw + " " + (isComplement ? "-" : "+") + " " + startIndex + (genome != null ? " " + genome : "");
+        return raw + " " + (isComplement ? "-" : "+") + " " + startIndex + (genome != null ? " " + genome : "" + " " + metaDataToString());
     }
 
     public static Sequence parseFromToString(String line) {

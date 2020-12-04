@@ -7,12 +7,11 @@ import lombok.Getter;
 public class TypeEvaluator implements SequenceEvaluator {
 
     public enum Type {
-        TYPE_DISCARD_A,
-        TYPE_DISCARD_B,
         TYPE_1,
         TYPE_2,
         TYPE_3,
-        TYPE_4
+        TYPE_4,
+        TYPE_5
     }
 
     final Sequence sequence;
@@ -24,7 +23,7 @@ public class TypeEvaluator implements SequenceEvaluator {
     @Getter
     private Type matchType = null;
 
-    private String[] matchRepresentation = new String[]{"????????????????????????"};
+    private String[] matchRepresentation = new String[]{"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?"};
 
     public TypeEvaluator(Sequence sequence) {
         this.sequence = sequence;
@@ -34,10 +33,6 @@ public class TypeEvaluator implements SequenceEvaluator {
         match = null;
         mismatches = -1;
         matchType = null;
-    }
-
-    public boolean isDiscardType() {
-        return matchType == Type.TYPE_DISCARD_A || matchType == Type.TYPE_DISCARD_B;
     }
 
     @Override
@@ -50,23 +45,14 @@ public class TypeEvaluator implements SequenceEvaluator {
     public boolean evaluate(Sequence sequence) {
         reset();
 
-        // Check complete match
-        if(sequence.equals(this.sequence)) {
-            match = sequence;
-            mismatches = 0;
-            matchType = Type.TYPE_DISCARD_A;
-            matchRepresentation = new String[]{"========================"};
-            return true;
-        }
-
         int numberOfMismatches = 0;
 
         // Check pam
-        int pamMismatches = 0;
-        for(int i=Sequence.PAM_INDEX_START; i<Sequence.PAM_LENGTH; i++) {
+        int pamWithoutVMismatches = 0;
+        for(int i=Sequence.PAM_INDEX_START; i<Sequence.PAM_LENGTH-1; i++) {
             if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
                 numberOfMismatches++;
-                pamMismatches++;
+                pamWithoutVMismatches++;
                 matchRepresentation[i] = MISMATCH_CHAR;
             } else {
                 matchRepresentation[i] = MATCH_CHAR;
@@ -76,7 +62,7 @@ public class TypeEvaluator implements SequenceEvaluator {
         // Check seed
         int seedMismatchesInARow = 0;
         int currentMismatches = 0;
-        for(int i=Sequence.SEED_INDEX_START; i<Sequence.SEED_INDEX_END; i++) {
+        for(int i=Sequence.SEED_INDEX_START; i<=Sequence.SEED_INDEX_END; i++) {
             if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
                 numberOfMismatches++;
                 currentMismatches++;
@@ -91,7 +77,7 @@ public class TypeEvaluator implements SequenceEvaluator {
         }
 
         // Check rest of the raw
-        for(int i=Sequence.SEED_INDEX_END; i<Sequence.RAW_LENGTH; i++) {
+        for(int i=Sequence.SEED_INDEX_END+1; i<Sequence.RAW_LENGTH; i++) {
             if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
                 numberOfMismatches++;
                 matchRepresentation[i] = MISMATCH_CHAR;
@@ -100,31 +86,19 @@ public class TypeEvaluator implements SequenceEvaluator {
             }
         }
 
-        matchType = getType(pamMismatches, seedMismatchesInARow, numberOfMismatches);
+        matchType = getType(pamWithoutVMismatches, seedMismatchesInARow);
         match = sequence;
         mismatches = numberOfMismatches;
         return matchType != null;
     }
 
-    private Type getType(int pamMismatches, int seedMismatchesInARow, int totalMismatches) {
-        if(totalMismatches <= 1) {
-            return Type.TYPE_DISCARD_A;
-        }
-
-        if(totalMismatches >= 12) {
-            return Type.TYPE_4;
-        }
-
-        Type result = Type.TYPE_DISCARD_B;
-        if(pamMismatches >= 2) {
+    private Type getType(int pamMismatches, int seedMismatchesInARow) {
+        Type result = Type.TYPE_5;
+        if(pamMismatches >= 1) {
             result = Type.TYPE_1;
         }
         if(seedMismatchesInARow >= 2) {
-            if(result == Type.TYPE_1) {
-                result = Type.TYPE_3;
-            } else {
-                result = Type.TYPE_2;
-            }
+            result = result == Type.TYPE_1 ? Type.TYPE_3 : Type.TYPE_2;
         }
         return result;
     }

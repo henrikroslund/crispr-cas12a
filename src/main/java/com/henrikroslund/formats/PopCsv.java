@@ -1,5 +1,6 @@
 package com.henrikroslund.formats;
 
+import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.genomeFeature.Feature;
 import com.henrikroslund.sequence.Sequence;
 import com.opencsv.CSVWriter;
@@ -28,6 +29,9 @@ public class PopCsv {
         columnHeaders.add("Location");
         columnHeaders.add("GC Count");
         columnHeaders.add("Features");
+        for(TypeEvaluator.Type type : TypeEvaluator.Type.values()) {
+            columnHeaders.add(type.name());
+        }
     }
 
     public Sequence getRowSequence(int index) {
@@ -88,6 +92,14 @@ public class PopCsv {
             cell.append(sequence.getGCCount() + "\n");
         }
         columns.add(cell.toString());
+
+        for(TypeEvaluator.Type type : TypeEvaluator.Type.values()) {
+            cell = new StringBuilder();
+            for(Sequence sequence: sequences) {
+                cell.append(sequence.getMetaData().get(type) + "\n");
+            }
+            columns.add(cell.toString());
+        }
 
         return columns;
     }
