@@ -22,6 +22,8 @@ public class TypeEvaluator implements SequenceEvaluator {
     private int mismatches = -1;
     @Getter
     private Type matchType = null;
+    @Getter
+    private int mismatchesN7toN20 = 0;
 
     private String[] matchRepresentation = new String[]{"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?"};
 
@@ -80,6 +82,7 @@ public class TypeEvaluator implements SequenceEvaluator {
         for(int i=Sequence.SEED_INDEX_END+1; i<Sequence.RAW_LENGTH; i++) {
             if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
                 numberOfMismatches++;
+                mismatchesN7toN20++;
                 matchRepresentation[i] = MISMATCH_CHAR;
             } else {
                 matchRepresentation[i] = MATCH_CHAR;
@@ -117,7 +120,7 @@ public class TypeEvaluator implements SequenceEvaluator {
             return describe() + " NO MATCH TYPE: " + sequence.toString();
         }
         return describe() + " " + matchType.name()
-                + " ( " + SequenceEvaluator.toMatchRepresentation(matchRepresentation)+ " ) "
-                + match.toString();
+                + " ( " + SequenceEvaluator.toMatchRepresentation(matchRepresentation) + " ) "
+                + "mismatchesN7To20: " + mismatchesN7toN20 + " " + match.toString();
     }
 }

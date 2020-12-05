@@ -253,11 +253,10 @@ public class Main {
             Genome genome = new Genome(file, Collections.emptyList(), true);
             suis_ss2_1.getSequences().parallelStream().forEach(suisSequence -> {
                 SequenceEvaluator pamAndSeedEval = new MismatchEvaluator(suisSequence, Range.between(0,3), pamNoVAndSeedIndexes);
-                SequenceEvaluator n7to20Eval = new MismatchEvaluator(suisSequence, Range.between(0,6), Range.between(10,23));
                 for (Sequence genomeSequence : genome.getSequences()) {
-                    if (pamAndSeedEval.evaluate(genomeSequence) && n7to20Eval.evaluate(genomeSequence)) {
+                    if (pamAndSeedEval.evaluate(genomeSequence)) {
                         found.add(suisSequence);
-                        log.info("Marked for removal: " + suisSequence.toString() + " " + pamAndSeedEval.toString() + " " + n7to20Eval.toString());
+                        log.info("Marked for removal: " + suisSequence.toString() + " " + pamAndSeedEval.toString());
                         break;
                     }
                 }

@@ -6,9 +6,7 @@ import lombok.extern.java.Log;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Log
@@ -23,10 +21,10 @@ public class Utils {
         return lines.findFirst().get() + "\n";
     }
 
-    public static List<File> getFilesInFolder(String folder, String suffix) throws Exception {
+    public static List<File> getFilesInFolder(String folder, String suffix) {
         File directoryPath = new File(folder);
-        List<File> results = new ArrayList();
-        for(File file: directoryPath.listFiles()) {
+        List<File> results = new ArrayList<>();
+        Arrays.stream(Objects.requireNonNull(directoryPath.listFiles())).sorted().forEach(file -> {
             if(file.isFile()) {
                 if(file.getName().endsWith(suffix)) {
                     results.add(file);
@@ -34,9 +32,10 @@ public class Utils {
             } else if(file.isDirectory()) {
                 results.addAll(getFilesInFolder(file.getPath(), suffix));
             } else {
-                throw new Exception("Something whent wrong when reading all files");
+                log.severe("Something whent wrong when reading all files");
+                System.exit(1);
             }
-        }
+        });
         return results;
     }
 
