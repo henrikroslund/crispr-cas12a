@@ -28,10 +28,10 @@ public class PopCsv {
         columnHeaders.add("Strand");
         columnHeaders.add("Location");
         columnHeaders.add("GC Count");
-        columnHeaders.add("Features");
         for(TypeEvaluator.Type type : TypeEvaluator.Type.values()) {
             columnHeaders.add(type.name());
         }
+        columnHeaders.add("Features");
     }
 
     public Sequence getRowSequence(int index) {
