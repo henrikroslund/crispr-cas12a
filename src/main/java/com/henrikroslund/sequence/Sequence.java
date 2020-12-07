@@ -3,6 +3,7 @@ package com.henrikroslund.sequence;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.exceptions.InvalidSequenceException;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
@@ -50,6 +51,7 @@ public class Sequence implements Comparable<Sequence> {
     private final String genome;
 
     // metaData is created upon first get to save memory
+    @Setter
     private Map<TypeEvaluator.Type, Integer> metaData = null;
 
     @SneakyThrows

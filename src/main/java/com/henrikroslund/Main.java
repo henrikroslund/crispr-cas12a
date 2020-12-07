@@ -52,6 +52,8 @@ public class Main {
 
         log.info("Started Crispr-cas12a");
 
+        String inputSuis = "Suis strain SS2-1 sequence_candidates_processTypes_15";
+
         for(int minMatches = 15; minMatches<= 15; minMatches++) {
             String outputFolder = baseOutputFolder + " minMatches_"+minMatches+"/";
             String outputInputFolder = outputFolder + "input/";
@@ -64,14 +66,14 @@ public class Main {
 
             GenomeFeature genomeFeature = createGenomeFeatures(inputFolder, outputInputFolder);
 
-            Genome suis_ss2_1 = getPopSuis(inputFolder, outputInputFolder, true);
+            Genome suis_ss2_1 = getPopSuis(inputFolder, outputInputFolder, inputSuis, true);
             log.info("Read suis genome with " + suis_ss2_1.getTotalSequences() + " sequences");
-
+            /*
             alignWithSuis(suis_ss2_1, outputFolder, inputFolder);
             removeIdenticalMatchesWithAllGenomes(suis_ss2_1, outputFolder, inputFolder);
 
             removeTooSimilarSequences(suis_ss2_1, outputFolder, inputFolder);
-
+            */
             processTypes(suis_ss2_1, outputFolder, inputFolder, new MatchEvaluator(null, Range.between(minMatches, 24)), "_"+minMatches);
 
             Genome suisWithDuplicates = getPopSuis(inputFolder, outputInputFolder, false);
@@ -89,7 +91,6 @@ public class Main {
     private static void processFeatures(Genome suis_candidates, Genome suisWithDuplicates, GenomeFeature genomeFeature, String outputFolder) throws Exception {
         log.info("processFeatures");
         PopCsv popCsv = new PopCsv();
-        BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + suis_candidates.getOutputFilename() + "_discarded_no_features", true));
 
         for(Sequence candidate : suis_candidates.getSequences()) {
             List<Sequence> suisMaches = suisWithDuplicates.getSequencesMatchingAnyEvaluator(
@@ -99,16 +100,15 @@ public class Main {
                 log.info("suisMatches:" + suisMaches.size() + " " + candidate.toString());
             }
 
-            List<Feature> suisFeatures = genomeFeature.getMatchingFeatures(suisMaches, false);
-
-            if(suisFeatures.isEmpty()) {
-                discardWriter.append(candidate.toString()).append("\n");
-            } else {
-                popCsv.addFeatureMatches(suisMaches, suisFeatures);
+            // We need to maintain the meta data so add it for all
+            for(Sequence sequence : suisMaches) {
+                sequence.setMetaData(candidate.getMetaData());
             }
+
+            List<Feature> suisFeatures = genomeFeature.getMatchingFeatures(suisMaches, false);
+            popCsv.addFeatureMatches(suisMaches, suisFeatures);
         }
         popCsv.writeToFile(outputFolder + suis_candidates.getOutputFilename() + "_with_features.csv");
-        discardWriter.close();
     }
 
     private static GenomeFeature createGenomeFeatures(String inputFolder, String outputInputFolder) throws Exception {
@@ -253,7 +253,7 @@ public class Main {
             Genome genome = new Genome(file, Collections.emptyList(), true);
             suis_ss2_1.getSequences().parallelStream().forEach(suisSequence -> {
                 SequenceEvaluator pamAndSeedEval = new MismatchEvaluator(suisSequence, Range.between(0,3), pamNoVAndSeedIndexes);
-                SequenceEvaluator n7to20Eval = new MismatchEvaluator(suisSequence, Range.between(0,6), Range.between(10,23));
+                SequenceEvaluator n7to20Eval = new MismatchEvaluator(suisSequence, Range.between(0,2), Range.between(10,23));
                 for (Sequence genomeSequence : genome.getSequences()) {
                     if (pamAndSeedEval.evaluate(genomeSequence) && n7to20Eval.evaluate(genomeSequence)) {
                         found.add(suisSequence);
