@@ -5,26 +5,35 @@ import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
 import org.apache.commons.lang3.Range;
 
+import java.util.Collections;
+import java.util.List;
+
 public class MatchEvaluator implements SequenceEvaluator {
 
     final Sequence sequence;
 
     @Getter
-    private final Range<Integer> range;
+    private final Range<Integer> matchRange;
+    private final List<Range<Integer>> indexesToCompare;
 
     @Getter
     private Sequence match = null;
     @Getter
     private int matches = -1;
 
-    public MatchEvaluator(Sequence sequence, Range<Integer> range) {
-        this.range = range;
+    public MatchEvaluator(Sequence sequence, Range<Integer> matchRange, List<Range<Integer>> indexesToCompare) {
+        this.matchRange = matchRange;
         this.sequence = sequence;
+        this.indexesToCompare = indexesToCompare;
+    }
+
+    public MatchEvaluator(Sequence sequence, Range<Integer> matchRange) {
+        this(sequence, matchRange, Collections.singletonList(Range.between(0,24)));
     }
 
     @Override
     public SequenceEvaluator clone() {
-        return new MatchEvaluator(this.sequence, this.range);
+        return new MatchEvaluator(this.sequence, this.matchRange);
     }
 
     @Override
@@ -37,7 +46,18 @@ public class MatchEvaluator implements SequenceEvaluator {
             }
         }
 
-        if(range.contains(numberOfMatches)) {
+        // TODO need to write tests for the indexesToCompare...
+        for(int i=0; i<Sequence.RAW_LENGTH; i++) {
+            int finalI = i;
+            boolean inRange = indexesToCompare.stream().anyMatch(integerRange -> integerRange.contains(finalI));
+            if(inRange) {
+                if(this.sequence.getRaw().charAt(i) == sequence.getRaw().charAt(i)) {
+                    numberOfMatches++;
+                }
+            }
+        }
+
+        if(matchRange.contains(numberOfMatches)) {
             this.match = sequence;
             this.matches = numberOfMatches;
             return true;
@@ -50,7 +70,7 @@ public class MatchEvaluator implements SequenceEvaluator {
 
     @Override
     public String describe() {
-        return "MatchEvaluator(" + range + ")";
+        return "MatchEvaluator(" + matchRange + ")";
     }
 
     @Override

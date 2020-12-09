@@ -74,7 +74,9 @@ public class Main {
 
             removeTooSimilarSequences(suis_ss2_1, outputFolder, inputFolder);
             */
-            processTypes(suis_ss2_1, outputFolder, inputFolder, new MatchEvaluator(null, Range.between(minMatches, 24)), "_"+minMatches);
+            processTypes(suis_ss2_1, outputFolder, inputFolder,
+                    new MatchEvaluator(null, Range.between(minMatches, 24),
+                            Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END))), "_"+minMatches);
 
             Genome suisWithDuplicates = getPopSuis(inputFolder, outputInputFolder, false);
             processFeatures(suis_ss2_1, suisWithDuplicates, genomeFeature, outputFolder);
@@ -136,7 +138,7 @@ public class Main {
                 if(bindCriteria instanceof MismatchEvaluator) {
                     evaluator = new MismatchEvaluator(suisSequence, ((MismatchEvaluator) bindCriteria).getMismatchRange());
                 } else if(bindCriteria instanceof MatchEvaluator) {
-                    evaluator = new MatchEvaluator(suisSequence, ((MatchEvaluator) bindCriteria).getRange());
+                    evaluator = new MatchEvaluator(suisSequence, ((MatchEvaluator) bindCriteria).getMatchRange());
                 } else {
                     log.severe("Not supported match evaluator");
                     System.exit(1);
