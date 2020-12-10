@@ -13,6 +13,7 @@ public class MismatchEvaluator implements SequenceEvaluator {
 
     @Getter
     private final Range<Integer> mismatchRange;
+    @Getter
     private final List<Range<Integer>> indexesToCompare;
     private String describeIndexesToCompare = "";
 

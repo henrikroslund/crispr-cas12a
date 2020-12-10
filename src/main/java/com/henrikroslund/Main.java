@@ -136,9 +136,9 @@ public class Main {
 
                 SequenceEvaluator evaluator = null;
                 if(bindCriteria instanceof MismatchEvaluator) {
-                    evaluator = new MismatchEvaluator(suisSequence, ((MismatchEvaluator) bindCriteria).getMismatchRange());
+                    evaluator = new MismatchEvaluator(suisSequence, ((MismatchEvaluator) bindCriteria).getMismatchRange(), ((MismatchEvaluator) bindCriteria).getIndexesToCompare());
                 } else if(bindCriteria instanceof MatchEvaluator) {
-                    evaluator = new MatchEvaluator(suisSequence, ((MatchEvaluator) bindCriteria).getMatchRange());
+                    evaluator = new MatchEvaluator(suisSequence, ((MatchEvaluator) bindCriteria).getMatchRange(), ((MatchEvaluator) bindCriteria).getIndexesToCompare());
                 } else {
                     log.severe("Not supported match evaluator");
                     System.exit(1);

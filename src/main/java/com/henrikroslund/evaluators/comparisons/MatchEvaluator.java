@@ -14,6 +14,7 @@ public class MatchEvaluator implements SequenceEvaluator {
 
     @Getter
     private final Range<Integer> matchRange;
+    @Getter
     private final List<Range<Integer>> indexesToCompare;
 
     @Getter
