@@ -41,12 +41,6 @@ public class MatchEvaluator implements SequenceEvaluator {
     public boolean evaluate(Sequence sequence) {
         int numberOfMatches = 0;
 
-        for(int i=0; i<Sequence.RAW_LENGTH; i++) {
-            if(this.sequence.getRaw().charAt(i) == sequence.getRaw().charAt(i)) {
-                numberOfMatches++;
-            }
-        }
-
         // TODO need to write tests for the indexesToCompare...
         for(int i=0; i<Sequence.RAW_LENGTH; i++) {
             int finalI = i;
