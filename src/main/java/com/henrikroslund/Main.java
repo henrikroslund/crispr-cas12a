@@ -25,6 +25,7 @@ import java.util.logging.FileHandler;
 import java.util.logging.SimpleFormatter;
 
 import static com.henrikroslund.Utils.*;
+import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.TRIPLE;
 
 @Log
 public class Main {
@@ -298,7 +299,7 @@ public class Main {
         Range gcContentRange = Range.between(8, 12);
         log.info("Using gcContentRange: " + gcContentRange);
         Genome suis_ss2_1 = filename.endsWith(".fasta") ?
-                new Genome(suisGenomeFile, Arrays.asList(new CrisprPamEvaluator(), new NoTripletN1N20Evaluator(), new GCContentN1N20Evaluator(gcContentRange)), skipDuplicates) :
+                new Genome(suisGenomeFile, Arrays.asList(new CrisprPamEvaluator(), new NoConsecutiveIdenticalN1N20Evaluator(TRIPLE), new GCContentN1N20Evaluator(gcContentRange)), skipDuplicates) :
                 Genome.loadGenome(suisGenomeFile);
         suis_ss2_1.writeSequences(outputInputFolder, "_sequences");
         return suis_ss2_1;
