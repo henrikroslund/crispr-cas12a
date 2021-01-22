@@ -165,6 +165,11 @@ public class Main {
 
         int fileNumber = 0;
         List<File> otherGenomes = Utils.getFilesInFolder(inputFolder+"genomes/", ".fasta");
+        log.info("Will process genomes in following order:");
+        for(File file : otherGenomes) {
+            log.info(file.getName());
+        }
+
         for(File file : otherGenomes) {
             BufferedWriter processedGenomeWriter = new BufferedWriter(new FileWriter(outputFolder + PROCESSED_GENOMES_FILE, true));
             if(alreadyProcessed.contains(file.getName())) {
