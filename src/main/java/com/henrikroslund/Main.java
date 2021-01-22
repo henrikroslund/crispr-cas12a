@@ -12,9 +12,12 @@ import lombok.extern.java.Log;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Range;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -39,8 +42,8 @@ public class Main {
     public static void main(String[] args) throws Exception {
         long start = new Date().getTime();
 
-        String inputFolder = "input/pop/";
-        String baseOutputFolder = "output/" + new Date().toString() + " pop/";
+        String inputFolder = "input/bp/";
+        String baseOutputFolder = "output/" + new Date().toString() + " bp/";
         String baseOutputInputFolder = baseOutputFolder + "input/";
         // Create output folders
         new File(baseOutputFolder).mkdirs();
@@ -54,8 +57,8 @@ public class Main {
 
         log.info("Started Crispr-cas12a");
 
-        String originalMainGenomeFilename = "Suis strain SS2-1 sequence.fasta";
-        String mainGenomeFilename = "Suis strain SS2-1 sequence_candidates_processTypes_15";
+        String originalMainGenomeFilename = "1-Burkholderia pseudomallei strain Mahidol-1106a chromosome 1.fasta";
+        String mainGenomeFilename = "1-Burkholderia pseudomallei strain Mahidol-1106a chromosome 1_candidates_files_processed_1_candidates_files_processed_14";
 
         for(int minMatches = 15; minMatches<= 15; minMatches++) {
             String outputFolder = baseOutputFolder + " minMatches_"+minMatches+"/";
@@ -67,21 +70,22 @@ public class Main {
             tmpLogHandler.setFormatter(simpleFormatter);
             log.addHandler(tmpLogHandler);
 
-            GenomeFeature genomeFeature = createGenomeFeatures(inputFolder, outputInputFolder);
-
-            Genome mainGenome = getPopSuis(inputFolder, outputInputFolder, mainGenomeFilename, true);
+            Genome mainGenome = getBP(inputFolder, outputInputFolder, mainGenomeFilename, true);
             log.info("Read main genome with " + mainGenome.getTotalSequences() + " sequences");
 
-            alignWithAllInFolder(mainGenome, outputFolder, inputFolder);
-            removeIdenticalMatchesWithAllGenomes(mainGenome, outputFolder, inputFolder);
+            removeAnyWithDiscardMetaData(mainGenome);
 
-            // Excluded for now
+            //alignWithAllInFolder(mainGenome, outputFolder, inputFolder);
+            //removeIdenticalMatchesWithAllGenomes(mainGenome, outputFolder, inputFolder);
+
+            // Excluded for now for bp flow
             //removeTooSimilarSequences(mainGenome, outputFolder, inputFolder);
 
-            processTypes(mainGenome, outputFolder, inputFolder,
+            processTypes(mainGenome, outputFolder, inputFolder, outputInputFolder,
                     new MatchEvaluator(null, Range.between(minMatches, 24),
                             Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END))), "_"+minMatches);
 
+            GenomeFeature genomeFeature = createGenomeFeatures(inputFolder, outputInputFolder);
             Genome mainGenomeWithDuplicates = getPopSuis(inputFolder, outputInputFolder, originalMainGenomeFilename, false);
             processFeatures(mainGenome, mainGenomeWithDuplicates, genomeFeature, outputFolder);
 
@@ -92,6 +96,19 @@ public class Main {
         scheduler.shutdown();
         printMemoryStat();
         log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
+    }
+
+    private static void removeAnyWithDiscardMetaData(Genome candidates) {
+        Collection<Sequence> discards = new HashSet<>();
+        candidates.getSequences().forEach(sequence -> {
+            if(sequence.getMetaData() != null &&
+               sequence.getMetaData().get(TypeEvaluator.Type.TYPE_DISCARD) != null &&
+               sequence.getMetaData().get(TypeEvaluator.Type.TYPE_DISCARD)> 0) {
+                discards.add(sequence);
+            }
+        });
+        candidates.removeAll(discards);
+        log.info("Candidate size: " + candidates.getSequences().size());
     }
 
     private static void processFeatures(Genome candidates, Genome mainGenomeWithDuplicates, GenomeFeature genomeFeature, String outputFolder) throws Exception {
@@ -125,17 +142,43 @@ public class Main {
         return genomeFeature;
     }
 
-    private static Genome processTypes(Genome mainGenome, String outputFolder, String inputFolder, SequenceEvaluator bindCriteria, String outputSuffix) throws Exception {
+    private static String PROCESSED_GENOMES_FILE = "genomesProcessed";
+    private static HashSet<String> getAlreadyProcessedGenomes(String inputFolder) throws Exception {
+        HashSet<String> files = new HashSet<>();
+        File file = new File(inputFolder+PROCESSED_GENOMES_FILE);
+        if(!file.exists()) {
+            return files;
+        }
+        Path filePath = Path.of(file.getAbsolutePath());
+        BufferedReader reader = Files.newBufferedReader(filePath);
+        reader.lines().forEach(line -> {
+            files.add(line);
+        });
+        log.info("Previously processed file count: " + files.size());
+        return files;
+    }
+
+    private static Genome processTypes(Genome mainGenome, String outputFolder, String inputFolder, String outputInputFolder, SequenceEvaluator bindCriteria, String outputSuffix) throws Exception {
         log.info("processTypes");
-        // Remove any duplicates found in other genomes
+
+        HashSet<String> alreadyProcessed = getAlreadyProcessedGenomes(inputFolder);
+
         int fileNumber = 0;
         List<File> otherGenomes = Utils.getFilesInFolder(inputFolder+"genomes/", ".fasta");
         for(File file : otherGenomes) {
+            BufferedWriter processedGenomeWriter = new BufferedWriter(new FileWriter(outputFolder + PROCESSED_GENOMES_FILE, true));
+            if(alreadyProcessed.contains(file.getName())) {
+                log.info("Already processed file so skipping: " + file.getName());
+                processedGenomeWriter.write(file.getName()+"/n");
+                continue;
+            }
+            FileUtils.copyFile(file, new File(outputInputFolder+file.getName()));
             fileNumber++;
             Date startTime = new Date();
-            Genome genome = new Genome(file, Collections.emptyList(), true);
+            Genome genome = new Genome(file, Collections.emptyList(), true, false);
             AtomicInteger counter = new AtomicInteger(0);
 
+            Collection<Sequence> discards = new HashSet<>();
             mainGenome.getSequences().parallelStream().forEach(mainGenomeSequence -> {
 
                 SequenceEvaluator evaluator = null;
@@ -159,7 +202,10 @@ public class Main {
                     TypeEvaluator typeEvaluator = new TypeEvaluator(mainGenomeSequence);
                     typeEvaluator.evaluate(sequence);
                     mainGenomeSequence.increaseMetaDataCounter(typeEvaluator.getMatchType());
-                    log.info("allMatches: " + allMatchesInOtherGenomes.size() + " " + mainGenomeSequence.toString() + " " + typeEvaluator.toString());
+                    if(typeEvaluator.getMatchType() == TypeEvaluator.Type.TYPE_DISCARD) {
+                        discards.add(mainGenomeSequence);
+                    }
+                    log.info("allMatches: " + allMatchesInOtherGenomes.size() + " " + mainGenomeSequence.toString() + " " + typeEvaluator.toString() + " discardCount: " + discards.size());
                 });
 
                 counter.incrementAndGet();
@@ -168,7 +214,12 @@ public class Main {
                 }
             });
 
+            mainGenome.removeAll(discards);
+            log.info("Candidate size: " + mainGenome.getTotalSequences());
             log.info("Finished processing file " + fileNumber + " in " + (new Date().getTime() - startTime.getTime()) / 1000 + " seconds");
+            processedGenomeWriter.write(file.getName()+"\n");
+            processedGenomeWriter.close();
+            mainGenome.writeSequences(outputFolder, "_candidates_files_processed_"+fileNumber);
             if (mainGenome.getSequences().isEmpty()) {
                 break;
             }
@@ -183,11 +234,16 @@ public class Main {
         BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + mainGenome.getOutputFilename() + "_evaluations_alignWithAllInFolder", true));
 
         // Only keep the ones which also exist in all the genomes in the selected inputFolder
-        List<File> genomeFiles = Utils.getFilesInFolder(inputFolder+"suisGenomes/", ".fasta");
+        List<File> genomeFiles = Utils.getFilesInFolder(inputFolder+"Bp/", ".fasta");
+        boolean mergeAllChromosomes = true;
         for(File file : genomeFiles) {
+            if(mergeAllChromosomes && isChromosomeFile(file.getAbsolutePath()) && !isPrimaryChromosomeFile(file.getAbsolutePath())) {
+                log.info("Will skip file because it is not primary chromosome " + file.getName());
+                continue;
+            }
             Collection<Sequence> notFound =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
-            Genome genome = new Genome(file, Collections.emptyList(), true);
+            Genome genome = new Genome(file, Collections.emptyList(), true, mergeAllChromosomes);
             AtomicInteger counter = new AtomicInteger(0);
             mainGenome.getSequences().parallelStream().forEach(sequence -> {
                 if(!genome.exists(sequence)) {
@@ -218,7 +274,7 @@ public class Main {
         for(File file : otherGenomes) {
             Collection<Sequence> found =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
-            Genome genome = new Genome(file, Collections.emptyList(), true);
+            Genome genome = new Genome(file, Collections.emptyList(), true, false);
             AtomicInteger counter = new AtomicInteger(0);
             mainGenome.getSequences().parallelStream().forEach(sequence -> {
                 if(genome.exists(sequence)) {
@@ -238,6 +294,7 @@ public class Main {
             log.info("Candidate size: " + mainGenome.getTotalSequences());
         }
         discardWriter.close();
+        mainGenome.writeSequences(outputFolder, "_candidates_removeIdenticalMatchesWithAllGenomes");
         return mainGenome;
     }
 
@@ -256,7 +313,7 @@ public class Main {
             Collection<Sequence> found = Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
             AtomicInteger counter = new AtomicInteger(0);
-            Genome genome = new Genome(file, Collections.emptyList(), true);
+            Genome genome = new Genome(file, Collections.emptyList(), true, false);
             mainGenome.getSequences().parallelStream().forEach(mainGenomeSequence -> {
                 SequenceEvaluator pamAndSeedEval = new MismatchEvaluator(mainGenomeSequence, Range.between(0,3), pamNoVAndSeedIndexes);
                 SequenceEvaluator n7to20Eval = new MismatchEvaluator(mainGenomeSequence, Range.between(0,2), Range.between(10,23));
@@ -295,23 +352,24 @@ public class Main {
         Range gcContentRange = Range.between(8, 12);
         log.info("Using gcContentRange: " + gcContentRange);
         return readGenome(inputFolder, outputInputFolder, filename, skipDuplicates,
-                Arrays.asList(new CrisprPamEvaluator(), new NoConsecutiveIdenticalN1N20Evaluator(TRIPLE), new GCContentN1N20Evaluator(gcContentRange)));
+                Arrays.asList(new CrisprPamEvaluator(), new NoConsecutiveIdenticalN1N20Evaluator(TRIPLE), new GCContentN1N20Evaluator(gcContentRange)), false);
     }
 
-    private static Genome getBP(String inputFolder, String outputInputFolder, boolean skipDuplicates) throws Exception {
-        Range gcContentRange = Range.between(8, 12);
+    private static Genome getBP(String inputFolder, String outputInputFolder, String filename, boolean skipDuplicates) throws Exception {
+        Range gcContentRange = Range.between(8, 13);
         log.info("Using gcContentRange: " + gcContentRange);
-        return readGenome(inputFolder, outputInputFolder, "XXXXXXX.fasta", skipDuplicates,
-                Arrays.asList(new CrisprPamEvaluator(), new NoConsecutiveIdenticalN1N20Evaluator(QUADRUPLE), new GCContentN1N20Evaluator(gcContentRange)));
+        return readGenome(inputFolder, outputInputFolder, filename, skipDuplicates,
+                Arrays.asList(new CrisprPamEvaluator(), new NoConsecutiveIdenticalN1N20Evaluator(QUADRUPLE), new GCContentN1N20Evaluator(gcContentRange)), true);
     }
 
-    private static Genome readGenome(String inputFolder, String outputInputFolder, String filename, boolean skipDuplicates, List<SequenceEvaluator> criteria) throws Exception {
+    private static Genome readGenome(String inputFolder, String outputInputFolder, String filename, boolean skipDuplicates,
+                                     List<SequenceEvaluator> criteria, boolean includeAllChromosomes) throws Exception {
         File genomeFile = new File(inputFolder + filename);
         FileUtils.copyFile(genomeFile, new File(outputInputFolder+genomeFile.getName()));
-        Genome genome = filename.endsWith(".fasta") ?
-                new Genome(genomeFile, criteria, skipDuplicates) :
-                Genome.loadGenome(genomeFile);
-        genome.writeSequences(outputInputFolder, "_sequences");
-        return genome;
+        if(filename.endsWith(FASTA_FILE_ENDING)) {
+            return new Genome(genomeFile, criteria, skipDuplicates, includeAllChromosomes);
+        } else {
+            return Genome.loadGenome(genomeFile);
+        }
     }
 }

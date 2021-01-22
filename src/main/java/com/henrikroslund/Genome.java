@@ -4,6 +4,7 @@ import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
 import lombok.extern.java.Log;
+import org.apache.commons.io.FileUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -15,6 +16,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static com.henrikroslund.Utils.*;
 
 @Log
 public class Genome {
@@ -40,10 +43,31 @@ public class Genome {
         this.firstRow = firstRow;
     }
 
-    public Genome(File file, List<SequenceEvaluator> criteria, boolean skipDuplicates) throws Exception {
+    public Genome(File file, List<SequenceEvaluator> criteria, boolean skipDuplicates, boolean includeAllChromosomes) throws Exception {
         this(skipDuplicates, file.getName().replace(".fasta", ""), Utils.getFirstRow(file.getAbsolutePath()));
-        this.data = getFileContent(file.getAbsolutePath()).substring(firstRow.length());
-        createSequences(criteria);
+
+        if(includeAllChromosomes && isChromosomeFile(file.getAbsolutePath())) {
+            if(isPrimaryChromosomeFile(file.getAbsolutePath())) {
+                ArrayList<String> chromosomeFiles = getChromosomeFiles(file.getAbsolutePath());
+                for(String chromosomeFile : chromosomeFiles) {
+                    File genomeFile = new File(chromosomeFile);
+                    if(genomeFile.exists()) {
+                        log.info("Adding file " + genomeFile.getName());
+                        String firstRow = Utils.getFirstRow(file.getAbsolutePath());
+                        String genomeFileData = getFileContent(chromosomeFile).substring(firstRow.length());
+                        if(isPrimaryChromosomeFile(genomeFile.getAbsolutePath())) {
+                            this.data = genomeFileData;
+                        }
+                        createSequences(criteria, genomeFileData);
+                    }
+                }
+            } else {
+                throw new IllegalArgumentException("Tried to create genome that includes all chromosomes but which is not a primary choromosome: " + file.getName());
+            }
+        } else {
+            this.data = getFileContent(file.getAbsolutePath()).substring(firstRow.length());
+            createSequences(criteria, this.data);
+        }
     }
 
     /**
@@ -65,16 +89,16 @@ public class Genome {
      * Will create the sequences and store them in the appropriate list.
      * @param criteria a list of filters to determine if sequence should be added to gnome
      */
-    private void createSequences(List<SequenceEvaluator> criteria) {
-        log.info("Will process " + data.length() + " potential sequences");
-        int stepsPerPercent = data.length() / 100;
+    protected void createSequences(List<SequenceEvaluator> criteria, String sequenceData) {
+        log.info("Will process " + sequenceData.length() + " potential sequences");
+        int stepsPerPercent = sequenceData.length() / 100;
         AtomicInteger skipCount = new AtomicInteger();
 
-        List<Integer> range = IntStream.rangeClosed(0, data.length() - (Sequence.RAW_LENGTH-1) - 1)
+        List<Integer> range = IntStream.rangeClosed(0, sequenceData.length() - (Sequence.RAW_LENGTH-1) - 1)
                 .boxed().collect(Collectors.toList());
 
         range.parallelStream().forEach(i -> {
-            Sequence sequence = new Sequence(data.substring(i, i+Sequence.RAW_LENGTH), i, outputFilename);
+            Sequence sequence = new Sequence(sequenceData.substring(i, i+Sequence.RAW_LENGTH), i, outputFilename);
 
             int beforeCount = sequences.size();
             if(shouldAdd(criteria, sequence)) {
@@ -176,5 +200,9 @@ public class Genome {
 
     public int getTotalSequences() {
         return sequences.size();
+    }
+
+    public void addAll(Collection<Sequence> sequences) {
+        this.sequences.addAll(sequences);
     }
 }

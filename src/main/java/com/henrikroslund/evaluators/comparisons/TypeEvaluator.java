@@ -11,7 +11,8 @@ public class TypeEvaluator implements SequenceEvaluator {
         TYPE_2,
         TYPE_3,
         TYPE_4,
-        TYPE_5
+        TYPE_5,
+        TYPE_DISCARD
     }
 
     final Sequence sequence;
@@ -96,8 +97,8 @@ public class TypeEvaluator implements SequenceEvaluator {
     }
 
     private Type getType(int pamMismatches, int seedMismatchesInARow) {
-        Type result = Type.TYPE_5;
-        if(pamMismatches >= 1) {
+        Type result = mismatchesN7toN20 >= 3 ? Type.TYPE_5 : Type.TYPE_DISCARD;
+        if(pamMismatches >= 2) {
             result = Type.TYPE_1;
         }
         if(seedMismatchesInARow >= 2) {

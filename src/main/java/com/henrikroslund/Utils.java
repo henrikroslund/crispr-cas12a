@@ -7,6 +7,8 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @Log
@@ -45,7 +47,7 @@ public class Utils {
         (Main.DEBUG ? genomeFiles.stream() : genomeFiles.parallelStream())
                 .forEach(file -> {
                     try {
-                        genomes.add(new Genome(file, criteria, false));
+                        genomes.add(new Genome(file, criteria, false, false));
                     } catch (Exception e) {
                         log.severe("Error creating genome from file " + file.getAbsolutePath() + " " + e.getMessage());
                         System.exit(1);
@@ -63,6 +65,31 @@ public class Utils {
                 System.exit(1);
             }
         });
+    }
+
+    public static String FASTA_FILE_ENDING = ".fasta";
+    protected final static String CHROMOSOME_STRING = "chromosome";
+    private final static Pattern CHROMOSOME_PATTERN = Pattern.compile(".*"+CHROMOSOME_STRING+"\\s[0-9]"+FASTA_FILE_ENDING+"$");
+    public static boolean isChromosomeFile(String filename) {
+        Matcher matcher = CHROMOSOME_PATTERN.matcher(filename);
+        return matcher.find();
+    }
+
+    public static boolean isPrimaryChromosomeFile(String filename) {
+        return isChromosomeFile(filename) && filename.charAt(filename.length()-FASTA_FILE_ENDING.length()-1) == '1';
+    }
+
+    public static ArrayList<String> getChromosomeFiles(String filename) {
+        int maxChromosomefiles = 5;
+        ArrayList<String> files = new ArrayList<>(maxChromosomefiles);
+        if(!isChromosomeFile(filename)) {
+            throw new IllegalArgumentException("Tried to get chromosome files");
+        }
+        String base = filename.substring(0, filename.length()-FASTA_FILE_ENDING.length()-1);
+        for( int i = 1; i <= maxChromosomefiles; i++ ) {
+            files.add(base + i + FASTA_FILE_ENDING );
+        }
+        return files;
     }
 
     public static void printMemoryStat() {

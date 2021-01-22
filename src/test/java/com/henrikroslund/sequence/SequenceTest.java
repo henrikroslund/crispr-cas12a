@@ -1,14 +1,13 @@
 package com.henrikroslund.sequence;
 
 import com.henrikroslund.TestUtils;
+import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.exceptions.InvalidSequenceException;
 import com.henrikroslund.sequence.Sequence;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class SequenceTest {
 
@@ -74,6 +73,25 @@ public class SequenceTest {
         Assert.assertEquals(sequence.getIsComplement(), sequence2.getIsComplement());
         Assert.assertEquals(sequence.getStartIndex(), sequence2.getStartIndex());
         Assert.assertTrue(sequence.toString().compareTo(sequence2.toString()) == 0);
+    }
+
+    @Test
+    public void testToStringParseWithMetaData() {
+        Map<TypeEvaluator.Type, Integer> metaData = new HashMap<>();
+        metaData.put(TypeEvaluator.Type.TYPE_1, 5);
+        metaData.put(TypeEvaluator.Type.TYPE_2, 10);
+        Sequence sequence = new Sequence("TTTACCCCCAAAAACCCCCAAAAG", 5, "test with whitespace", false, metaData);
+        String sequenceToString = sequence.toString();
+        Sequence sequence2 = Sequence.parseFromToString(sequenceToString);
+        Assert.assertEquals(sequence.getRaw(), sequence2.getRaw());
+        Assert.assertEquals(sequence.getEndIndex(), sequence2.getEndIndex());
+        Assert.assertEquals(sequence.getComplement(), sequence2.getComplement());
+        Assert.assertEquals(sequence.getIsComplement(), sequence2.getIsComplement());
+        Assert.assertEquals(sequence.getStartIndex(), sequence2.getStartIndex());
+        Assert.assertTrue(sequence.toString().compareTo(sequence2.toString()) == 0);
+        Assert.assertEquals(2, sequence.getMetaData().size());
+        Assert.assertEquals(Integer.valueOf(5), sequence.getMetaData().get(TypeEvaluator.Type.TYPE_1));
+        Assert.assertEquals(Integer.valueOf(10), sequence.getMetaData().get(TypeEvaluator.Type.TYPE_2));
     }
 
 }

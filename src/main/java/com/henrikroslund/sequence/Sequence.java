@@ -62,6 +62,11 @@ public class Sequence implements Comparable<Sequence> {
 
     @SneakyThrows
     public Sequence(String raw, int startIndex, String genome, boolean isComplement) {
+        this(raw, startIndex, genome, isComplement, null);
+    }
+
+    @SneakyThrows
+    public Sequence(String raw, int startIndex, String genome, boolean isComplement, Map<TypeEvaluator.Type, Integer> metaData) {
         if(raw.length() != RAW_LENGTH) {
             throw new InvalidSequenceException("Raw sequence has length " + raw.length() + " but expected " + RAW_LENGTH);
         }
@@ -73,6 +78,7 @@ public class Sequence implements Comparable<Sequence> {
         this.endIndex = startIndex + RAW_LENGTH - 1;
         this.genome = genome.replaceAll("\\s","");
         this.isComplement = isComplement;
+        this.metaData = metaData;
     }
 
     public Map<TypeEvaluator.Type, Integer> getMetaData() {
@@ -149,22 +155,35 @@ public class Sequence implements Comparable<Sequence> {
         }
         StringBuilder result = new StringBuilder();
         metaData.forEach((s, s2) -> {
-            result.append(s).append("=").append(s2);
+            result.append(s).append("=").append(s2).append("&");
         });
         return result.toString();
     }
 
+    public static Map<TypeEvaluator.Type, Integer> stringToMetaData(String metaString) {
+        String[] metaDatas = metaString.split("&");
+        Map<TypeEvaluator.Type, Integer> result = new HashMap<>();
+        for (String data : metaDatas) {
+            String[] parts = data.split("=");
+            result.put(TypeEvaluator.Type.valueOf(parts[0]), Integer.valueOf(parts[1]));
+        }
+        return result;
+    }
+
     @Override
     public String toString() {
-        return raw + " " + (isComplement ? "-" : "+") + " " + startIndex + (genome != null ? " " + genome : "" + " " + metaDataToString());
+        return raw + " " + (isComplement ? "-" : "+") + " " + startIndex + " " + (genome != null ? genome : "NAME_UNAVAILABLE") + " " + metaDataToString();
     }
 
     public static Sequence parseFromToString(String line) {
         String[] parts = line.split(" ");
-        if(parts.length != 4) {
+        if(parts.length == 4) {
+            return new Sequence(parts[0], Integer.parseInt(parts[2]), parts[3], parts[1].compareTo("-") == 0);
+        } else if(parts.length == 5) {
+            return new Sequence(parts[0], Integer.parseInt(parts[2]), parts[3], parts[1].compareTo("-") == 0, stringToMetaData(parts[4]));
+        } else {
             throw new IllegalArgumentException("Unexpected amount of parts " + parts.length + " in line " + line);
         }
-        return new Sequence(parts[0], Integer.parseInt(parts[2]), parts[3], parts[1].compareTo("-") == 0);
     }
 
     /**
