@@ -174,7 +174,9 @@ public class Main {
             BufferedWriter processedGenomeWriter = new BufferedWriter(new FileWriter(outputFolder + PROCESSED_GENOMES_FILE, true));
             if(alreadyProcessed.contains(file.getName())) {
                 log.info("Already processed file so skipping: " + file.getName());
-                processedGenomeWriter.write(file.getName()+"/n");
+                processedGenomeWriter.write(file.getName());
+                processedGenomeWriter.newLine();
+                processedGenomeWriter.close();
                 continue;
             }
             FileUtils.copyFile(file, new File(outputInputFolder+file.getName()));
