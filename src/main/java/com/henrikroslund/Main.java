@@ -57,40 +57,46 @@ public class Main {
 
         log.info("Started Crispr-cas12a");
 
-        String originalMainGenomeFilename = "1-Burkholderia pseudomallei strain Mahidol-1106a chromosome 2.fasta";
-        String mainGenomeFilename = "1-Burkholderia pseudomallei strain Mahidol-1106a chromosome 1_candidates_files_processed_14_52_33_candidates_files_processed_55";
-        String featureFilename = "Feature2-Burkholderia pseudomallei strain Mahidol-1106a chromosome 2.txt";
+        List<File> candidateFiles = getFilesInFolder("input/bp/Bp rRNA gene", "fasta");
 
-        for(int minMatches = 15; minMatches<= 15; minMatches++) {
-            String outputFolder = baseOutputFolder + " minMatches_"+minMatches+"/";
-            String outputInputFolder = outputFolder + "input/";
-            new File(outputFolder).mkdirs();
-            new File(outputInputFolder).mkdirs();
+        //String originalMainGenomeFilename = "Burkholderia pseudomallei strain K96243 chromosome 2.fasta";
+        //String mainGenomeFilename = "Bp rRNA gene/BPSLr01.fasta"; // TODO should this be the candidates now?
+        //String featureFilename = "Feature2-Burkholderia pseudomallei strain Mahidol-1106a chromosome 2.txt";
 
-            FileHandler tmpLogHandler = new FileHandler(outputFolder + "application" + minMatches + ".log");
-            tmpLogHandler.setFormatter(simpleFormatter);
-            log.addHandler(tmpLogHandler);
+        for(File mainGenomeFile : candidateFiles) {
+            String mainGenomeFilename = "Bp rRNA gene/" + mainGenomeFile.getName();
 
-            Genome mainGenome = getBP(inputFolder, outputInputFolder, mainGenomeFilename, true, true);
-            log.info("Read main genome with " + mainGenome.getTotalSequences() + " sequences");
+            for(int minMatches = 15; minMatches<= 15; minMatches++) {
+                String outputFolder = baseOutputFolder + " minMatches_"+minMatches+"/"+mainGenomeFile.getName()+"/";
+                String outputInputFolder = outputFolder + "input/";
+                new File(outputFolder).mkdirs();
+                new File(outputInputFolder).mkdirs();
 
-            removeAnyWithDiscardMetaData(mainGenome);
+                FileHandler tmpLogHandler = new FileHandler(outputFolder + "application" + minMatches + ".log");
+                tmpLogHandler.setFormatter(simpleFormatter);
+                log.addHandler(tmpLogHandler);
 
-            //alignWithAllInFolder(mainGenome, outputFolder, inputFolder);
-            //removeIdenticalMatchesWithAllGenomes(mainGenome, outputFolder, inputFolder);
+                Genome mainGenome = getBP(inputFolder, outputInputFolder, mainGenomeFilename, true, true);
+                log.info("Read main genome with " + mainGenome.getTotalSequences() + " sequences");
 
-            // Excluded for now for bp flow
-            //removeTooSimilarSequences(mainGenome, outputFolder, inputFolder);
+                removeAnyWithDiscardMetaData(mainGenome);
 
-            processTypes(mainGenome, outputFolder, inputFolder, outputInputFolder,
-                    new MatchEvaluator(null, Range.between(minMatches, 24),
-                            Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END))), "_"+minMatches);
+                alignWithAllInFolder(mainGenome, outputFolder, inputFolder);
+                removeIdenticalMatchesWithAllGenomes(mainGenome, outputFolder, inputFolder);
 
-            GenomeFeature genomeFeature = createGenomeFeatures(inputFolder, outputInputFolder, featureFilename);
-            Genome mainGenomeWithDuplicates = getBP(inputFolder, outputInputFolder, originalMainGenomeFilename, false, false);
-            processFeatures(mainGenome, mainGenomeWithDuplicates, genomeFeature, outputFolder);
+                // Excluded for now for bp flow
+                //removeTooSimilarSequences(mainGenome, outputFolder, inputFolder);
 
-            log.removeHandler(tmpLogHandler);
+                processTypes(mainGenome, outputFolder, inputFolder, outputInputFolder,
+                        new MatchEvaluator(null, Range.between(minMatches, 24),
+                                Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END))), "_"+minMatches);
+
+                //GenomeFeature genomeFeature = createGenomeFeatures(inputFolder, outputInputFolder, featureFilename);
+                //Genome mainGenomeWithDuplicates = getBP(inputFolder, outputInputFolder, originalMainGenomeFilename, false, false);
+                //processFeatures(mainGenome, mainGenomeWithDuplicates, genomeFeature, outputFolder);
+
+                log.removeHandler(tmpLogHandler);
+            }
         }
 
         memUsageHandle.cancel(false);
@@ -367,10 +373,10 @@ public class Main {
     }
 
     private static Genome getBP(String inputFolder, String outputInputFolder, String filename, boolean skipDuplicates, boolean includeAllChromosomes) throws Exception {
-        Range gcContentRange = Range.between(8, 13);
-        log.info("Using gcContentRange: " + gcContentRange);
+        //Range gcContentRange = Range.between(8, 13);
+        //log.info("Using gcContentRange: " + gcContentRange);
         return readGenome(inputFolder, outputInputFolder, filename, skipDuplicates,
-                Arrays.asList(new CrisprPamEvaluator(), new NoConsecutiveIdenticalN1N20Evaluator(QUADRUPLE), new GCContentN1N20Evaluator(gcContentRange)),
+                Arrays.asList(new CrisprPamEvaluator()),// new NoConsecutiveIdenticalN1N20Evaluator(QUADRUPLE), new GCContentN1N20Evaluator(gcContentRange)),
                 includeAllChromosomes);
     }
 
