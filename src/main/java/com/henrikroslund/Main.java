@@ -57,8 +57,9 @@ public class Main {
 
         log.info("Started Crispr-cas12a");
 
-        String originalMainGenomeFilename = "1-Burkholderia pseudomallei strain Mahidol-1106a chromosome 1.fasta";
-        String mainGenomeFilename = "1-Burkholderia pseudomallei strain Mahidol-1106a chromosome 1_candidates_files_processed_1_candidates_files_processed_14";
+        String originalMainGenomeFilename = "1-Burkholderia pseudomallei strain Mahidol-1106a chromosome 2.fasta";
+        String mainGenomeFilename = "1-Burkholderia pseudomallei strain Mahidol-1106a chromosome 1_candidates_files_processed_14_52_33_candidates_files_processed_55";
+        String featureFilename = "Feature2-Burkholderia pseudomallei strain Mahidol-1106a chromosome 2.txt";
 
         for(int minMatches = 15; minMatches<= 15; minMatches++) {
             String outputFolder = baseOutputFolder + " minMatches_"+minMatches+"/";
@@ -70,7 +71,7 @@ public class Main {
             tmpLogHandler.setFormatter(simpleFormatter);
             log.addHandler(tmpLogHandler);
 
-            Genome mainGenome = getBP(inputFolder, outputInputFolder, mainGenomeFilename, true);
+            Genome mainGenome = getBP(inputFolder, outputInputFolder, mainGenomeFilename, true, true);
             log.info("Read main genome with " + mainGenome.getTotalSequences() + " sequences");
 
             removeAnyWithDiscardMetaData(mainGenome);
@@ -85,8 +86,8 @@ public class Main {
                     new MatchEvaluator(null, Range.between(minMatches, 24),
                             Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END))), "_"+minMatches);
 
-            GenomeFeature genomeFeature = createGenomeFeatures(inputFolder, outputInputFolder);
-            Genome mainGenomeWithDuplicates = getPopSuis(inputFolder, outputInputFolder, originalMainGenomeFilename, false);
+            GenomeFeature genomeFeature = createGenomeFeatures(inputFolder, outputInputFolder, featureFilename);
+            Genome mainGenomeWithDuplicates = getBP(inputFolder, outputInputFolder, originalMainGenomeFilename, false, false);
             processFeatures(mainGenome, mainGenomeWithDuplicates, genomeFeature, outputFolder);
 
             log.removeHandler(tmpLogHandler);
@@ -122,6 +123,9 @@ public class Main {
             if(matches.size()  > 1) {
                 log.info("Matches:" + matches.size() + " " + candidate.toString());
             }
+            if(matches.isEmpty()) {
+                log.warning("No matches for sequence: " + candidate.toString());
+            }
 
             // We need to maintain the meta data so add it for all
             for(Sequence sequence : matches) {
@@ -131,12 +135,12 @@ public class Main {
             List<Feature> features = genomeFeature.getMatchingFeatures(matches, false);
             popCsv.addFeatureMatches(matches, features);
         }
-        popCsv.writeToFile(outputFolder + candidates.getOutputFilename() + "_with_features.csv");
+        popCsv.writeToFile(outputFolder + mainGenomeWithDuplicates.getOutputFilename() + "_candidates_with_features.csv");
     }
 
-    private static GenomeFeature createGenomeFeatures(String inputFolder, String outputInputFolder) throws Exception {
+    private static GenomeFeature createGenomeFeatures(String inputFolder, String outputInputFolder, String filename) throws Exception {
         log.info("createGenomeFeatures");
-        File genomeFeatureFile = new File(inputFolder + "CP018908.1 feature table.txt");
+        File genomeFeatureFile = new File(inputFolder + filename);
         FileUtils.copyFile(genomeFeatureFile, new File(outputInputFolder+genomeFeatureFile.getName()));
         GenomeFeature genomeFeature = new GenomeFeature(genomeFeatureFile);
         return genomeFeature;
@@ -171,6 +175,7 @@ public class Main {
         }
 
         for(File file : otherGenomes) {
+            fileNumber++;
             BufferedWriter processedGenomeWriter = new BufferedWriter(new FileWriter(outputFolder + PROCESSED_GENOMES_FILE, true));
             if(alreadyProcessed.contains(file.getName())) {
                 log.info("Already processed file so skipping: " + file.getName());
@@ -180,7 +185,6 @@ public class Main {
                 continue;
             }
             FileUtils.copyFile(file, new File(outputInputFolder+file.getName()));
-            fileNumber++;
             Date startTime = new Date();
             Genome genome = new Genome(file, Collections.emptyList(), true, false);
             AtomicInteger counter = new AtomicInteger(0);
@@ -362,11 +366,12 @@ public class Main {
                 Arrays.asList(new CrisprPamEvaluator(), new NoConsecutiveIdenticalN1N20Evaluator(TRIPLE), new GCContentN1N20Evaluator(gcContentRange)), false);
     }
 
-    private static Genome getBP(String inputFolder, String outputInputFolder, String filename, boolean skipDuplicates) throws Exception {
+    private static Genome getBP(String inputFolder, String outputInputFolder, String filename, boolean skipDuplicates, boolean includeAllChromosomes) throws Exception {
         Range gcContentRange = Range.between(8, 13);
         log.info("Using gcContentRange: " + gcContentRange);
         return readGenome(inputFolder, outputInputFolder, filename, skipDuplicates,
-                Arrays.asList(new CrisprPamEvaluator(), new NoConsecutiveIdenticalN1N20Evaluator(QUADRUPLE), new GCContentN1N20Evaluator(gcContentRange)), true);
+                Arrays.asList(new CrisprPamEvaluator(), new NoConsecutiveIdenticalN1N20Evaluator(QUADRUPLE), new GCContentN1N20Evaluator(gcContentRange)),
+                includeAllChromosomes);
     }
 
     private static Genome readGenome(String inputFolder, String outputInputFolder, String filename, boolean skipDuplicates,
