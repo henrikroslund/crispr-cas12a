@@ -39,15 +39,16 @@ public class Main {
 
     static final boolean DEBUG = false;
 
+    static final boolean ENABLED_ALREADY_PROCESSED_FILE = false;
+    private static String PROCESSED_GENOMES_FILE = "genomesProcessed";
+
     public static void main(String[] args) throws Exception {
         long start = new Date().getTime();
 
         String inputFolder = "input/bp/";
-        String baseOutputFolder = "output/" + new Date().toString() + " bp/";
-        String baseOutputInputFolder = baseOutputFolder + "input/";
+        String baseOutputFolder = "output/" + new Date() + "/";
         // Create output folders
         new File(baseOutputFolder).mkdirs();
-        new File(baseOutputInputFolder).mkdirs();
 
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
         SimpleFormatter simpleFormatter = new SimpleFormatter();
@@ -59,11 +60,9 @@ public class Main {
 
         List<File> candidateFiles = getFilesInFolder("input/bp/Bp rRNA gene", "fasta");
 
-        //String originalMainGenomeFilename = "Burkholderia pseudomallei strain K96243 chromosome 2.fasta";
-        //String mainGenomeFilename = "Bp rRNA gene/BPSLr01.fasta"; // TODO should this be the candidates now?
-        //String featureFilename = "Feature2-Burkholderia pseudomallei strain Mahidol-1106a chromosome 2.txt";
-
         for(File mainGenomeFile : candidateFiles) {
+            String originalMainGenomeFilename = "Burkholderia pseudomallei strain K96243 chromosome 2.fasta";
+            String featureFilename = "Feature2-Burkholderia pseudomallei strain Mahidol-1106a chromosome 2.txt";
             String mainGenomeFilename = "Bp rRNA gene/" + mainGenomeFile.getName();
 
             for(int minMatches = 15; minMatches<= 15; minMatches++) {
@@ -91,9 +90,9 @@ public class Main {
                         new MatchEvaluator(null, Range.between(minMatches, 24),
                                 Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END))), "_"+minMatches);
 
-                //GenomeFeature genomeFeature = createGenomeFeatures(inputFolder, outputInputFolder, featureFilename);
-                //Genome mainGenomeWithDuplicates = getBP(inputFolder, outputInputFolder, originalMainGenomeFilename, false, false);
-                //processFeatures(mainGenome, mainGenomeWithDuplicates, genomeFeature, outputFolder);
+                GenomeFeature genomeFeature = createGenomeFeatures(inputFolder, outputInputFolder, featureFilename);
+                Genome mainGenomeWithDuplicates = getBP(inputFolder, outputInputFolder, originalMainGenomeFilename, false, false);
+                processFeatures(mainGenome, mainGenomeWithDuplicates, genomeFeature, outputFolder);
 
                 log.removeHandler(tmpLogHandler);
             }
@@ -152,7 +151,6 @@ public class Main {
         return genomeFeature;
     }
 
-    private static String PROCESSED_GENOMES_FILE = "genomesProcessed";
     private static HashSet<String> getAlreadyProcessedGenomes(String inputFolder) throws Exception {
         HashSet<String> files = new HashSet<>();
         File file = new File(inputFolder+PROCESSED_GENOMES_FILE);
@@ -171,7 +169,9 @@ public class Main {
     private static Genome processTypes(Genome mainGenome, String outputFolder, String inputFolder, String outputInputFolder, SequenceEvaluator bindCriteria, String outputSuffix) throws Exception {
         log.info("processTypes");
 
-        HashSet<String> alreadyProcessed = getAlreadyProcessedGenomes(inputFolder);
+        HashSet<String> alreadyProcessed = ENABLED_ALREADY_PROCESSED_FILE ?
+                getAlreadyProcessedGenomes(inputFolder) :
+                new HashSet<>();
 
         int fileNumber = 0;
         List<File> otherGenomes = Utils.getFilesInFolder(inputFolder+"genomes/", ".fasta");
@@ -278,6 +278,10 @@ public class Main {
             }
             mainGenome.removeAll(notFound);
             log.info("Candidate size: " + mainGenome.getTotalSequences());
+            if(mainGenome.getTotalSequences() == 0) {
+                log.info("No candidates left so will stop");
+                break;
+            }
         }
         discardWriter.close();
         mainGenome.writeSequences(outputFolder, "_candidates_alignWithAllInFolder");
@@ -309,6 +313,10 @@ public class Main {
             }
             mainGenome.removeAll(found);
             log.info("Candidate size: " + mainGenome.getTotalSequences());
+            if(mainGenome.getTotalSequences() == 0) {
+                log.info("No candidates left so will stop");
+                break;
+            }
         }
         discardWriter.close();
         mainGenome.writeSequences(outputFolder, "_candidates_removeIdenticalMatchesWithAllGenomes");
