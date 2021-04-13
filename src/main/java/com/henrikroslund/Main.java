@@ -260,83 +260,6 @@ public class Main {
         return mainGenome;
     }
 
-    private static Genome alignWithAllInFolder(Genome mainGenome, String outputFolder, String inputFolder) throws Exception {
-        log.info("alignWithAllInFolder");
-        BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + mainGenome.getOutputFilename() + "_evaluations_alignWithAllInFolder", true));
-
-        // Only keep the ones which also exist in all the genomes in the selected inputFolder
-        List<File> genomeFiles = Utils.getFilesInFolder(inputFolder+"Bp/", ".fasta");
-        boolean mergeAllChromosomes = true;
-        for(File file : genomeFiles) {
-            if(mergeAllChromosomes && isChromosomeFile(file.getAbsolutePath()) && !isPrimaryChromosomeFile(file.getAbsolutePath())) {
-                log.info("Will skip file because it is not primary chromosome " + file.getName());
-                continue;
-            }
-            Collection<Sequence> notFound =  Collections.synchronizedSet(new HashSet<>());
-            Date startTime = new Date();
-            Genome genome = new Genome(file, Collections.emptyList(), true, mergeAllChromosomes);
-            AtomicInteger counter = new AtomicInteger(0);
-            mainGenome.getSequences().parallelStream().forEach(sequence -> {
-                if(!genome.exists(sequence)) {
-                    notFound.add(sequence);
-                }
-                counter.incrementAndGet();
-                if (counter.get() % 1000 == 0) {
-                    log.info("NotFound: " + notFound.size() + " Counter: " + counter + "/" + mainGenome.getSequences().size());
-                }
-            });
-            log.info("Finished processing file in " + (new Date().getTime() - startTime.getTime())/1000 + " seconds");
-            log.info("Will remove " + notFound.size() + " sequences which was not found in file " + file.getName());
-            for(Sequence sequence : notFound) {
-                discardWriter.append(sequence.toString() + " removed because it was NOT found in " + file.getName() + "\n");
-            }
-            mainGenome.removeAll(notFound);
-            log.info("Candidate size: " + mainGenome.getTotalSequences());
-            if(mainGenome.getTotalSequences() == 0) {
-                log.info("No candidates left so will stop");
-                break;
-            }
-        }
-        discardWriter.close();
-        mainGenome.writeSequences(outputFolder, "_candidates_alignWithAllInFolder");
-        return mainGenome;
-    }
-
-    private static Genome removeIdenticalMatchesWithAllGenomes(Genome mainGenome, String outputFolder, String inputFolder) throws  Exception {
-        log.info("removeIdenticalMatchesWithAllGenomes");
-        BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + mainGenome.getOutputFilename() + "_evaluations_removeIdenticalMatchesWithAllGenomes", true));
-        List<File> otherGenomes = Utils.getFilesInFolder(inputFolder+"genomes/", ".fasta");
-        for(File file : otherGenomes) {
-            Collection<Sequence> found =  Collections.synchronizedSet(new HashSet<>());
-            Date startTime = new Date();
-            Genome genome = new Genome(file, Collections.emptyList(), true, false);
-            AtomicInteger counter = new AtomicInteger(0);
-            mainGenome.getSequences().parallelStream().forEach(sequence -> {
-                if(genome.exists(sequence)) {
-                    found.add(sequence);
-                }
-                counter.incrementAndGet();
-                if (counter.get() % 100 == 0) {
-                    log.info("Found: " + found.size() + " Counter: " + counter + "/" + mainGenome.getSequences().size());
-                }
-            });
-            log.info("Finished processing file in " + (new Date().getTime() - startTime.getTime())/1000 + " seconds");
-            log.info("Will remove " + found.size() + " sequences which was found in file " + file.getName());
-            for(Sequence sequence : found) {
-                discardWriter.append(sequence.toString()).append(" removed because it was found in ").append(file.getName()).append("\n");
-            }
-            mainGenome.removeAll(found);
-            log.info("Candidate size: " + mainGenome.getTotalSequences());
-            if(mainGenome.getTotalSequences() == 0) {
-                log.info("No candidates left so will stop");
-                break;
-            }
-        }
-        discardWriter.close();
-        mainGenome.writeSequences(outputFolder, "_candidates_removeIdenticalMatchesWithAllGenomes");
-        return mainGenome;
-    }
-
     private static Genome removeTooSimilarSequences(Genome mainGenome, String outputFolder, String inputFolder) throws Exception {
         log.info("removeTooSimilarSequences");
         BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + mainGenome.getOutputFilename() + "_removeTooSimilarSequences", true));
@@ -385,31 +308,5 @@ public class Main {
 
         discardWriter.close();
         return mainGenome;
-    }
-
-    private static Genome getPopSuis(String inputFolder, String outputInputFolder, String filename, boolean skipDuplicates) throws Exception {
-        Range gcContentRange = Range.between(8, 12);
-        log.info("Using gcContentRange: " + gcContentRange);
-        return readGenome(inputFolder, outputInputFolder, filename, skipDuplicates,
-                Arrays.asList(new CrisprPamEvaluator(), new NoConsecutiveIdenticalN1N20Evaluator(TRIPLE), new GCContentN1N20Evaluator(gcContentRange)), false);
-    }
-
-    private static Genome getBP(String inputFolder, String outputInputFolder, String filename, boolean skipDuplicates, boolean includeAllChromosomes) throws Exception {
-        //Range gcContentRange = Range.between(8, 13);
-        //log.info("Using gcContentRange: " + gcContentRange);
-        return readGenome(inputFolder, outputInputFolder, filename, skipDuplicates,
-                Arrays.asList(new CrisprPamEvaluator()),// new NoConsecutiveIdenticalN1N20Evaluator(QUADRUPLE), new GCContentN1N20Evaluator(gcContentRange)),
-                includeAllChromosomes);
-    }
-
-    private static Genome readGenome(String inputFolder, String outputInputFolder, String filename, boolean skipDuplicates,
-                                     List<SequenceEvaluator> criteria, boolean includeAllChromosomes) throws Exception {
-        File genomeFile = new File(inputFolder + filename);
-        FileUtils.copyFile(genomeFile, new File(outputInputFolder+genomeFile.getName()));
-        if(filename.endsWith(FASTA_FILE_ENDING)) {
-            return new Genome(genomeFile, criteria, skipDuplicates, includeAllChromosomes);
-        } else {
-            return Genome.loadGenome(genomeFile);
-        }
     }
 }
