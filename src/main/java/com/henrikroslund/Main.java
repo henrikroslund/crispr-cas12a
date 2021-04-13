@@ -1,5 +1,6 @@
 package com.henrikroslund;
 
+import com.henrikroslund.configuration.stage.CandidateTyping;
 import com.henrikroslund.configuration.stage.CrisprCommon;
 import com.henrikroslund.configuration.stage.CrisprElimination;
 import com.henrikroslund.configuration.stage.CrisprSelection;
@@ -19,8 +20,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -32,7 +31,6 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 import static com.henrikroslund.Utils.*;
-import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.Type.TRIPLE;
 
 public class Main {
 
@@ -40,9 +38,6 @@ public class Main {
     static ScheduledFuture<?> memUsageHandle = scheduler.scheduleAtFixedRate(Utils::printMemoryStat, 1, 15, TimeUnit.SECONDS);
 
     public static final boolean DEBUG = false;
-
-    static final boolean ENABLED_ALREADY_PROCESSED_FILE = false;
-    private static String PROCESSED_GENOMES_FILE = "genomesProcessed";
 
     static final String baseOutputFolder = "output/" + new Date();
 
@@ -52,6 +47,7 @@ public class Main {
         bp.addStage(new CrisprSelection(false, false, true));
         bp.addStage(new CrisprCommon());
         bp.addStage(new CrisprElimination());
+        bp.addStage(new CandidateTyping());
         bp.run();
     }
 
@@ -59,18 +55,24 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         long start = new Date().getTime();
+        try {
+            new File(baseOutputFolder).mkdirs();
 
-        String inputFolder = "input/bp/";
-        new File(baseOutputFolder).mkdirs();
+            System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
+            SimpleFormatter simpleFormatter = new SimpleFormatter();
+            FileHandler fh = new FileHandler(baseOutputFolder + "/application.log");
+            fh.setFormatter(simpleFormatter);
+            log.addHandler(fh);
 
-        System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
-        SimpleFormatter simpleFormatter = new SimpleFormatter();
-        FileHandler fh = new FileHandler(baseOutputFolder + "/application.log");
-        fh.setFormatter(simpleFormatter);
-        log.addHandler(fh);
+            log.info("Started Crispr-cas12a");
+            suisrRNA();
+        } finally {
+            memUsageHandle.cancel(false);
+            scheduler.shutdown();
+            printMemoryStat();
+            log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
+        }
 
-        log.info("Started Crispr-cas12a");
-        suisrRNA();
 
 /*
         List<File> candidateFiles = getFilesInFolder("input/bp/Bp rRNA gene", "fasta");
@@ -112,10 +114,6 @@ public class Main {
             }
         }
 */
-        memUsageHandle.cancel(false);
-        scheduler.shutdown();
-        printMemoryStat();
-        log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
     }
 
     private static void removeAnyWithDiscardMetaData(Genome candidates) {
@@ -163,101 +161,6 @@ public class Main {
         FileUtils.copyFile(genomeFeatureFile, new File(outputInputFolder+genomeFeatureFile.getName()));
         GenomeFeature genomeFeature = new GenomeFeature(genomeFeatureFile);
         return genomeFeature;
-    }
-
-    private static HashSet<String> getAlreadyProcessedGenomes(String inputFolder) throws Exception {
-        HashSet<String> files = new HashSet<>();
-        File file = new File(inputFolder+PROCESSED_GENOMES_FILE);
-        if(!file.exists()) {
-            return files;
-        }
-        Path filePath = Path.of(file.getAbsolutePath());
-        BufferedReader reader = Files.newBufferedReader(filePath);
-        reader.lines().forEach(line -> {
-            files.add(line);
-        });
-        log.info("Previously processed file count: " + files.size());
-        return files;
-    }
-
-    private static Genome processTypes(Genome mainGenome, String outputFolder, String inputFolder, String outputInputFolder, SequenceEvaluator bindCriteria, String outputSuffix) throws Exception {
-        log.info("processTypes");
-
-        HashSet<String> alreadyProcessed = ENABLED_ALREADY_PROCESSED_FILE ?
-                getAlreadyProcessedGenomes(inputFolder) :
-                new HashSet<>();
-
-        int fileNumber = 0;
-        List<File> otherGenomes = Utils.getFilesInFolder(inputFolder+"genomes/", ".fasta");
-        log.info("Will process genomes in following order:");
-        for(File file : otherGenomes) {
-            log.info(file.getName());
-        }
-
-        for(File file : otherGenomes) {
-            fileNumber++;
-            BufferedWriter processedGenomeWriter = new BufferedWriter(new FileWriter(outputFolder + PROCESSED_GENOMES_FILE, true));
-            if(alreadyProcessed.contains(file.getName())) {
-                log.info("Already processed file so skipping: " + file.getName());
-                processedGenomeWriter.write(file.getName());
-                processedGenomeWriter.newLine();
-                processedGenomeWriter.close();
-                continue;
-            }
-            FileUtils.copyFile(file, new File(outputInputFolder+file.getName()));
-            Date startTime = new Date();
-            Genome genome = new Genome(file, Collections.emptyList(), true, false);
-            AtomicInteger counter = new AtomicInteger(0);
-
-            Collection<Sequence> discards = new HashSet<>();
-            mainGenome.getSequences().parallelStream().forEach(mainGenomeSequence -> {
-
-                SequenceEvaluator evaluator = null;
-                if(bindCriteria instanceof MismatchEvaluator) {
-                    evaluator = new MismatchEvaluator(mainGenomeSequence, ((MismatchEvaluator) bindCriteria).getMismatchRange(), ((MismatchEvaluator) bindCriteria).getIndexesToCompare());
-                } else if(bindCriteria instanceof MatchEvaluator) {
-                    evaluator = new MatchEvaluator(mainGenomeSequence, ((MatchEvaluator) bindCriteria).getMatchRange(), ((MatchEvaluator) bindCriteria).getIndexesToCompare());
-                } else {
-                    log.severe("Not supported match evaluator");
-                    System.exit(1);
-                }
-
-                Collection<Sequence> allMatchesInOtherGenomes = genome.getSequencesMatchingAnyEvaluator(evaluator);
-
-                if(allMatchesInOtherGenomes.isEmpty()) {
-                    log.info("There were not matches for sequence " + mainGenomeSequence.toString() + " in genome " + genome.getOutputFilename());
-                    mainGenomeSequence.increaseMetaDataCounter(TypeEvaluator.Type.TYPE_4);
-                }
-
-                allMatchesInOtherGenomes.forEach(sequence -> {
-                    TypeEvaluator typeEvaluator = new TypeEvaluator(mainGenomeSequence);
-                    typeEvaluator.evaluate(sequence);
-                    mainGenomeSequence.increaseMetaDataCounter(typeEvaluator.getMatchType());
-                    if(typeEvaluator.getMatchType() == TypeEvaluator.Type.TYPE_DISCARD) {
-                        discards.add(mainGenomeSequence);
-                    }
-                    log.info("allMatches: " + allMatchesInOtherGenomes.size() + " " + mainGenomeSequence.toString() + " " + typeEvaluator.toString() + " discardCount: " + discards.size());
-                });
-
-                counter.incrementAndGet();
-                if (counter.get() % 10 == 0) {
-                    log.info(" Counter: " + counter + "/" + mainGenome.getSequences().size());
-                }
-            });
-
-            mainGenome.removeAll(discards);
-            log.info("Candidate size: " + mainGenome.getTotalSequences());
-            log.info("Finished processing file " + fileNumber + " in " + (new Date().getTime() - startTime.getTime()) / 1000 + " seconds");
-            processedGenomeWriter.write(file.getName()+"\n");
-            processedGenomeWriter.close();
-            mainGenome.writeSequences(outputFolder, "_candidates_files_processed_"+fileNumber);
-            if (mainGenome.getSequences().isEmpty()) {
-                break;
-            }
-        }
-        log.info("Candidate size: " + mainGenome.getTotalSequences());
-        mainGenome.writeSequences(outputFolder, "_candidates_processTypes" + outputSuffix);
-        return mainGenome;
     }
 
     private static Genome removeTooSimilarSequences(Genome mainGenome, String outputFolder, String inputFolder) throws Exception {

@@ -19,6 +19,7 @@ public class CrisprElimination extends Stage {
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
         List<File> otherGenomes = Utils.getFilesInFolder(inputFolder, ".fasta");
+        int fileNumber = 0;
         for(File file : otherGenomes) {
             Collection<Sequence> found =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
@@ -33,12 +34,12 @@ public class CrisprElimination extends Stage {
                     log.info("Found: " + found.size() + " Counter: " + counter + "/" + inputGenome.getSequences().size());
                 }
             });
+
             printProcessingTime(startTime);
-            for(Sequence sequence : found) {
-                getDiscardWriter().append(sequence.toString()).append(" removed because it was found in ").append(file.getName()).append("\n");
-            }
+            writeDiscarded(found, " removed because it was found in " + file.getName());
             inputGenome.removeAll(found);
-            log.info("Candidate size " + inputGenome.getTotalSequences() + " after removing " + found.size() + " sequences found in file " + file.getName() );
+
+            log.info("Candidate size " + inputGenome.getTotalSequences() + " after removing " + found.size() + " sequences found in file " + fileNumber++ + "/" + otherGenomes.size() + " " + file.getName() );
             if(inputGenome.getTotalSequences() == 0) {
                 log.info("No candidates left so will stop");
                 break;
@@ -49,7 +50,7 @@ public class CrisprElimination extends Stage {
 
     @Override
     public String toString() {
-        return null;
+        return getName();
     }
 
     @Override

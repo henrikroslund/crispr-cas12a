@@ -1,6 +1,7 @@
 package com.henrikroslund.configuration.stage;
 
 import com.henrikroslund.Genome;
+import com.henrikroslund.sequence.Sequence;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -10,6 +11,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
@@ -81,6 +83,13 @@ public abstract class Stage {
             discardWriter = new BufferedWriter(new FileWriter(outputFolder + "/discarded.sequences", true));
         }
         return discardWriter;
+    }
+
+    protected void writeDiscarded(Collection<Sequence> discardedSequences, String message) throws IOException {
+        for(Sequence sequence : discardedSequences) {
+            getDiscardWriter().append(sequence.toString()).append(message).append("\n");
+        }
+
     }
 
     protected void printProcessingTime(Date startTime) {
