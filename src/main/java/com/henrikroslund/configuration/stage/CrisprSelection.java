@@ -21,10 +21,9 @@ public class CrisprSelection extends Stage {
 
     private final boolean skipDuplicates;
     private final boolean includeAllChromosomes = true;
-    private static final String stageFolder = "/reference_sequence";
 
-    public CrisprSelection(boolean useConsecutiveEvaluator, boolean useGcContentEvaluator, boolean skipDuplicates, String inputFolder, String baseOutputFolder) {
-        super(CrisprSelection.class.getSimpleName(), inputFolder, baseOutputFolder, stageFolder);
+    public CrisprSelection(boolean useConsecutiveEvaluator, boolean useGcContentEvaluator, boolean skipDuplicates) {
+        super(CrisprSelection.class);
         this.skipDuplicates = skipDuplicates;
 
         filters.add(new CrisprPamEvaluator());
@@ -47,7 +46,7 @@ public class CrisprSelection extends Stage {
         } else if(genomes.size() == 1) {
             result = genomes.get(0);
         } else {
-            log.info("Found multiple files in " + stageFolder + " so will build a genome with all sequences");
+            log.info("Found " + genomes.size() + " files in " + inputFolder + " so will build a genome with all sequences");
             result = new Genome(skipDuplicates, "result.fasta", "");
             for(Genome genome : genomes) {
                 result.addAll(genome.getSequences());
@@ -59,5 +58,10 @@ public class CrisprSelection extends Stage {
     @Override
     public String toString() {
         return getName();
+    }
+
+    @Override
+    protected String getStageFolder() {
+        return "/reference_sequence";
     }
 }

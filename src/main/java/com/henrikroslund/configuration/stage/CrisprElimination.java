@@ -1,0 +1,59 @@
+package com.henrikroslund.configuration.stage;
+
+import com.henrikroslund.Genome;
+import com.henrikroslund.Utils;
+import com.henrikroslund.sequence.Sequence;
+import lombok.extern.java.Log;
+
+import java.io.File;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+@Log
+public class CrisprElimination extends Stage {
+
+    public CrisprElimination() {
+        super(CrisprElimination.class);
+    }
+
+    @Override
+    protected Genome execute(Genome inputGenome) throws Exception {
+        List<File> otherGenomes = Utils.getFilesInFolder(inputFolder, ".fasta");
+        for(File file : otherGenomes) {
+            Collection<Sequence> found =  Collections.synchronizedSet(new HashSet<>());
+            Date startTime = new Date();
+            Genome genome = new Genome(file, Collections.emptyList(), true, false);
+            AtomicInteger counter = new AtomicInteger(0);
+            inputGenome.getSequences().parallelStream().forEach(sequence -> {
+                if(genome.exists(sequence)) {
+                    found.add(sequence);
+                }
+                counter.incrementAndGet();
+                if (counter.get() % 100 == 0) {
+                    log.info("Found: " + found.size() + " Counter: " + counter + "/" + inputGenome.getSequences().size());
+                }
+            });
+            printProcessingTime(startTime);
+            for(Sequence sequence : found) {
+                getDiscardWriter().append(sequence.toString()).append(" removed because it was found in ").append(file.getName()).append("\n");
+            }
+            inputGenome.removeAll(found);
+            log.info("Candidate size " + inputGenome.getTotalSequences() + " after removing " + found.size() + " sequences found in file " + file.getName() );
+            if(inputGenome.getTotalSequences() == 0) {
+                log.info("No candidates left so will stop");
+                break;
+            }
+        }
+        return inputGenome;
+    }
+
+    @Override
+    public String toString() {
+        return null;
+    }
+
+    @Override
+    protected String getStageFolder() {
+        return "/cross_reactive_pathogens";
+    }
+}

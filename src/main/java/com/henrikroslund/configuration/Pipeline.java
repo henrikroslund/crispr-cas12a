@@ -15,16 +15,15 @@ public class Pipeline {
     private final String name;
     private final String inputFolder;
     private final String outputFolder;
-    private final String outputInputFolder;
 
     public Pipeline(String name, String inputFolder, String outputFolder) {
         this.name = name;
         this.inputFolder = inputFolder;
         this.outputFolder = outputFolder;
-        this.outputInputFolder = outputFolder + "/input";
     }
 
     public void addStage(Stage stage) {
+        stage.configure(inputFolder, outputFolder);
         stages.add(stage);
     }
 

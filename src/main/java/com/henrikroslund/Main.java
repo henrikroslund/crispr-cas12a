@@ -1,6 +1,7 @@
 package com.henrikroslund;
 
 import com.henrikroslund.configuration.stage.CrisprCommon;
+import com.henrikroslund.configuration.stage.CrisprElimination;
 import com.henrikroslund.configuration.stage.CrisprSelection;
 import com.henrikroslund.configuration.Pipeline;
 import com.henrikroslund.evaluators.*;
@@ -48,8 +49,9 @@ public class Main {
     public static void suisrRNA() throws Exception {
         String inputFolder = "input/CRISPR for Suis rRNA gene";
         Pipeline bp = new Pipeline("CRISPR for Suis rRNA gene", inputFolder, baseOutputFolder);
-        bp.addStage(new CrisprSelection(false, false, true, inputFolder, baseOutputFolder));
-        bp.addStage(new CrisprCommon(inputFolder, baseOutputFolder));
+        bp.addStage(new CrisprSelection(false, false, true));
+        bp.addStage(new CrisprCommon());
+        bp.addStage(new CrisprElimination());
         bp.run();
     }
 

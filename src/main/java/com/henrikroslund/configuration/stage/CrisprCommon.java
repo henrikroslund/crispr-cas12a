@@ -5,9 +5,7 @@ import com.henrikroslund.Utils;
 import com.henrikroslund.sequence.Sequence;
 import lombok.extern.java.Log;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -17,16 +15,12 @@ import static com.henrikroslund.Utils.isPrimaryChromosomeFile;
 @Log
 public class CrisprCommon extends Stage {
 
-    private static final String stageFolder = "/strains";
-
-    public CrisprCommon(String inputFolder, String baseOutputFolder) {
-        super(CrisprCommon.class.getSimpleName(), inputFolder, baseOutputFolder, stageFolder);
+    public CrisprCommon() {
+        super(CrisprCommon.class);
     }
 
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
-        BufferedWriter discardWriter = new BufferedWriter(new FileWriter(outputFolder + "/discarded.sequences", true));
-
         List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, ".fasta");
         boolean mergeAllChromosomes = true;
         for(File file : genomeFiles) {
@@ -49,7 +43,7 @@ public class CrisprCommon extends Stage {
             });
             printProcessingTime(startTime);
             for(Sequence sequence : notFound) {
-                discardWriter.append(sequence.toString() + " removed because it was NOT found in " + file.getName() + "\n");
+                getDiscardWriter().append(sequence.toString() + " removed because it was NOT found in " + file.getName() + "\n");
             }
             inputGenome.removeAll(notFound);
 
@@ -59,19 +53,16 @@ public class CrisprCommon extends Stage {
                 break;
             }
         }
-        discardWriter.close();
         return inputGenome;
-    }
-
-    private void printProcessingTime(Date startTime) {
-        long durationSeconds = (new Date().getTime() - startTime.getTime())/1000;
-        if(durationSeconds > 30) {
-            log.info("Finished processing file in " + durationSeconds + " seconds");
-        }
     }
 
     @Override
     public String toString() {
         return getName();
+    }
+
+    @Override
+    protected String getStageFolder() {
+        return "/strains";
     }
 }
