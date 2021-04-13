@@ -8,8 +8,13 @@ import java.util.regex.Pattern;
 
 public class NoConsecutiveIdenticalN1N20Evaluator implements SequenceEvaluator {
 
-    public static final int TRIPLE = 3;
-    public static final int QUADRUPLE = 4;
+    public enum Type {
+        TRIPLE(3), QUADRUPLE(4);
+        protected int value;
+        Type(int i) {
+            this.value = i;
+        }
+    }
 
     // Match 4 characters and then group the 5 character and then see if that character repeats two more times
     private final Pattern TARGET_MATCH_TRIPLETS_CONTENT_PATTERN;
@@ -17,16 +22,16 @@ public class NoConsecutiveIdenticalN1N20Evaluator implements SequenceEvaluator {
     @Getter
     private Sequence match = null;
 
-    private final int number;
+    private final Type type;
 
-    public NoConsecutiveIdenticalN1N20Evaluator(int number) {
-        this.number = number;
-        TARGET_MATCH_TRIPLETS_CONTENT_PATTERN = Pattern.compile("(.)\\1{"+(number-1)+"}");
+    public NoConsecutiveIdenticalN1N20Evaluator(Type type) {
+        this.type = type;
+        TARGET_MATCH_TRIPLETS_CONTENT_PATTERN = Pattern.compile("(.)\\1{"+(type.value-1)+"}");
     }
 
     @Override
     public SequenceEvaluator clone() {
-        return new NoConsecutiveIdenticalN1N20Evaluator(this.number);
+        return new NoConsecutiveIdenticalN1N20Evaluator(this.type);
     }
 
     /**

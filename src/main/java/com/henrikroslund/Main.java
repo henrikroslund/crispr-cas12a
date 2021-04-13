@@ -1,5 +1,8 @@
 package com.henrikroslund;
 
+import com.henrikroslund.configuration.stage.CrisprCommon;
+import com.henrikroslund.configuration.stage.CrisprSelection;
+import com.henrikroslund.configuration.Pipeline;
 import com.henrikroslund.evaluators.*;
 import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
@@ -8,7 +11,6 @@ import com.henrikroslund.formats.PopCsv;
 import com.henrikroslund.genomeFeature.Feature;
 import com.henrikroslund.genomeFeature.GenomeFeature;
 import com.henrikroslund.sequence.Sequence;
-import lombok.extern.java.Log;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Range;
 
@@ -25,41 +27,51 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.FileHandler;
+import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 import static com.henrikroslund.Utils.*;
-import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.QUADRUPLE;
-import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.TRIPLE;
+import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.Type.TRIPLE;
 
-@Log
 public class Main {
 
     static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    static ScheduledFuture<?> memUsageHandle = scheduler.scheduleAtFixedRate(Utils::printMemoryStat, 1, 5, TimeUnit.SECONDS);
+    static ScheduledFuture<?> memUsageHandle = scheduler.scheduleAtFixedRate(Utils::printMemoryStat, 1, 15, TimeUnit.SECONDS);
 
-    static final boolean DEBUG = false;
+    public static final boolean DEBUG = false;
 
     static final boolean ENABLED_ALREADY_PROCESSED_FILE = false;
     private static String PROCESSED_GENOMES_FILE = "genomesProcessed";
+
+    static final String baseOutputFolder = "output/" + new Date();
+
+    public static void suisrRNA() throws Exception {
+        String inputFolder = "input/CRISPR for Suis rRNA gene";
+        Pipeline bp = new Pipeline("CRISPR for Suis rRNA gene", inputFolder, baseOutputFolder);
+        bp.addStage(new CrisprSelection(false, false, true, inputFolder, baseOutputFolder));
+        bp.addStage(new CrisprCommon(inputFolder, baseOutputFolder));
+        bp.run();
+    }
+
+    private final static Logger log = Logger.getLogger("");
 
     public static void main(String[] args) throws Exception {
         long start = new Date().getTime();
 
         String inputFolder = "input/bp/";
-        String baseOutputFolder = "output/" + new Date() + "/";
-        // Create output folders
         new File(baseOutputFolder).mkdirs();
 
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
         SimpleFormatter simpleFormatter = new SimpleFormatter();
-        FileHandler fh = new FileHandler(baseOutputFolder + "application.log");
+        FileHandler fh = new FileHandler(baseOutputFolder + "/application.log");
         fh.setFormatter(simpleFormatter);
         log.addHandler(fh);
 
         log.info("Started Crispr-cas12a");
+        suisrRNA();
 
+/*
         List<File> candidateFiles = getFilesInFolder("input/bp/Bp rRNA gene", "fasta");
-
         for(File mainGenomeFile : candidateFiles) {
             String originalMainGenomeFilename = "Burkholderia pseudomallei strain K96243 chromosome 2.fasta";
             String featureFilename = "Feature2-Burkholderia pseudomallei strain Mahidol-1106a chromosome 2.txt";
@@ -97,7 +109,7 @@ public class Main {
                 log.removeHandler(tmpLogHandler);
             }
         }
-
+*/
         memUsageHandle.cancel(false);
         scheduler.shutdown();
         printMemoryStat();

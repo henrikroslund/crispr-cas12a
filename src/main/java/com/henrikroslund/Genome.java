@@ -4,7 +4,6 @@ import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
 import lombok.extern.java.Log;
-import org.apache.commons.io.FileUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -32,7 +31,7 @@ public class Genome {
 
     private final boolean skipDuplicates;
 
-    private Genome(boolean skipDuplicates, String outputFilename, String firstRow) {
+    public Genome(boolean skipDuplicates, String outputFilename, String firstRow) {
         this.skipDuplicates = skipDuplicates;
         if(skipDuplicates) {
             sequences = Collections.synchronizedSet(new HashSet<>());
@@ -90,7 +89,6 @@ public class Genome {
      * @param criteria a list of filters to determine if sequence should be added to gnome
      */
     protected void createSequences(List<SequenceEvaluator> criteria, String sequenceData) {
-        log.info("Will process " + sequenceData.length() + " potential sequences");
         int stepsPerPercent = sequenceData.length() / 100;
         AtomicInteger skipCount = new AtomicInteger();
 
@@ -117,22 +115,28 @@ public class Genome {
                 skipCount.getAndIncrement();
             }
         });
-        log.info("Finished creating " + getTotalSequences() + " sequences for " + outputFilename + " with " + skipCount + " skipped ");
+        log.info("Finished creating " + getTotalSequences() + " ( " + calculatePotentialSequences(sequenceData)
+                + " ) sequences for " + outputFilename + " with " + skipCount + " skipped ");
+    }
+
+    private int calculatePotentialSequences(String sequenceData) {
+        return (sequenceData.length() - (Sequence.RAW_LENGTH-1)) * 2;
     }
 
     private boolean shouldAdd(List<SequenceEvaluator> criteria, Sequence sequence) {
-        if(SequenceEvaluator.matchAll(criteria, sequence)) {
-            return true;
-        }
-        return false;
+        return SequenceEvaluator.matchAll(criteria, sequence);
     }
 
     public void writeSequences(String outputFolder) throws  Exception {
         writeSequences(outputFolder, "");
     }
 
-    public void writeSequences(String outputFolder, String suffix) throws  Exception {
-        saveSequence(sequences, outputFolder, outputFilename + suffix);
+    public void writeSequences(String outputFolder, String suffix) throws Exception {
+        writeSequences(outputFolder, outputFilename, suffix);
+    }
+
+    public void writeSequences(String outputFolder, String filename, String suffix) throws Exception {
+        saveSequence(sequences, outputFolder, filename + suffix);
     }
 
     public static Genome loadGenome(File file) throws Exception {
@@ -146,7 +150,7 @@ public class Genome {
     }
 
     private void saveSequence(Collection<Sequence> sequences, String outputFolder, String filename) throws Exception {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFolder + filename, true));
+        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFolder + "/" + filename, true));
         writer.append(firstRow);
 
         for(Sequence sequence : sequences) {

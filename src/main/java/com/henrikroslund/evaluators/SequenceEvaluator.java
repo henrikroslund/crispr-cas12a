@@ -1,6 +1,8 @@
 package com.henrikroslund.evaluators;
 
+import com.henrikroslund.Main;
 import com.henrikroslund.sequence.Sequence;
+import lombok.extern.java.Log;
 
 import java.util.List;
 

@@ -3,8 +3,7 @@ package com.henrikroslund.evaluators;
 import com.henrikroslund.sequence.Sequence;
 import org.junit.Test;
 
-import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.QUADRUPLE;
-import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.TRIPLE;
+import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.Type.*;
 import static org.junit.Assert.*;
 
 public class NoConsecutiveIdenticalN1N20EvaluatorTest {

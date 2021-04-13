@@ -41,13 +41,13 @@ public class Utils {
         return results;
     }
 
-    public static List<Genome> loadGenomes(String path, List<SequenceEvaluator> criteria) throws Exception {
+    public static List<Genome> loadGenomes(String path, List<SequenceEvaluator> criteria, boolean skipDuplicates, boolean includeAllChromosomes) throws Exception {
         List<Genome> genomes = Collections.synchronizedList(new ArrayList<>());
-        List<File> genomeFiles = Utils.getFilesInFolder(path, ".fasta");
+        List<File> genomeFiles = Utils.getFilesInFolder(path, FASTA_FILE_ENDING);
         (Main.DEBUG ? genomeFiles.stream() : genomeFiles.parallelStream())
                 .forEach(file -> {
                     try {
-                        genomes.add(new Genome(file, criteria, false, false));
+                        genomes.add(new Genome(file, criteria, skipDuplicates, includeAllChromosomes));
                     } catch (Exception e) {
                         log.severe("Error creating genome from file " + file.getAbsolutePath() + " " + e.getMessage());
                         System.exit(1);
