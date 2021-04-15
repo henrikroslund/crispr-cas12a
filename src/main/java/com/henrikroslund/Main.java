@@ -1,9 +1,6 @@
 package com.henrikroslund;
 
-import com.henrikroslund.configuration.stage.CandidateTyping;
-import com.henrikroslund.configuration.stage.CrisprCommon;
-import com.henrikroslund.configuration.stage.CrisprElimination;
-import com.henrikroslund.configuration.stage.CrisprSelection;
+import com.henrikroslund.configuration.stage.*;
 import com.henrikroslund.configuration.Pipeline;
 import com.henrikroslund.evaluators.*;
 import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
@@ -43,12 +40,20 @@ public class Main {
 
     public static void suisrRNA() throws Exception {
         String inputFolder = "input/CRISPR for Suis rRNA gene";
-        Pipeline bp = new Pipeline("CRISPR for Suis rRNA gene", inputFolder, baseOutputFolder);
-        bp.addStage(new CrisprSelection(false, false, true));
-        bp.addStage(new CrisprCommon());
-        bp.addStage(new CrisprElimination());
-        bp.addStage(new CandidateTyping());
-        bp.run();
+        Pipeline pipeline = new Pipeline("CRISPR for Suis rRNA gene", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(false, false, true));
+        pipeline.addStage(new CrisprCommon());
+        pipeline.addStage(new CrisprElimination());
+        pipeline.addStage(new CandidateTyping());
+        pipeline.run();
+    }
+
+    public static void suisCommonCoverage() throws Exception {
+        String inputFolder = "input/CRISPR for Suis rRNA gene";
+        Pipeline pipeline = new Pipeline("CRISPR for Suis rRNA gene", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(false, false, true));
+        pipeline.addStage(new CoverageAnalysis());
+        pipeline.run();
     }
 
     private final static Logger log = Logger.getLogger("");
@@ -65,7 +70,8 @@ public class Main {
             log.addHandler(fh);
 
             log.info("Started Crispr-cas12a");
-            suisrRNA();
+            //suisrRNA();
+            suisCommonCoverage();
         } finally {
             memUsageHandle.cancel(false);
             scheduler.shutdown();
