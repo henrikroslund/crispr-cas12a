@@ -26,7 +26,7 @@ public class TypeEvaluator implements SequenceEvaluator {
     @Getter
     private int mismatchesN7toN20 = 0;
 
-    private String[] matchRepresentation = new String[]{"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?"};
+    private final String[] matchRepresentation = new String[]{"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?"};
 
     public TypeEvaluator(Sequence sequence) {
         this.sequence = sequence;

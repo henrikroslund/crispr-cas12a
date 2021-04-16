@@ -30,10 +30,11 @@ public class Main {
 
     public static final boolean DEBUG = false;
 
-    static final String baseOutputFolder = "output/" + new Date();
+    static final String baseOutputFolder = "../crispr-cas12a-output/" + new Date();
+    static final String baseInputFolder = "../crispr-cas12a-input";
 
     public static void suisrRNA() throws Exception {
-        String inputFolder = "input/CRISPR for Suis rRNA gene";
+        String inputFolder = baseInputFolder+"/CRISPR for Suis rRNA gene";
         Pipeline pipeline = new Pipeline("CRISPR for Suis rRNA gene", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(false, false, true));
         pipeline.addStage(new CrisprCommon());
@@ -43,7 +44,7 @@ public class Main {
     }
 
     public static void suisCommonCoverage() throws Exception {
-        String inputFolder = "input/CRISPR for Suis rRNA gene";
+        String inputFolder = baseInputFolder+"/CRISPR for Suis rRNA gene";
         Pipeline pipeline = new Pipeline("CRISPR for Suis rRNA gene", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(false, false, true));
         pipeline.addStage(new CoverageAnalysis());
@@ -51,7 +52,7 @@ public class Main {
     }
 
     public static void rerunPartOfSuis() throws Exception {
-        String inputFolder = "input/CRISPR Bm filter";
+        String inputFolder = baseInputFolder+"/CRISPR Bm filter";
         Pipeline pipeline = new Pipeline("CRISPR Bm filter", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(false, false, true));
         pipeline.addStage(new CrisprElimination());
@@ -122,7 +123,7 @@ public class Main {
                 for (Sequence genomeSequence : genome.getSequences()) {
                     if (pamAndSeedEval.evaluate(genomeSequence) && n7to20Eval.evaluate(genomeSequence)) {
                         found.add(mainGenomeSequence);
-                        log.info("Marked for removal: " + mainGenomeSequence.toString() + " " + pamAndSeedEval.toString() + " " + n7to20Eval.toString());
+                        log.info("Marked for removal: " + mainGenomeSequence.toString() + " " + pamAndSeedEval + " " + n7to20Eval);
                         break;
                     }
                 }

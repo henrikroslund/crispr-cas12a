@@ -15,8 +15,8 @@ public class IdenticalEvaluatorTest {
 
     @Test
     public void testSameNewString() {
-        String raw = new String("TTTAGCGCGCGCGTTTTTTTTTTT");
-        String raw2 = new String("TTTAGCGCGCGCGTTTTTTTTTTT");
+        String raw = "TTTAGCGCGCGCGTTTTTTTTTTT";
+        String raw2 = "TTTAGCGCGCGCGTTTTTTTTTTT";
         assertTrue(new IdenticalEvaluator(new Sequence(raw,0,"test")).evaluate(new Sequence(raw2, 0, "test")));
     }
 

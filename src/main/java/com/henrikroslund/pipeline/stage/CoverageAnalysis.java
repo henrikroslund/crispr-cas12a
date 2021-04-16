@@ -22,7 +22,7 @@ public class CoverageAnalysis extends Stage {
         super(CoverageAnalysis.class);
     }
 
-    private Map<Sequence, HashSet<String>> coverageMap = new ConcurrentHashMap<>();
+    private final Map<Sequence, HashSet<String>> coverageMap = new ConcurrentHashMap<>();
 
     private void initiateCoverageMap(Genome genome) {
         for(Sequence sequence : genome.getSequences()) {

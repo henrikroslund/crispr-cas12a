@@ -88,7 +88,7 @@ public class CandidateTyping extends Stage {
                     if(typeEvaluator.getMatchType() == TypeEvaluator.Type.TYPE_DISCARD) {
                         discards.add(mainGenomeSequence);
                     }
-                    log.info("allMatches: " + allMatchesInOtherGenomes.size() + " " + mainGenomeSequence.toString() + " " + typeEvaluator.toString() + " discardCount: " + discards.size());
+                    log.info("allMatches: " + allMatchesInOtherGenomes.size() + " " + mainGenomeSequence + " " + typeEvaluator + " discardCount: " + discards.size());
                 });
 
                 counter.incrementAndGet();

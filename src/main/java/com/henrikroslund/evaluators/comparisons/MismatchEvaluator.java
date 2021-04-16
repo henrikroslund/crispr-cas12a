@@ -21,7 +21,7 @@ public class MismatchEvaluator implements SequenceEvaluator {
     private Sequence match = null;
     @Getter
     private int mismatches = -1;
-    private String[] matchRepresentation = new String[]{"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?"};
+    private final String[] matchRepresentation = new String[]{"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?"};
 
     public MismatchEvaluator(Sequence sequence, Range<Integer> mismatchRange, List<Range<Integer>> indexesToCompare) {
         this.sequence = sequence;
