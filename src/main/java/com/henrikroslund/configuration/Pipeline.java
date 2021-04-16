@@ -10,7 +10,9 @@ import java.util.List;
 @Log
 public class Pipeline {
 
-    private List<Stage> stages = new ArrayList<>();
+    // TODO print pipeline and stage configuration in log
+
+    private final List<Stage> stages = new ArrayList<>();
 
     private final String name;
     private final String inputFolder;
@@ -28,10 +30,14 @@ public class Pipeline {
     }
 
     public void run() throws Exception {
+        log.info("Starting pipeline: " + name);
+
         Genome stageResult = null;
         for(Stage stage : stages) {
             stageResult = stage.run(stageResult);
         }
+
+        log.info("Finished pipeline: " + name);
     }
 
     public String toString() {

@@ -15,12 +15,9 @@ import java.util.List;
 
 public class PopCsv {
 
-    private List<String> columnHeaders = new ArrayList<>();
+    private final List<String> columnHeaders = new ArrayList<>();
     @Getter
-    private List<List<String>> rows = new ArrayList<>();
-
-    private static int PAM_COLUMN_INDEX = 8;
-    private static int N1_N20_COLUMN_INDEX = 10;
+    private final List<List<String>> rows = new ArrayList<>();
 
     public PopCsv() {
         columnHeaders.add("Suis sequence");
@@ -34,15 +31,10 @@ public class PopCsv {
         columnHeaders.add("Features");
     }
 
-    public Sequence getRowSequence(int index) {
-        List<String> row = rows.get(index);
-        return new Sequence(row.get(PAM_COLUMN_INDEX) + row.get(N1_N20_COLUMN_INDEX),index, "");
-    }
-
-    public void addFeatureMatches(List<Sequence> suis, List<Feature> suisFeatures) {
+    public void addFeatureMatches(List<Sequence> suis, List<Feature> features) {
         List<String> row = new ArrayList<>();
         row.addAll(sequencesToString(suis));
-        row.add(featuresToString(suisFeatures));
+        row.add(featuresToString(features));
         rows.add(row);
     }
 

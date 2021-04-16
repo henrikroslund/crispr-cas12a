@@ -56,6 +56,7 @@ public abstract class Stage {
         logFileHandler.setFormatter(simpleFormatter);
         rootLogger.addHandler(logFileHandler);
         log.info("Starting stage: " + name);
+        log.info(name + " configuration:\n" + this);
     }
 
     protected void postExecute() throws IOException {
@@ -71,7 +72,7 @@ public abstract class Stage {
     public Genome run(Genome inputGenome) throws Exception {
         preExecute();
         Genome result = execute(inputGenome);
-        if(result.getTotalSequences() > 0) {
+        if(result != null && result.getTotalSequences() > 0) {
             result.writeSequences(outputFolder, getResultFilename(), "");
         }
         postExecute();

@@ -20,7 +20,7 @@ public class CrisprSelection extends Stage {
     List<SequenceEvaluator> filters = new ArrayList<>();
 
     private final boolean skipDuplicates;
-    private final boolean includeAllChromosomes = true;
+    private final boolean mergeChromosomes = true;
 
     public CrisprSelection(boolean useConsecutiveEvaluator, boolean useGcContentEvaluator, boolean skipDuplicates) {
         super(CrisprSelection.class);
@@ -39,7 +39,7 @@ public class CrisprSelection extends Stage {
 
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
-        List<Genome> genomes = loadGenomes(inputFolder, filters, skipDuplicates, includeAllChromosomes);
+        List<Genome> genomes = loadGenomes(inputFolder, filters, skipDuplicates, mergeChromosomes);
         Genome result;
         if(genomes.isEmpty()) {
             throw new Exception("Could not find any genomes in " + inputFolder);
@@ -57,7 +57,13 @@ public class CrisprSelection extends Stage {
 
     @Override
     public String toString() {
-        return getName();
+        StringBuilder description = new StringBuilder();
+        description.append("skipDuplicates=").append(skipDuplicates).append("\n");
+        description.append("mergeChromosomes=").append(mergeChromosomes);
+        for(SequenceEvaluator evaluator : filters) {
+            description.append("\nfilter: ").append(evaluator.describe());
+        }
+        return description.toString();
     }
 
     @Override

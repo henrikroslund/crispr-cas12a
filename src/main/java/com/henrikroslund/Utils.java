@@ -23,8 +23,19 @@ public class Utils {
         return lines.findFirst().get() + "\n";
     }
 
-    public static List<File> getFilesInFolder(String folder, String suffix) {
-        File directoryPath = new File(folder);
+    public static List<File> getFolders(String path) {
+        File directoryPath = new File(path);
+        List<File> results = new ArrayList<>();
+        Arrays.stream(Objects.requireNonNull(directoryPath.listFiles())).sorted().forEach(file -> {
+            if(file.isDirectory()) {
+                results.add(file);
+            }
+        });
+        return results;
+    }
+
+    public static List<File> getFilesInFolder(String path, String suffix) {
+        File directoryPath = new File(path);
         List<File> results = new ArrayList<>();
         Arrays.stream(Objects.requireNonNull(directoryPath.listFiles())).sorted().forEach(file -> {
             if(file.isFile()) {
@@ -41,6 +52,13 @@ public class Utils {
         return results;
     }
 
+    public static void throwIfFileExists(String path) throws Exception {
+        File file = new File(path);
+        if(file.exists()) {
+            throw new Exception("File should not have existed but did: " + path);
+        }
+    }
+
     public static List<Genome> loadGenomes(String path, List<SequenceEvaluator> criteria, boolean skipDuplicates, boolean includeAllChromosomes) throws Exception {
         List<Genome> genomes = Collections.synchronizedList(new ArrayList<>());
         List<File> genomeFiles = Utils.getFilesInFolder(path, FASTA_FILE_ENDING);
@@ -54,17 +72,6 @@ public class Utils {
                     }
                 });
         return genomes;
-    }
-
-    public static void writeGenomes(List<Genome> genomes, String outputFolder) {
-        genomes.parallelStream().forEach(genome -> {
-            try {
-                genome.writeSequences(outputFolder);
-            } catch (Exception e) {
-                log.severe("Error when processing genomes and saving sequences: " + e.getMessage());
-                System.exit(1);
-            }
-        });
     }
 
     public static String FASTA_FILE_ENDING = ".fasta";

@@ -64,7 +64,7 @@ public class Genome {
                 throw new IllegalArgumentException("Tried to create genome that includes all chromosomes but which is not a primary choromosome: " + file.getName());
             }
         } else {
-            this.data = getFileContent(file.getAbsolutePath()).substring(firstRow.length());
+            this.data = getFileContent(file.getAbsolutePath()).substring(firstRow.length()-1);
             createSequences(criteria, this.data);
         }
     }

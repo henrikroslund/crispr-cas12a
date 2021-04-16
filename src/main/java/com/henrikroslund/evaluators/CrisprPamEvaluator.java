@@ -29,7 +29,7 @@ public class CrisprPamEvaluator implements SequenceEvaluator {
 
     @Override
     public String describe() {
-        return "CrisprPamEvaluator";
+        return "CrisprPamEvaluator( " + CRISPR_PAM_MATCH_REGEXP + " )";
     }
 
     @Override
