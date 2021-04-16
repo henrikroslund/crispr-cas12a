@@ -1,7 +1,7 @@
-package com.henrikroslund.configuration;
+package com.henrikroslund.pipeline;
 
 import com.henrikroslund.Genome;
-import com.henrikroslund.configuration.stage.Stage;
+import com.henrikroslund.pipeline.stage.Stage;
 import lombok.extern.java.Log;
 
 import java.util.ArrayList;

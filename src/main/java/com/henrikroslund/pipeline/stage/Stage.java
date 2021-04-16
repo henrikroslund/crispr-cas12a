@@ -1,10 +1,9 @@
-package com.henrikroslund.configuration.stage;
+package com.henrikroslund.pipeline.stage;
 
 import com.henrikroslund.Genome;
 import com.henrikroslund.sequence.Sequence;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
 import java.io.BufferedWriter;

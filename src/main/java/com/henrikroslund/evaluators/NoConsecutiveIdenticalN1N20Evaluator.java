@@ -51,7 +51,7 @@ public class NoConsecutiveIdenticalN1N20Evaluator implements SequenceEvaluator {
 
     @Override
     public String describe() {
-        return "NoTripletN1N20Evaluator";
+        return "NoConsecutiveIdenticalN1N20Evaluator( " + type + " )";
     }
 
     @Override

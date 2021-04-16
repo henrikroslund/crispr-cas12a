@@ -1,4 +1,4 @@
-package com.henrikroslund.configuration.stage;
+package com.henrikroslund.pipeline.stage;
 
 import com.henrikroslund.Genome;
 import com.henrikroslund.Utils;

@@ -1,7 +1,7 @@
 package com.henrikroslund;
 
-import com.henrikroslund.configuration.stage.*;
-import com.henrikroslund.configuration.Pipeline;
+import com.henrikroslund.pipeline.stage.*;
+import com.henrikroslund.pipeline.Pipeline;
 import com.henrikroslund.evaluators.*;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
