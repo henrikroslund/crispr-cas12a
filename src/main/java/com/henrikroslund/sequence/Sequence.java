@@ -112,7 +112,7 @@ public class Sequence implements Comparable<Sequence> {
 
     public Sequence getComplement() {
         StringBuilder complement = new StringBuilder(RAW_LENGTH);
-        for(int i=0; i<RAW_LENGTH; i++) {
+        for(int i=RAW_LENGTH-1; i>=0; i--) {
             char character = raw.charAt(i);
             switch (character) {
                 case 'A':
@@ -134,8 +134,7 @@ public class Sequence implements Comparable<Sequence> {
         if(log.isLoggable(Level.FINE)) {
             log.fine(raw + " " + complement);
         }
-        Sequence complementSequence = new Sequence(complement.reverse().toString(), startIndex +(RAW_LENGTH-1), genome, true);
-        return complementSequence;
+        return new Sequence(complement.toString(), startIndex +(RAW_LENGTH-1), genome, true);
     }
 
     // Equals and hashcode only cares about the raw string

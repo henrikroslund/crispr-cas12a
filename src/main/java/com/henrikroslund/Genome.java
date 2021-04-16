@@ -89,33 +89,23 @@ public class Genome {
      * @param criteria a list of filters to determine if sequence should be added to gnome
      */
     protected void createSequences(List<SequenceEvaluator> criteria, String sequenceData) {
-        AtomicInteger skipCount = new AtomicInteger();
-
         List<Integer> range = IntStream.rangeClosed(0, sequenceData.length() - (Sequence.RAW_LENGTH-1) - 1)
                 .boxed().collect(Collectors.toList());
 
         range.parallelStream().forEach(i -> {
             Sequence sequence = new Sequence(sequenceData.substring(i, i+Sequence.RAW_LENGTH), i, outputFilename);
 
-            int beforeCount = sequences.size();
             if(shouldAdd(criteria, sequence)) {
                 sequences.add(sequence);
             }
-            if(beforeCount == sequences.size()) {
-                skipCount.getAndIncrement();
-            }
 
             Sequence complement = sequence.getComplement();
-            beforeCount = sequences.size();
             if(shouldAdd(criteria, complement)) {
                 sequences.add(complement);
             }
-            if(beforeCount == sequences.size()) {
-                skipCount.getAndIncrement();
-            }
         });
         log.info("Finished creating " + getTotalSequences() + " ( " + calculatePotentialSequences(sequenceData)
-                + " ) sequences for " + outputFilename + " with " + skipCount + " skipped ");
+                + " ) sequences for " + outputFilename);
     }
 
     private int calculatePotentialSequences(String sequenceData) {
