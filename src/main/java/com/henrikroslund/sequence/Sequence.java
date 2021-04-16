@@ -9,6 +9,7 @@ import lombok.extern.java.Log;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * This class represents a sequence.
@@ -110,8 +111,8 @@ public class Sequence implements Comparable<Sequence> {
     }
 
     public Sequence getComplement() {
-        StringBuilder complement = new StringBuilder(raw.length());
-        for(int i=0; i<raw.length(); i++) {
+        StringBuilder complement = new StringBuilder(RAW_LENGTH);
+        for(int i=0; i<RAW_LENGTH; i++) {
             char character = raw.charAt(i);
             switch (character) {
                 case 'A':
@@ -130,8 +131,10 @@ public class Sequence implements Comparable<Sequence> {
                     complement.append(character);
             }
         }
-        log.fine(raw + " " + complement);
-        Sequence complementSequence = new Sequence(complement.reverse().toString(), startIndex +(raw.length()-1), genome, true);
+        if(log.isLoggable(Level.FINE)) {
+            log.fine(raw + " " + complement);
+        }
+        Sequence complementSequence = new Sequence(complement.reverse().toString(), startIndex +(RAW_LENGTH-1), genome, true);
         return complementSequence;
     }
 

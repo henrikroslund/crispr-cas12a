@@ -89,7 +89,6 @@ public class Genome {
      * @param criteria a list of filters to determine if sequence should be added to gnome
      */
     protected void createSequences(List<SequenceEvaluator> criteria, String sequenceData) {
-        int stepsPerPercent = sequenceData.length() / 100;
         AtomicInteger skipCount = new AtomicInteger();
 
         List<Integer> range = IntStream.rangeClosed(0, sequenceData.length() - (Sequence.RAW_LENGTH-1) - 1)
