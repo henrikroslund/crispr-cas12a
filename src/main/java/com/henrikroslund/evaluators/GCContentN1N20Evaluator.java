@@ -20,11 +20,6 @@ public class GCContentN1N20Evaluator implements SequenceEvaluator {
     }
 
     @Override
-    public SequenceEvaluator clone() {
-        return new GCContentN1N20Evaluator(this.range);
-    }
-
-    @Override
     public boolean evaluate(Sequence sequence) {
         int gcCount = sequence.getGCCount();
         if(range.contains(gcCount)) {

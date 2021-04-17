@@ -15,11 +15,6 @@ public class IdenticalEvaluator implements SequenceEvaluator {
     }
 
     @Override
-    public SequenceEvaluator clone() {
-        return new IdenticalEvaluator(this.sequence);
-    }
-
-    @Override
     public boolean evaluate(Sequence sequence) {
         boolean result = this.sequence.equals(sequence);
         if(result) {
@@ -37,6 +32,6 @@ public class IdenticalEvaluator implements SequenceEvaluator {
 
     @Override
     public String toString() {
-        return describe() + " " + match.toString();
+        return describe() + " " + match;
     }
 }

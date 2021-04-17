@@ -50,14 +50,4 @@ public class CrisprPamEvaluatorTest {
         assertTrue(evaluator.toString().contains(TestUtils.VALID_CRISPR_SEQUENCE));
         assertEquals(sequence, evaluator.getMatch());
     }
-
-    @Test
-    public void testClone() {
-        CrisprPamEvaluator evaluator = new CrisprPamEvaluator();
-        assertEquals(evaluator.getMatch(), new CrisprPamEvaluator().getMatch());
-
-        Sequence sequence = new Sequence(TestUtils.VALID_CRISPR_SEQUENCE, 0, "test");
-        assertTrue(evaluator.evaluate(sequence));
-        assertEquals(evaluator.getMatch(), evaluator.clone().getMatch());
-    }
 }

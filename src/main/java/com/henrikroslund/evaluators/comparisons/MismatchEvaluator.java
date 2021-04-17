@@ -5,7 +5,9 @@ import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
 import org.apache.commons.lang3.Range;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 public class MismatchEvaluator implements SequenceEvaluator {
 
@@ -42,11 +44,6 @@ public class MismatchEvaluator implements SequenceEvaluator {
 
     public MismatchEvaluator(Sequence sequence, Range<Integer> mismatchRange) {
         this(sequence, mismatchRange, Range.between(0,24));
-    }
-
-    @Override
-    public SequenceEvaluator clone() {
-        return new MismatchEvaluator(this.sequence, this.mismatchRange, this.indexesToCompare);
     }
 
     @Override

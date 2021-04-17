@@ -1,10 +1,10 @@
 package com.henrikroslund;
 
-import com.henrikroslund.pipeline.stage.*;
-import com.henrikroslund.pipeline.Pipeline;
-import com.henrikroslund.evaluators.*;
+import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
+import com.henrikroslund.pipeline.Pipeline;
+import com.henrikroslund.pipeline.stage.*;
 import com.henrikroslund.sequence.Sequence;
 import org.apache.commons.lang3.Range;
 
@@ -21,7 +21,7 @@ import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-import static com.henrikroslund.Utils.*;
+import static com.henrikroslund.Utils.printMemoryStat;
 
 public class Main {
 

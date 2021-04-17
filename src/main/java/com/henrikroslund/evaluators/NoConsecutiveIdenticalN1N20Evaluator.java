@@ -29,11 +29,6 @@ public class NoConsecutiveIdenticalN1N20Evaluator implements SequenceEvaluator {
         TARGET_MATCH_TRIPLETS_CONTENT_PATTERN = Pattern.compile("(.)\\1{"+(type.value-1)+"}");
     }
 
-    @Override
-    public SequenceEvaluator clone() {
-        return new NoConsecutiveIdenticalN1N20Evaluator(this.type);
-    }
-
     /**
      * Returns true of there are no tripples in the N1 to N20, otherwise false
      */

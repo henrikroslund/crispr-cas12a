@@ -38,11 +38,6 @@ public class TypeEvaluator implements SequenceEvaluator {
         matchType = null;
     }
 
-    @Override
-    public SequenceEvaluator clone() {
-        return new TypeEvaluator(this.sequence);
-    }
-
     // Will return true if the evaluation resulted in a matchType
     @Override
     public boolean evaluate(Sequence sequence) {

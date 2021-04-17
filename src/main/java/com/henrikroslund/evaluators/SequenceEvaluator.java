@@ -1,8 +1,6 @@
 package com.henrikroslund.evaluators;
 
-import com.henrikroslund.Main;
 import com.henrikroslund.sequence.Sequence;
-import lombok.extern.java.Log;
 
 import java.util.List;
 
@@ -10,8 +8,6 @@ public interface SequenceEvaluator {
 
     String MATCH_CHAR = "=";
     String MISMATCH_CHAR = "X";
-
-    SequenceEvaluator clone();
 
     boolean evaluate(Sequence sequence);
 

@@ -16,11 +16,6 @@ public class PamAndSeedIdenticalMatcher implements SequenceEvaluator {
     }
 
     @Override
-    public SequenceEvaluator clone() {
-        return new PamAndSeedIdenticalMatcher(this.sequence);
-    }
-
-    @Override
     public boolean evaluate(Sequence sequence) {
         boolean result = this.sequence.equalsPam(sequence) && this.sequence.equalsSeed(sequence);
         if(result) {

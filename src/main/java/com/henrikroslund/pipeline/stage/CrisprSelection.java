@@ -11,8 +11,8 @@ import org.apache.commons.lang3.Range;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.henrikroslund.Utils.*;
-import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.Type.*;
+import static com.henrikroslund.Utils.loadGenomes;
+import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.Type.QUADRUPLE;
 
 @Log
 public class CrisprSelection extends Stage {
