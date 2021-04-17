@@ -187,6 +187,15 @@ public class Genome {
         return null;
     }
 
+    public Sequence getSequenceMatchingAllEvaluators(List<SequenceEvaluator> evaluators) {
+        for(Sequence sequence : sequences) {
+            if(SequenceEvaluator.matchAll(evaluators, sequence)) {
+                return sequence;
+            }
+        }
+        return null;
+    }
+
     public boolean removeAll(Collection<Sequence> sequences) {
         return this.sequences.removeAll(sequences);
     }

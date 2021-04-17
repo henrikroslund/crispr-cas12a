@@ -25,26 +25,9 @@ public class Sequence implements Comparable<Sequence> {
     @Getter
     private final String raw;
 
-    public int getRawHash() {
-        return raw.hashCode();
-    }
-
-    public int getPamHash() {
-        if(this.pamHash == 0) {
-            this.pamHash = raw.substring(PAM_INDEX_START, PAM_LENGTH).hashCode();
-        }
-        return pamHash;
-    }
-
-    public int getSeedHash() {
-        if(this.seedHash == 0) {
-            this.seedHash = raw.substring(SEED_INDEX_START, SEED_INDEX_END+1).hashCode();
-        }
-        return seedHash;
-    }
-
-    private int pamHash;
-    private int seedHash;
+    private int pamHash = 0;
+    private int seedHash = 0;
+    private int n7n20Hash = 0;
 
     public static final int PAM_INDEX_START = 0;
     public static final int PAM_LENGTH = 4;
@@ -120,6 +103,10 @@ public class Sequence implements Comparable<Sequence> {
 
     public boolean equalsSeed(Sequence sequence) {
         return this.getSeedHash() == sequence.getSeedHash();
+    }
+
+    public boolean equalsN7N20(Sequence sequence) {
+        return this.getN7N20Hash() == sequence.getN7N20Hash();
     }
 
     public boolean getIsComplement() {
@@ -253,5 +240,30 @@ public class Sequence implements Comparable<Sequence> {
             gcCount = count;
         }
         return gcCount;
+    }
+
+    public int getRawHash() {
+        return raw.hashCode();
+    }
+
+    public int getPamHash() {
+        if(this.pamHash == 0) {
+            this.pamHash = raw.substring(PAM_INDEX_START, PAM_LENGTH).hashCode();
+        }
+        return pamHash;
+    }
+
+    public int getSeedHash() {
+        if(this.seedHash == 0) {
+            this.seedHash = raw.substring(SEED_INDEX_START, SEED_INDEX_END+1).hashCode();
+        }
+        return seedHash;
+    }
+
+    public int getN7N20Hash() {
+        if(this.n7n20Hash == 0) {
+            this.n7n20Hash = raw.substring(SEED_INDEX_END+1, RAW_INDEX_END).hashCode();
+        }
+        return n7n20Hash;
     }
 }

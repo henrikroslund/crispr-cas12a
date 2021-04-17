@@ -50,13 +50,25 @@ public class Main {
             //suisrRNA();
             //suisCommonCoverage();
             //rerunPartOfSuis();
-            performanceTesting();
+            //performanceTesting();
+            crisprBp04_17_21();
         } finally {
             memUsageHandle.cancel(false);
             scheduler.shutdown();
             printMemoryStat();
             log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
         }
+    }
+
+    public static void crisprBp04_17_21() throws Exception {
+        String inputFolder = baseInputFolder+"/CRIPSR Bp 04_17_21";
+        Pipeline pipeline = new Pipeline("CRIPSR Bp 04_17_21", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(false, false, true));
+        pipeline.addStage(new CrisprCommon(1));
+        pipeline.addStage(new CrisprElimination());
+        pipeline.addStage(new CandidateTyping());
+        pipeline.addStage(new CandidateFeature());
+        pipeline.run();
     }
 
     public static void performanceTesting() throws Exception {
