@@ -59,7 +59,7 @@ public class CrisprCommon extends Stage {
 
             // We include both chromosomes as one genome file because we don't want to require it to be in both chromosomes
             boolean includeAllChromosomes = true;
-            if(includeAllChromosomes && !Utils.isPrimaryChromosomeFile(file.getName())) {
+            if(includeAllChromosomes && Utils.isChromosomeFile(file.getName()) && !Utils.isPrimaryChromosomeFile(file.getName())) {
                 log.info("Will skip file because it is not the primary chromosome file: " + file.getName());
                 continue;
             }
