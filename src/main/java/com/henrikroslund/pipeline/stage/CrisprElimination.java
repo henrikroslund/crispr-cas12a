@@ -28,15 +28,11 @@ public class CrisprElimination extends Stage {
         for(File file : otherGenomes) {
             Collection<Sequence> found =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
+
             Genome genome = new Genome(file, Collections.emptyList(), true, false);
-            AtomicInteger counter = new AtomicInteger(0);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
                 if(genome.exists(sequence)) {
                     found.add(sequence);
-                }
-                counter.incrementAndGet();
-                if (counter.get() % 100 == 0) {
-                    log.info("Found: " + found.size() + " Counter: " + counter + "/" + inputGenome.getSequences().size());
                 }
             });
 

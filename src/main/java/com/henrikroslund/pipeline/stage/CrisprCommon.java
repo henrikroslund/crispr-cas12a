@@ -31,15 +31,11 @@ public class CrisprCommon extends Stage {
             }
             Collection<Sequence> notFound =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
+
             Genome genome = new Genome(file, Collections.emptyList(), true, mergeAllChromosomes);
-            AtomicInteger counter = new AtomicInteger(0);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
                 if(!genome.exists(sequence)) {
                     notFound.add(sequence);
-                }
-                counter.incrementAndGet();
-                if (counter.get() % 1000 == 0) {
-                    log.info("NotFound: " + notFound.size() + " Counter: " + counter + "/" + inputGenome.getSequences().size());
                 }
             });
             printProcessingTime(startTime);
