@@ -27,12 +27,14 @@ public class PopCsv {
         for(TypeEvaluator.Type type : TypeEvaluator.Type.values()) {
             columnHeaders.add(type.name());
         }
+        columnHeaders.add("Found in reference");
         columnHeaders.add("Features");
     }
 
-    public void addFeatureMatches(List<Sequence> suis, List<Feature> features) {
+    public void addFeatureMatches(List<Sequence> suis, List<Feature> features, boolean foundInReferenceGenome) {
         List<String> row = new ArrayList<>();
         row.addAll(sequencesToString(suis));
+        row.add(foundInReferenceGenome ? "Yes" : "No");
         row.add(featuresToString(features));
         rows.add(row);
     }

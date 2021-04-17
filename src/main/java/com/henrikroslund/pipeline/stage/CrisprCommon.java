@@ -3,6 +3,7 @@ package com.henrikroslund.pipeline.stage;
 import com.henrikroslund.Genome;
 import com.henrikroslund.Main;
 import com.henrikroslund.Utils;
+import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.IdenticalEvaluator;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
@@ -56,7 +57,7 @@ public class CrisprCommon extends Stage {
             Collection<Sequence> notFound =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
 
-            Genome genome = new Genome(file, Collections.emptyList(), true, false);
+            Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator()), true, false);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
                 if(!exists(genome, sequence)) {
                     notFound.add(sequence);

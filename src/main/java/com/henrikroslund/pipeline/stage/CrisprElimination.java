@@ -2,6 +2,7 @@ package com.henrikroslund.pipeline.stage;
 
 import com.henrikroslund.Genome;
 import com.henrikroslund.Utils;
+import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.extern.java.Log;
 
@@ -29,7 +30,7 @@ public class CrisprElimination extends Stage {
             Collection<Sequence> found =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
 
-            Genome genome = new Genome(file, Collections.emptyList(), true, false);
+            Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator()), true, false);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
                 if(genome.exists(sequence)) {
                     found.add(sequence);

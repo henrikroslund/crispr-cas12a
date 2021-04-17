@@ -68,21 +68,23 @@ public class CandidateFeature extends Stage {
         for(Sequence candidate : candidates.getSequences()) {
             List<Sequence> matches = mainGenomeWithDuplicates.getSequencesMatchingAnyEvaluator(
                     Collections.singletonList(new IdenticalEvaluator(candidate)));
-
+            boolean foundInReferenceGenome = !matches.isEmpty();
             if(matches.size()  > 1) {
                 log.info("Matches:" + matches.size() + " " + candidate.toString());
             }
-            if(matches.isEmpty()) {
-                log.warning("No matches for sequence: " + candidate.toString());
-            }
-
             // We need to maintain the meta data so add it for all
             for(Sequence sequence : matches) {
                 sequence.setMetaData(candidate.getMetaData());
             }
 
-            List<Feature> features = genomeFeature.getMatchingFeatures(matches, false);
-            popCsv.addFeatureMatches(matches, features);
+            List<Feature> features = Collections.emptyList();
+            if(foundInReferenceGenome) {
+                features = genomeFeature.getMatchingFeatures(matches, false);
+            } else {
+                log.warning("No matches for sequence: " + candidate.toString());
+                matches.add(candidate);
+            }
+            popCsv.addFeatureMatches(matches, features, foundInReferenceGenome);
         }
         popCsv.writeToFile(resultFile);
     }
