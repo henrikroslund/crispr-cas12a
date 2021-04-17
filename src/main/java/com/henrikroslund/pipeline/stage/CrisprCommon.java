@@ -15,29 +15,29 @@ import static com.henrikroslund.Utils.isPrimaryChromosomeFile;
 @Log
 public class CrisprCommon extends Stage {
 
-    private final boolean mergeAllChromosomes = true;
-
     public CrisprCommon() {
         super(CrisprCommon.class);
+    }
+
+    @Override
+    protected String getStageFolder() {
+        return "/strains";
     }
 
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
         List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, ".fasta");
         for(File file : genomeFiles) {
-            if(mergeAllChromosomes && isChromosomeFile(file.getAbsolutePath()) && !isPrimaryChromosomeFile(file.getAbsolutePath())) {
-                log.info("Will skip file because it is not primary chromosome " + file.getName());
-                continue;
-            }
             Collection<Sequence> notFound =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
 
-            Genome genome = new Genome(file, Collections.emptyList(), true, mergeAllChromosomes);
+            Genome genome = new Genome(file, Collections.emptyList(), true, false);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
                 if(!genome.exists(sequence)) {
                     notFound.add(sequence);
                 }
             });
+
             printProcessingTime(startTime);
             writeDiscarded(notFound, " removed because it was NOT found in " + file.getName());
             inputGenome.removeAll(notFound);
@@ -56,8 +56,4 @@ public class CrisprCommon extends Stage {
         return getName();
     }
 
-    @Override
-    protected String getStageFolder() {
-        return "/strains";
-    }
 }

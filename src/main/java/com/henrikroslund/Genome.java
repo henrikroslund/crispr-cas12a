@@ -98,11 +98,13 @@ public class Genome {
             Sequence sequence = new Sequence(sequenceData.substring(i, i+Sequence.RAW_LENGTH), i, genomeName);
 
             if(shouldAdd(criteria, sequence)) {
+                sequence.getRawHash();
                 sequences.add(sequence);
             }
 
             Sequence complement = sequence.getComplement();
             if(shouldAdd(criteria, complement)) {
+                complement.getRawHash();
                 sequences.add(complement);
             }
         });

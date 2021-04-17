@@ -64,7 +64,10 @@ public class Main {
         Pipeline pipeline = new Pipeline("Performance testing", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(false, false, true));
         for(int i=0; i<100; i++) {
-            pipeline.addStage(new CrisprElimination());
+            //pipeline.addStage(new CrisprSelection(false, false, true));
+            //pipeline.addStage(new CrisprCommon());
+            //pipeline.addStage(new CrisprElimination());
+            pipeline.addStage(new CandidateTyping());
         }
         pipeline.run();
     }
