@@ -57,7 +57,8 @@ public class CrisprCommon extends Stage {
             Collection<Sequence> notFound =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
 
-            Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator()), true, false);
+            // We include both chromosomes as one genome file because we don't want to require it to be in both chromosomes
+            Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator()), true, true);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
                 if(!exists(genome, sequence)) {
                     notFound.add(sequence);
