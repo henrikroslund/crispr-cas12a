@@ -11,6 +11,7 @@ import org.apache.commons.lang3.Range;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -39,19 +40,15 @@ public class Main {
         long start = new Date().getTime();
         try {
             new File(baseOutputFolder).mkdirs();
-
-            System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
-            SimpleFormatter simpleFormatter = new SimpleFormatter();
-            FileHandler fh = new FileHandler(baseOutputFolder + "/application.log");
-            fh.setFormatter(simpleFormatter);
-            log.addHandler(fh);
-
+            setupLogging();
             log.info("Started Crispr-cas12a");
+
+            crisprBp04_17_21();
             //suisrRNA();
             //suisCommonCoverage();
             //rerunPartOfSuis();
             //performanceTesting();
-            crisprBp04_17_21();
+
         } finally {
             memUsageHandle.cancel(false);
             scheduler.shutdown();
@@ -175,5 +172,13 @@ public class Main {
 
         discardWriter.close();
         return mainGenome;
+    }
+
+    private static void setupLogging() throws IOException {
+        System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
+        SimpleFormatter simpleFormatter = new SimpleFormatter();
+        FileHandler fh = new FileHandler(baseOutputFolder + "/application.log");
+        fh.setFormatter(simpleFormatter);
+        log.addHandler(fh);
     }
 }
