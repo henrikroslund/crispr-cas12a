@@ -34,6 +34,10 @@ public class Utils {
         return results;
     }
 
+    public static String getStringWithoutWhitespaces(String string) {
+        return string.replaceAll("\\s","");
+    }
+
     public static List<File> getFilesInFolder(String path, String suffix) {
         File directoryPath = new File(path);
         List<File> results = new ArrayList<>();

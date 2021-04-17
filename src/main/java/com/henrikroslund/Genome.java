@@ -12,7 +12,6 @@ import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -31,12 +30,14 @@ public class Genome {
 
     private final boolean skipDuplicates;
 
+    private static final int INITIAL_COLLECTION_CAPACITY = 75000;
+
     public Genome(boolean skipDuplicates, String outputFilename, String firstRow) {
         this.skipDuplicates = skipDuplicates;
         if(skipDuplicates) {
-            sequences = Collections.synchronizedSet(new HashSet<>());
+            sequences = Collections.synchronizedSet(new HashSet<>(INITIAL_COLLECTION_CAPACITY));
         } else {
-            sequences = Collections.synchronizedList(new ArrayList<>());
+            sequences = Collections.synchronizedList(new ArrayList<>(INITIAL_COLLECTION_CAPACITY));
         }
         this.outputFilename = outputFilename;
         this.firstRow = firstRow;
@@ -92,8 +93,9 @@ public class Genome {
         List<Integer> range = IntStream.rangeClosed(0, sequenceData.length() - (Sequence.RAW_LENGTH-1) - 1)
                 .boxed().collect(Collectors.toList());
 
+        String genomeName = getStringWithoutWhitespaces(outputFilename);
         range.parallelStream().forEach(i -> {
-            Sequence sequence = new Sequence(sequenceData.substring(i, i+Sequence.RAW_LENGTH), i, outputFilename);
+            Sequence sequence = new Sequence(sequenceData.substring(i, i+Sequence.RAW_LENGTH), i, genomeName);
 
             if(shouldAdd(criteria, sequence)) {
                 sequences.add(sequence);
@@ -143,7 +145,7 @@ public class Genome {
         writer.append(firstRow);
 
         for(Sequence sequence : sequences) {
-            writer.append(sequence.toString() + "\n");
+            writer.append(sequence.serialize()).append("\n");
         }
         log.info(String.format("Wrote %,d to \"" + filename+"\"", sequences.size()));
         writer.close();

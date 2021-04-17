@@ -17,6 +17,11 @@ public class CrisprElimination extends Stage {
     }
 
     @Override
+    protected String getStageFolder() {
+        return "/cross_reactive_pathogens";
+    }
+
+    @Override
     protected Genome execute(Genome inputGenome) throws Exception {
         List<File> otherGenomes = Utils.getFilesInFolder(inputFolder, ".fasta");
         int fileNumber = 0;
@@ -51,10 +56,5 @@ public class CrisprElimination extends Stage {
     @Override
     public String toString() {
         return getName();
-    }
-
-    @Override
-    protected String getStageFolder() {
-        return "/cross_reactive_pathogens";
     }
 }

@@ -40,8 +40,8 @@ public class SequenceTest {
         String pam = "CGCG";
         String seed = "TATATA";
         Sequence sequence1 = new Sequence(pam + seed + "AATGTTAGTATCAA", 5, "test");
-        Assert.assertEquals(pam.hashCode(), sequence1.pamHash);
-        Assert.assertEquals(seed.hashCode(), sequence1.seedHash);
+        Assert.assertEquals(pam.hashCode(), sequence1.getPamHash());
+        Assert.assertEquals(seed.hashCode(), sequence1.getSeedHash());
     }
 
     @Test
@@ -64,7 +64,7 @@ public class SequenceTest {
 
     @Test
     public void testToStringParse() {
-        Sequence sequence = new Sequence("TTTACCCCCAAAAACCCCCAAAAG", 5, "test with whitespace");
+        Sequence sequence = new Sequence("TTTACCCCCAAAAACCCCCAAAAG", 5, "test_with_whitespace");
         String sequenceToString = sequence.toString();
         Sequence sequence2 = Sequence.parseFromToString(sequenceToString);
         Assert.assertEquals(sequence.getRaw(), sequence2.getRaw());
@@ -80,7 +80,7 @@ public class SequenceTest {
         Map<TypeEvaluator.Type, Integer> metaData = new HashMap<>();
         metaData.put(TypeEvaluator.Type.TYPE_1, 5);
         metaData.put(TypeEvaluator.Type.TYPE_2, 10);
-        Sequence sequence = new Sequence("TTTACCCCCAAAAACCCCCAAAAG", 5, "test with whitespace", false, metaData);
+        Sequence sequence = new Sequence("TTTACCCCCAAAAACCCCCAAAAG", 5, "test_with_whitespace", false, metaData);
         String sequenceToString = sequence.toString();
         Sequence sequence2 = Sequence.parseFromToString(sequenceToString);
         Assert.assertEquals(sequence.getRaw(), sequence2.getRaw());

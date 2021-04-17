@@ -2,6 +2,7 @@ package com.henrikroslund.evaluators;
 
 import com.henrikroslund.TestUtils;
 import com.henrikroslund.sequence.Sequence;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -29,5 +30,34 @@ public class CrisprPamEvaluatorTest {
     public void evaluateInvalid() {
         CrisprPamEvaluator evaluator = new CrisprPamEvaluator();
         assertFalse(evaluator.evaluate(new Sequence(TestUtils.INVALID_CRISPR_SEQUENCE, 0, "test")));
+        assertFalse(evaluator.evaluate(new Sequence("TTAACCCCCAAAAACCCCCAAAAG", 0, "test")));
+        assertFalse(evaluator.evaluate(new Sequence("TATTCCCCCAAAAACCCCCAAAAG", 0, "test")));
+        assertFalse(evaluator.evaluate(new Sequence("ATTTCCCCCAAAAACCCCCAAAAG", 0, "test")));
+    }
+
+    @Test
+    public void testDescribe() {
+        assertFalse(StringUtils.isEmpty(new CrisprPamEvaluator().describe()));
+    }
+
+    @Test
+    public void testMatch() {
+        CrisprPamEvaluator evaluator = new CrisprPamEvaluator();
+        assertNull(evaluator.getMatch());
+        assertFalse(StringUtils.isEmpty(evaluator.toString()));
+        Sequence sequence = new Sequence(TestUtils.VALID_CRISPR_SEQUENCE, 0, "test");
+        assertTrue(evaluator.evaluate(sequence));
+        assertTrue(evaluator.toString().contains(TestUtils.VALID_CRISPR_SEQUENCE));
+        assertEquals(sequence, evaluator.getMatch());
+    }
+
+    @Test
+    public void testClone() {
+        CrisprPamEvaluator evaluator = new CrisprPamEvaluator();
+        assertEquals(evaluator.getMatch(), new CrisprPamEvaluator().getMatch());
+
+        Sequence sequence = new Sequence(TestUtils.VALID_CRISPR_SEQUENCE, 0, "test");
+        assertTrue(evaluator.evaluate(sequence));
+        assertEquals(evaluator.getMatch(), evaluator.clone().getMatch());
     }
 }

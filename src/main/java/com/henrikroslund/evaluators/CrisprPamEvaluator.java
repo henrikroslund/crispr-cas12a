@@ -13,18 +13,24 @@ public class CrisprPamEvaluator implements SequenceEvaluator {
 
     @Override
     public SequenceEvaluator clone() {
-        return new CrisprPamEvaluator();
+        CrisprPamEvaluator clone = new CrisprPamEvaluator();
+        clone.match = getMatch();
+        return clone;
     }
 
     @Override
     public boolean evaluate(Sequence sequence) {
-        boolean result = sequence.getRaw().matches(CRISPR_PAM_MATCH_REGEXP);
-        if(result) {
-            match = sequence;
-        } else {
-            match = null;
+        match = null;
+        for(int i=0; i<=2; i++) {
+            if(sequence.getRaw().charAt(i) != 'T') {
+                return false;
+            }
         }
-        return result;
+        if(sequence.getRaw().charAt(3) == 'T') {
+            return false;
+        }
+        match = sequence;
+        return true;
     }
 
     @Override
@@ -34,6 +40,6 @@ public class CrisprPamEvaluator implements SequenceEvaluator {
 
     @Override
     public String toString() {
-        return describe() + " " + match.toString();
+        return describe() + " " + match;
     }
 }

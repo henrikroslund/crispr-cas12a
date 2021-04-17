@@ -33,6 +33,42 @@ public class Main {
     static final String baseOutputFolder = "../crispr-cas12a-output/" + new Date();
     static final String baseInputFolder = "../crispr-cas12a-input";
 
+    private final static Logger log = Logger.getLogger("");
+
+    public static void main(String[] args) throws Exception {
+        long start = new Date().getTime();
+        try {
+            new File(baseOutputFolder).mkdirs();
+
+            System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
+            SimpleFormatter simpleFormatter = new SimpleFormatter();
+            FileHandler fh = new FileHandler(baseOutputFolder + "/application.log");
+            fh.setFormatter(simpleFormatter);
+            log.addHandler(fh);
+
+            log.info("Started Crispr-cas12a");
+            //suisrRNA();
+            //suisCommonCoverage();
+            //rerunPartOfSuis();
+            performanceTesting();
+        } finally {
+            memUsageHandle.cancel(false);
+            scheduler.shutdown();
+            printMemoryStat();
+            log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
+        }
+    }
+
+    public static void performanceTesting() throws Exception {
+        String inputFolder = baseInputFolder+"/performance-testing";
+        Pipeline pipeline = new Pipeline("Performance testing", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(false, false, true));
+        for(int i=0; i<100; i++) {
+            pipeline.addStage(new CrisprElimination());
+        }
+        pipeline.run();
+    }
+
     public static void suisrRNA() throws Exception {
         String inputFolder = baseInputFolder+"/CRISPR for Suis rRNA gene";
         Pipeline pipeline = new Pipeline("CRISPR for Suis rRNA gene", inputFolder, baseOutputFolder);
@@ -59,31 +95,6 @@ public class Main {
         pipeline.addStage(new CandidateTyping());
         pipeline.addStage(new CandidateFeature());
         pipeline.run();
-    }
-
-    private final static Logger log = Logger.getLogger("");
-
-    public static void main(String[] args) throws Exception {
-        long start = new Date().getTime();
-        try {
-            new File(baseOutputFolder).mkdirs();
-
-            System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
-            SimpleFormatter simpleFormatter = new SimpleFormatter();
-            FileHandler fh = new FileHandler(baseOutputFolder + "/application.log");
-            fh.setFormatter(simpleFormatter);
-            log.addHandler(fh);
-
-            log.info("Started Crispr-cas12a");
-            //suisrRNA();
-            //suisCommonCoverage();
-            rerunPartOfSuis();
-        } finally {
-            memUsageHandle.cancel(false);
-            scheduler.shutdown();
-            printMemoryStat();
-            log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
-        }
     }
 
     private static void removeAnyWithDiscardMetaData(Genome candidates) {

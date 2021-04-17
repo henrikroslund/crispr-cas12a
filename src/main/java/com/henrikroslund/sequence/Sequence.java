@@ -1,5 +1,6 @@
 package com.henrikroslund.sequence;
 
+import com.henrikroslund.Utils;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.exceptions.InvalidSequenceException;
 import lombok.Getter;
@@ -23,9 +24,27 @@ public class Sequence implements Comparable<Sequence> {
 
     @Getter
     private final String raw;
-    protected final int rawHash;
-    protected final int pamHash;
-    protected final int seedHash;
+
+    public int getRawHash() {
+        return raw.hashCode();
+    }
+
+    public int getPamHash() {
+        if(this.pamHash == 0) {
+            this.pamHash = raw.substring(PAM_INDEX_START, PAM_LENGTH).hashCode();
+        }
+        return pamHash;
+    }
+
+    public int getSeedHash() {
+        if(this.seedHash == 0) {
+            this.seedHash = raw.substring(SEED_INDEX_START, SEED_INDEX_END+1).hashCode();
+        }
+        return seedHash;
+    }
+
+    private int pamHash;
+    private int seedHash;
 
     public static final int PAM_INDEX_START = 0;
     public static final int PAM_LENGTH = 4;
@@ -72,12 +91,9 @@ public class Sequence implements Comparable<Sequence> {
             throw new InvalidSequenceException("Raw sequence has length " + raw.length() + " but expected " + RAW_LENGTH);
         }
         this.raw = raw;
-        this.rawHash = raw.hashCode();
-        this.pamHash = raw.substring(PAM_INDEX_START, PAM_LENGTH).hashCode();
-        this.seedHash = raw.substring(SEED_INDEX_START, SEED_INDEX_END+1).hashCode();
         this.startIndex = startIndex;
         this.endIndex = startIndex + RAW_LENGTH - 1;
-        this.genome = genome.replaceAll("\\s","");
+        this.genome = genome;
         this.isComplement = isComplement;
         this.metaData = metaData;
     }
@@ -99,11 +115,11 @@ public class Sequence implements Comparable<Sequence> {
     }
 
     public boolean equalsPam(Sequence sequence) {
-        return this.pamHash == sequence.pamHash;
+        return this.getPamHash() == sequence.getPamHash();
     }
 
     public boolean equalsSeed(Sequence sequence) {
-        return this.seedHash == sequence.seedHash;
+        return this.getSeedHash() == sequence.getSeedHash();
     }
 
     public boolean getIsComplement() {
@@ -143,12 +159,12 @@ public class Sequence implements Comparable<Sequence> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Sequence sequence = (Sequence) o;
-        return rawHash == sequence.rawHash;
+        return getRawHash() == sequence.getRawHash();
     }
 
     @Override
     public int hashCode() {
-        return rawHash;
+        return getRawHash();
     }
 
     public String metaDataToString() {
@@ -174,7 +190,20 @@ public class Sequence implements Comparable<Sequence> {
 
     @Override
     public String toString() {
-        return raw + " " + (isComplement ? "-" : "+") + " " + startIndex + " " + (genome != null ? genome : "NAME_UNAVAILABLE") + " " + metaDataToString();
+        return toStringRepresentation(false);
+    }
+
+    private String toStringRepresentation(boolean forSerialization) {
+        String genomeName = genome;
+        if(forSerialization) {
+            // This operation is expensive
+            genomeName = Utils.getStringWithoutWhitespaces(genome);
+        }
+        return raw + " " + (isComplement ? "-" : "+") + " " + startIndex + " " + (genomeName != null ? genomeName : "NAME_UNAVAILABLE") + " " + metaDataToString();
+    }
+
+    public String serialize() {
+        return toStringRepresentation(true);
     }
 
     public static Sequence parseFromToString(String line) {
