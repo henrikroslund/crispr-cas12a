@@ -58,7 +58,13 @@ public class CrisprCommon extends Stage {
             Date startTime = new Date();
 
             // We include both chromosomes as one genome file because we don't want to require it to be in both chromosomes
-            Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator()), true, true);
+            boolean includeAllChromosomes = true;
+            if(includeAllChromosomes && !Utils.isPrimaryChromosomeFile(file.getName())) {
+                log.info("Will skip file because it is not the primary chromosome file: " + file.getName());
+                continue;
+            }
+
+            Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator()), true, includeAllChromosomes);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
                 if(!exists(genome, sequence)) {
                     notFound.add(sequence);
