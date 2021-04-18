@@ -77,8 +77,8 @@ public class Main {
     public static void crisprBp04_17_21() throws Exception {
         String inputFolder = baseInputFolder+"/CRIPSR Bp 04_17_21";
         Pipeline pipeline = new Pipeline("CRIPSR Bp 04_17_21", inputFolder, baseOutputFolder);
-        pipeline.addStage(new CrisprSelection(false, false, true));
-        pipeline.addStage(new CrisprCommon(1));
+        pipeline.addStage(new CrisprSelection(true, true, true));
+        pipeline.addStage(new CrisprCommon(0));
         pipeline.addStage(new CrisprElimination());
         pipeline.addStage(new CandidateTyping());
         pipeline.addStage(new CandidateFeature());
