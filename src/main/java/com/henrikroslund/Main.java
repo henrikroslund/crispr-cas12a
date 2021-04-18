@@ -66,7 +66,7 @@ public class Main {
         SequenceEvaluator n7N20Eliminator = new MismatchEvaluator(null, Range.between(0,4), Range.between(Sequence.N7_INDEX, Sequence.N20_INDEX));
         eliminationEvaluators.addAll(Arrays.asList(seedEliminator, n7N20Eliminator));
 
-        Pipeline pipeline = new Pipeline("CRIPSR Bp 04_17_21", inputFolder, baseOutputFolder);
+        Pipeline pipeline = new Pipeline("CRIPSR Bp 04_17_21_optimized_pipline", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true));
         pipeline.addStage(new CrisprCommon(1));
         pipeline.addStage(new CrisprElimination(eliminationEvaluators));

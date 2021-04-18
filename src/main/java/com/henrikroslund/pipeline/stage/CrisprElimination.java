@@ -44,10 +44,14 @@ public class CrisprElimination extends Stage {
                     found.add(sequence);
                 }
                 if(!evaluators.isEmpty()) {
-                    SequenceEvaluator evaluator = genome.hasAnyMatchToAnyEvaluator(SequenceEvaluator.getNewEvaluators(sequence, evaluators));
-                    if(evaluator != null) {
+                    // TODO change this back to being an OR operator and instead the
+                    // MismatchEvaluator should handle the AND conditions so it can print the correct
+                    // log matching for ====X==XXX
+                    List<SequenceEvaluator> newEvaluators = SequenceEvaluator.getNewEvaluators(sequence, evaluators);
+                    Sequence match = genome.getSequenceMatchingAllEvaluators(newEvaluators);
+                    if(match != null) {
                         found.add(sequence);
-                        log.info("Will remove " + sequence + " because close match was found by " + evaluator.toString());
+                        log.info("Will remove " + sequence + " because close match was found by " + newEvaluators);
                     }
                 }
             });
