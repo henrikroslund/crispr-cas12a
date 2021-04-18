@@ -4,11 +4,9 @@ import com.henrikroslund.Genome;
 import com.henrikroslund.Utils;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
-import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.extern.java.Log;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Range;
 
 import java.io.BufferedReader;
@@ -56,7 +54,6 @@ public class CandidateTyping extends Stage {
                 processedGenomeWriter.close();
                 continue;
             }
-            FileUtils.copyFile(file, new File(outputInputFolder+"/"+file.getName()));
             Date startTime = new Date();
             Genome genome = new Genome(file, Collections.emptyList(), true, false);
             AtomicInteger counter = new AtomicInteger(0);

@@ -31,6 +31,8 @@ public class Pipeline {
 
     public void run() throws Exception {
         log.info("Starting pipeline: " + name);
+        log.info("Pipeline input folder " + inputFolder);
+        log.info("Pipeline output folder " + outputFolder);
 
         // First we print the pipeline
         StringBuilder description = new StringBuilder("Printing pipeline stages and configurations:");

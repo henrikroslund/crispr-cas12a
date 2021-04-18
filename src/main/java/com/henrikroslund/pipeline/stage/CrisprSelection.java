@@ -32,7 +32,6 @@ public class CrisprSelection extends Stage {
         }
         if(useGcContentEvaluator) {
             Range<Integer> gcContentRange = Range.between(8, 13);
-            log.info("Using gcContentRange: " + gcContentRange);
             filters.add(new GCContentN1N20Evaluator(gcContentRange));
         }
     }

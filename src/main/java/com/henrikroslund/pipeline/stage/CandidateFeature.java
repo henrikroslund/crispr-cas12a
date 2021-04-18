@@ -8,7 +8,6 @@ import com.henrikroslund.genomeFeature.Feature;
 import com.henrikroslund.genomeFeature.GenomeFeature;
 import com.henrikroslund.sequence.Sequence;
 import lombok.extern.java.Log;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.Collections;
@@ -54,9 +53,7 @@ public class CandidateFeature extends Stage {
         if(featureFiles.size() != 1) {
             throw new Exception("Did not expect " + featureFiles.size() + " genomes to be found in folder " + directory.getPath());
         }
-        File genomeFeatureFile = featureFiles.get(0);
-        FileUtils.copyFile(genomeFeatureFile, new File(outputInputFolder+"/"+genomeFeatureFile.getName()));
-        return new GenomeFeature(genomeFeatureFile);
+        return new GenomeFeature(featureFiles.get(0));
     }
 
     private void processFeatures(Genome candidates, Genome mainGenomeWithDuplicates, GenomeFeature genomeFeature) throws Exception {

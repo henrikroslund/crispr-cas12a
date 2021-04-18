@@ -31,7 +31,6 @@ public abstract class Stage {
 
     protected String inputFolder;
     protected String outputFolder;
-    protected String outputInputFolder;
 
     private FileHandler logFileHandler;
 
@@ -45,7 +44,6 @@ public abstract class Stage {
         this.inputFolder = inputBaseFolder + getStageFolder();
         this.outputFolder = baseOutputFolder + "/" + name;
         new File(outputFolder).mkdirs();
-        this.outputInputFolder = outputFolder + "/input";
     }
 
     protected void preExecute() throws Exception {

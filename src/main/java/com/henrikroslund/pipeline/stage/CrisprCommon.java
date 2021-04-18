@@ -40,7 +40,7 @@ public class CrisprCommon extends Stage {
             List<SequenceEvaluator> evaluators = new ArrayList<>();
             // We do not check pam because we know that all sequences are already Crispr sequences
             evaluators.add(new IdenticalEvaluator(sequence, false, true, false));
-            evaluators.add(new MismatchEvaluator(sequence, Range.between(0, n7n20AllowedMismatches), Range.between(Sequence.SEED_INDEX_END, Sequence.RAW_INDEX_END)));
+            evaluators.add(new MismatchEvaluator(sequence, Range.between(0, n7n20AllowedMismatches), Range.between(Sequence.N7_INDEX, Sequence.N20_INDEX)));
             Sequence matchingSequence = genome.getSequenceMatchingAllEvaluators(evaluators);
             if(matchingSequence != null) {
                 log.info("Found match for sequence " + sequence + " with " + matchingSequence);
