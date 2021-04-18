@@ -119,7 +119,10 @@ public class CandidateTyping extends Stage {
 
     @Override
     public String toString() {
-        return getName();
+        StringBuilder description = new StringBuilder();
+        description.append(getName());
+        description.append(" ").append(getStageFolder());
+        return description.toString();
     }
 
     @Override

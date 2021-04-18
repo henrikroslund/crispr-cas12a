@@ -67,6 +67,12 @@ public class CrisprElimination extends Stage {
 
     @Override
     public String toString() {
-        return getName();
+        StringBuilder description = new StringBuilder();
+        description.append(getName());
+        description.append(" ").append(getStageFolder());
+        for(SequenceEvaluator evaluator : evaluators) {
+            description.append(" ").append(evaluator.describe());
+        }
+        return description.toString();
     }
 }

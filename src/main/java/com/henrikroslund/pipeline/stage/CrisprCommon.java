@@ -87,7 +87,9 @@ public class CrisprCommon extends Stage {
     @Override
     public String toString() {
         StringBuilder description = new StringBuilder();
-        description.append(getName()).append(" n7n20AllowedMismatches=").append(n7n20AllowedMismatches);
+        description.append(getName());
+        description.append(" ").append(getStageFolder());
+        description.append(" n7n20AllowedMismatches=").append(n7n20AllowedMismatches);
         return description.toString();
     }
 

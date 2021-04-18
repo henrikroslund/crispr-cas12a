@@ -43,11 +43,12 @@ public class Main {
             setupLogging();
             log.info("Started Crispr-cas12a");
 
+            crisprBp04_17_21_optimized_pipline();
             //crisprBp04_17_21();
             //suisrRNA();
             //suisCommonCoverage();
             //rerunPartOfSuis();
-            performanceTesting();
+            //performanceTesting();
 
         } finally {
             memUsageHandle.cancel(false);
@@ -55,6 +56,22 @@ public class Main {
             printMemoryStat();
             log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
         }
+    }
+
+    public static void crisprBp04_17_21_optimized_pipline() throws Exception {
+        String inputFolder = baseInputFolder+"/CRIPSR Bp 04_17_21";
+
+        List<SequenceEvaluator> eliminationEvaluators = new ArrayList<>();
+        SequenceEvaluator seedEliminator = new MismatchEvaluator(null, Range.between(0,2), Range.between(Sequence.SEED_INDEX_START, Sequence.SEED_INDEX_END));
+        SequenceEvaluator n7N20Eliminator = new MismatchEvaluator(null, Range.between(0,4), Range.between(Sequence.N7_INDEX, Sequence.N20_INDEX));
+        eliminationEvaluators.addAll(Arrays.asList(seedEliminator, n7N20Eliminator));
+
+        Pipeline pipeline = new Pipeline("CRIPSR Bp 04_17_21", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(true, true, true));
+        pipeline.addStage(new CrisprCommon(1));
+        pipeline.addStage(new CrisprElimination(eliminationEvaluators));
+        pipeline.addStage(new CandidateFeature());
+        pipeline.run();
     }
 
     public static void crisprBp04_17_21() throws Exception {

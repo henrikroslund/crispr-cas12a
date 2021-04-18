@@ -58,10 +58,12 @@ public class CrisprSelection extends Stage {
     @Override
     public String toString() {
         StringBuilder description = new StringBuilder();
-        description.append("skipDuplicates=").append(skipDuplicates).append("\n");
-        description.append("mergeChromosomes=").append(mergeChromosomes);
+        description.append(getName());
+        description.append(" ").append(getStageFolder());
+        description.append(" skipDuplicates=").append(skipDuplicates);
+        description.append(" mergeChromosomes=").append(mergeChromosomes);
         for(SequenceEvaluator evaluator : filters) {
-            description.append("\nfilter: ").append(evaluator.describe());
+            description.append(" ").append(evaluator.describe());
         }
         return description.toString();
     }

@@ -32,6 +32,13 @@ public class Pipeline {
     public void run() throws Exception {
         log.info("Starting pipeline: " + name);
 
+        // First we print the pipeline
+        StringBuilder description = new StringBuilder("Printing pipeline stages and configurations:");
+        for(Stage stage : stages) {
+            description.append("\n").append(stage);
+        }
+        log.info(description.toString());
+
         Genome stageResult = null;
         for(Stage stage : stages) {
             stageResult = stage.run(stageResult);
