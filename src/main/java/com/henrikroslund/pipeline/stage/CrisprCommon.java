@@ -64,7 +64,7 @@ public class CrisprCommon extends Stage {
                 continue;
             }
 
-            Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator()), true, includeAllChromosomes);
+            Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator(true)), true, includeAllChromosomes);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
                 if(!exists(genome, sequence)) {
                     notFound.add(sequence);

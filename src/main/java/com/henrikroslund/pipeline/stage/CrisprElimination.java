@@ -30,7 +30,7 @@ public class CrisprElimination extends Stage {
             Collection<Sequence> found =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
 
-            Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator()), true, false);
+            Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator(false)), true, false);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
                 if(genome.exists(sequence)) {
                     found.add(sequence);

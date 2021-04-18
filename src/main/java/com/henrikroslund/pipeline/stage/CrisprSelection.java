@@ -26,7 +26,7 @@ public class CrisprSelection extends Stage {
         super(CrisprSelection.class);
         this.skipDuplicates = skipDuplicates;
 
-        filters.add(new CrisprPamEvaluator());
+        filters.add(new CrisprPamEvaluator(true));
         if(useConsecutiveEvaluator) {
             filters.add(new NoConsecutiveIdenticalN1N20Evaluator(QUADRUPLE));
         }

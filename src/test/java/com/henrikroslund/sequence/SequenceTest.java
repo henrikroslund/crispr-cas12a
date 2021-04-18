@@ -3,7 +3,6 @@ package com.henrikroslund.sequence;
 import com.henrikroslund.TestUtils;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.exceptions.InvalidSequenceException;
-import com.henrikroslund.sequence.Sequence;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,8 +22,8 @@ public class SequenceTest {
 
     @Test
     public void testGetComplement() throws Exception {
-        Sequence sequence = new Sequence(TestUtils.VALID_CRISPR_SEQUENCE, 5, "test");
-        Assert.assertEquals(TestUtils.VALID_CRISPR_SEQUENCE, sequence.getRaw());
+        Sequence sequence = new Sequence(TestUtils.VALID_STRICT_CRISPR_SEQUENCE, 5, "test");
+        Assert.assertEquals(TestUtils.VALID_STRICT_CRISPR_SEQUENCE, sequence.getRaw());
         Assert.assertEquals(TestUtils.VALID_CRISPR_SEQUENCE_COMPLEMENT, sequence.getComplement().getRaw());
     }
 

@@ -6,7 +6,13 @@ import lombok.Getter;
 public class CrisprPamEvaluator implements SequenceEvaluator {
 
     // First three must be Ts and the forth must Not be T for crispr
-    private static final String CRISPR_PAM_MATCH_REGEXP = "^[T]{3}[^T].*";
+
+    // Strict mapping require TTT^T while NOT strict will only check TTTN
+    private boolean strictMatching;
+
+    public CrisprPamEvaluator(boolean strictMatching) {
+        this.strictMatching = strictMatching;
+    }
 
     @Getter
     private Sequence match = null;
@@ -14,21 +20,20 @@ public class CrisprPamEvaluator implements SequenceEvaluator {
     @Override
     public boolean evaluate(Sequence sequence) {
         match = null;
-        for(int i=0; i<=2; i++) {
-            if(sequence.getRaw().charAt(i) != 'T') {
-                return false;
-            }
+        boolean result =
+                sequence.getRaw().charAt(0) == 'T' &&
+                sequence.getRaw().charAt(1) == 'T' &&
+                sequence.getRaw().charAt(2) == 'T' &&
+                ( !strictMatching || sequence.getRaw().charAt(3) != 'T');
+        if(result) {
+            match = sequence;
         }
-        if(sequence.getRaw().charAt(3) == 'T') {
-            return false;
-        }
-        match = sequence;
-        return true;
+        return result;
     }
 
     @Override
     public String describe() {
-        return "CrisprPamEvaluator( " + CRISPR_PAM_MATCH_REGEXP + " )";
+        return "CrisprPamEvaluator( " + (strictMatching ? "TTT^T" : "TTTN") + " )";
     }
 
     @Override

@@ -49,7 +49,6 @@ public class MismatchEvaluator implements SequenceEvaluator {
     @Override
     public boolean evaluate(Sequence sequence) {
         int numberOfMismatches = 0;
-        // TODO need to write tests for the indexesToCompare...
         for(int i=0; i<Sequence.RAW_LENGTH; i++) {
             int finalI = i;
             boolean inRange = indexesToCompare.stream().anyMatch(integerRange -> integerRange.contains(finalI));
