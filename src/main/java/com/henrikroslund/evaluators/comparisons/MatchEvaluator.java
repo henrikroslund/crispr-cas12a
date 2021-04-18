@@ -59,6 +59,11 @@ public class MatchEvaluator implements SequenceEvaluator {
     }
 
     @Override
+    public SequenceEvaluator getNewEvaluator(Sequence sequence) {
+        return new MatchEvaluator(sequence, matchRange, indexesToCompare);
+    }
+
+    @Override
     public String describe() {
         return "MatchEvaluator(" + matchRange + ")";
     }

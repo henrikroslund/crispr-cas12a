@@ -43,11 +43,11 @@ public class Main {
             setupLogging();
             log.info("Started Crispr-cas12a");
 
-            crisprBp04_17_21();
+            //crisprBp04_17_21();
             //suisrRNA();
             //suisCommonCoverage();
             //rerunPartOfSuis();
-            //performanceTesting();
+            performanceTesting();
 
         } finally {
             memUsageHandle.cancel(false);
@@ -75,8 +75,13 @@ public class Main {
         for(int i=0; i<100; i++) {
             //pipeline.addStage(new CrisprSelection(false, false, true));
             //pipeline.addStage(new CrisprCommon());
-            //pipeline.addStage(new CrisprElimination());
-            pipeline.addStage(new CandidateTyping());
+            List<SequenceEvaluator> evaluators = new ArrayList<>();
+            SequenceEvaluator seedEliminator = new MismatchEvaluator(null, Range.between(0,2), Range.between(Sequence.SEED_INDEX_START, Sequence.SEED_INDEX_END));
+            SequenceEvaluator n7N20Eliminator = new MismatchEvaluator(null, Range.between(0,4), Range.between(Sequence.N7_INDEX, Sequence.N20_INDEX));
+            evaluators.add(seedEliminator);
+            evaluators.add(n7N20Eliminator);
+            pipeline.addStage(new CrisprElimination(evaluators));
+            //pipeline.addStage(new CandidateTyping());
         }
         pipeline.run();
     }

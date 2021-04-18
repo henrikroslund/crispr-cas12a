@@ -37,9 +37,13 @@ public class Sequence implements Comparable<Sequence> {
     public static final int SEED_INDEX_END = SEED_INDEX_START + SEED_LENGTH - 1;
 
     public static final int TARGET_LENGTH = 20;
+    public static final int TARGET_INDEX_START = SEED_INDEX_START;
 
     public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
     public static final int RAW_INDEX_END = RAW_LENGTH - 1;
+
+    public static final int N7_INDEX = TARGET_INDEX_START + 6;
+    public static final int N20_INDEX = TARGET_INDEX_START + 19;
 
     // Will only be initialized on first get
     private Integer gcCount = null;

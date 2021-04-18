@@ -177,7 +177,7 @@ public class Genome {
     }
 
     public SequenceEvaluator hasAnyMatchToAnyEvaluator(List<SequenceEvaluator> evaluators) {
-        SequenceEvaluator matchingEvaluator = null;
+        SequenceEvaluator matchingEvaluator;
         for(Sequence sequence : sequences) {
             matchingEvaluator = SequenceEvaluator.matchAny(evaluators, sequence);
             if(matchingEvaluator != null) {

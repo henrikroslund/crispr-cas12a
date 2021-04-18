@@ -64,17 +64,8 @@ public class CandidateTyping extends Stage {
             Collection<Sequence> discards = new HashSet<>();
             inputGenome.getSequences().parallelStream().forEach(mainGenomeSequence -> {
 
-                SequenceEvaluator evaluator = null;
-                if(bindCriteria instanceof MismatchEvaluator) {
-                    evaluator = new MismatchEvaluator(mainGenomeSequence, ((MismatchEvaluator) bindCriteria).getMismatchRange(), ((MismatchEvaluator) bindCriteria).getIndexesToCompare());
-                } else if(bindCriteria instanceof MatchEvaluator) {
-                    evaluator = new MatchEvaluator(mainGenomeSequence, ((MatchEvaluator) bindCriteria).getMatchRange(), ((MatchEvaluator) bindCriteria).getIndexesToCompare());
-                } else {
-                    log.severe("Not supported match evaluator");
-                    System.exit(1);
-                }
-
-                Collection<Sequence> allMatchesInOtherGenomes = genome.getSequencesMatchingAnyEvaluator(evaluator);
+                Collection<Sequence> allMatchesInOtherGenomes =
+                        genome.getSequencesMatchingAnyEvaluator(bindCriteria.getNewEvaluator(mainGenomeSequence));
 
                 if(allMatchesInOtherGenomes.isEmpty()) {
                     log.info("There were not matches for sequence " + mainGenomeSequence.toString() + " in genome " + genome.getOutputFilename());

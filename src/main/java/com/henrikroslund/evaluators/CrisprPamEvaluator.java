@@ -8,7 +8,7 @@ public class CrisprPamEvaluator implements SequenceEvaluator {
     // First three must be Ts and the forth must Not be T for crispr
 
     // Strict mapping require TTT^T while NOT strict will only check TTTN
-    private boolean strictMatching;
+    private final boolean strictMatching;
 
     public CrisprPamEvaluator(boolean strictMatching) {
         this.strictMatching = strictMatching;
@@ -29,6 +29,11 @@ public class CrisprPamEvaluator implements SequenceEvaluator {
             match = sequence;
         }
         return result;
+    }
+
+    @Override
+    public SequenceEvaluator getNewEvaluator(Sequence sequence) {
+        return new CrisprPamEvaluator(strictMatching);
     }
 
     @Override

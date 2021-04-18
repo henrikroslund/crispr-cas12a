@@ -2,6 +2,7 @@ package com.henrikroslund.evaluators;
 
 import com.henrikroslund.sequence.Sequence;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public interface SequenceEvaluator {
@@ -12,6 +13,8 @@ public interface SequenceEvaluator {
     boolean evaluate(Sequence sequence);
 
     Sequence getMatch();
+
+    SequenceEvaluator getNewEvaluator(Sequence sequence);
 
     /**
      * Will return true if ALL the evaluators returns true
@@ -24,6 +27,15 @@ public interface SequenceEvaluator {
         }
         return true;
     }
+
+    static List<SequenceEvaluator> getNewEvaluators(Sequence sequence, List<SequenceEvaluator> evaluators) {
+        List<SequenceEvaluator> result = new ArrayList<>();
+        for(SequenceEvaluator evaluator : evaluators) {
+            result.add(evaluator.getNewEvaluator(sequence));
+        }
+        return result;
+    }
+
 
     /**
      * Will return true if ANY the evaluators returns true

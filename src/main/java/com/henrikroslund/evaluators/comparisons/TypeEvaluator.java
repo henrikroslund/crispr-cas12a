@@ -91,6 +91,11 @@ public class TypeEvaluator implements SequenceEvaluator {
         return matchType != null;
     }
 
+    @Override
+    public SequenceEvaluator getNewEvaluator(Sequence sequence) {
+        return new TypeEvaluator(sequence);
+    }
+
     private Type getType(int pamMismatches, int seedMismatchesInARow) {
         Type result = mismatchesN7toN20 >= 3 ? Type.TYPE_5 : Type.TYPE_DISCARD;
         if(pamMismatches >= 2) {

@@ -52,6 +52,11 @@ public class IdenticalEvaluator implements SequenceEvaluator {
     }
 
     @Override
+    public SequenceEvaluator getNewEvaluator(Sequence sequence) {
+        return new IdenticalEvaluator(sequence, checkPam, checkSeed, checkN7N20);
+    }
+
+    @Override
     public String describe() {
         return "IdenticalEvaluator";
     }

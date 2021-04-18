@@ -32,6 +32,11 @@ public class GCContentN1N20Evaluator implements SequenceEvaluator {
     }
 
     @Override
+    public SequenceEvaluator getNewEvaluator(Sequence sequence) {
+        return new GCContentN1N20Evaluator(range);
+    }
+
+    @Override
     public String describe() {
         return "GCContentN1N20Evaluator(" + range + ")";
     }

@@ -3,6 +3,7 @@ package com.henrikroslund.pipeline.stage;
 import com.henrikroslund.Genome;
 import com.henrikroslund.Utils;
 import com.henrikroslund.evaluators.CrisprPamEvaluator;
+import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.extern.java.Log;
 
@@ -13,8 +14,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Log
 public class CrisprElimination extends Stage {
 
+    List<SequenceEvaluator> evaluators = Collections.emptyList();
+
     public CrisprElimination() {
         super(CrisprElimination.class);
+    }
+
+    public CrisprElimination(List<SequenceEvaluator> evaluators) {
+        this();
+        this.evaluators = evaluators;
     }
 
     @Override
@@ -35,13 +43,20 @@ public class CrisprElimination extends Stage {
                 if(genome.exists(sequence)) {
                     found.add(sequence);
                 }
+                if(!evaluators.isEmpty()) {
+                    SequenceEvaluator evaluator = genome.hasAnyMatchToAnyEvaluator(SequenceEvaluator.getNewEvaluators(sequence, evaluators));
+                    if(evaluator != null) {
+                        found.add(sequence);
+                        log.info("Will remove " + sequence + " because close match was found by " + evaluator.toString());
+                    }
+                }
             });
 
             printProcessingTime(startTime);
-            writeDiscarded(found, " removed because it was found in " + file.getName());
+            writeDiscarded(found, " removed because evaluator match in " + file.getName());
             inputGenome.removeAll(found);
 
-            log.info("Candidate size " + inputGenome.getTotalSequences() + " after removing " + found.size() + " sequences found in file " + fileNumber++ + "/" + otherGenomes.size() + " " + file.getName() );
+            log.info("Candidate size " + inputGenome.getTotalSequences() + " after removing " + found.size() + " sequences found in file " + ++fileNumber + "/" + otherGenomes.size() + " " + file.getName() );
             if(inputGenome.getTotalSequences() == 0) {
                 log.info("No candidates left so will stop");
                 break;

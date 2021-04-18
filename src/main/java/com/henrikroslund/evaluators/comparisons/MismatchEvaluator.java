@@ -74,8 +74,13 @@ public class MismatchEvaluator implements SequenceEvaluator {
     }
 
     @Override
+    public SequenceEvaluator getNewEvaluator(Sequence sequence) {
+        return new MismatchEvaluator(sequence, mismatchRange, indexesToCompare);
+    }
+
+    @Override
     public String describe() {
-        return "MismatchEvaluator(range: " + mismatchRange + " indexes: " + describeIndexesToCompare + " )";
+        return "MismatchEvaluator(mismatches: " + mismatchRange + " indexes: " + describeIndexesToCompare + " )";
     }
 
     @Override
