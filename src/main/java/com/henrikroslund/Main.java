@@ -8,10 +8,7 @@ import com.henrikroslund.pipeline.stage.*;
 import com.henrikroslund.sequence.Sequence;
 import org.apache.commons.lang3.Range;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -32,7 +29,6 @@ public class Main {
 
     public static final boolean DEBUG = false;
 
-
     static final String baseOutputFolder = "../crispr-cas12a-output/" + new SimpleDateFormat("yyyy-MM-dd hhmmss z").format(new Date());
     static final String baseInputFolder = "../crispr-cas12a-input";
 
@@ -52,6 +48,11 @@ public class Main {
             //rerunPartOfSuis();
             //performanceTesting();
 
+        } catch(Exception e) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            log.severe(sw.toString());
         } finally {
             memUsageHandle.cancel(false);
             scheduler.shutdown();
