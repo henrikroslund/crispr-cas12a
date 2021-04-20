@@ -63,7 +63,28 @@ public class Utils {
         }
     }
 
-    public static List<Genome> loadGenomes(String path, List<SequenceEvaluator> criteria, boolean skipDuplicates, boolean includeAllChromosomes) throws Exception {
+    public static List<Genome> loadGenomes(String path, List<SequenceEvaluator> criteria, boolean skipDuplicates, boolean includeAllChromosomes) {
+        List<Genome> genomes = loadFastaGenome(path, criteria, skipDuplicates, includeAllChromosomes);
+        genomes.addAll(loadSequenceGenome(path, criteria, skipDuplicates, includeAllChromosomes));
+        return genomes;
+    }
+
+    private static List<Genome> loadSequenceGenome(String path, List<SequenceEvaluator> criteria, boolean skipDuplicates, boolean includeAllChromosomes) {
+        List<Genome> genomes = Collections.synchronizedList(new ArrayList<>());
+        List<File> genomeFiles = Utils.getFilesInFolder(path, SEQUENCE_FILE_ENDING);
+        (Main.DEBUG ? genomeFiles.stream() : genomeFiles.parallelStream())
+                .forEach(file -> {
+                    try {
+                        genomes.add(Genome.loadSequenceFile(file));
+                    } catch (Exception e) {
+                        log.severe("Error creating genome from file " + file.getAbsolutePath() + " " + e.getMessage());
+                        System.exit(1);
+                    }
+                });
+        return genomes;
+    }
+
+    private static List<Genome> loadFastaGenome(String path, List<SequenceEvaluator> criteria, boolean skipDuplicates, boolean includeAllChromosomes) {
         List<Genome> genomes = Collections.synchronizedList(new ArrayList<>());
         List<File> genomeFiles = Utils.getFilesInFolder(path, FASTA_FILE_ENDING);
         (Main.DEBUG ? genomeFiles.stream() : genomeFiles.parallelStream())
@@ -79,6 +100,7 @@ public class Utils {
     }
 
     public static String FASTA_FILE_ENDING = ".fasta";
+    public static String SEQUENCE_FILE_ENDING = ".sequences";
     protected final static String CHROMOSOME_STRING = "chromosome";
     private final static Pattern CHROMOSOME_PATTERN = Pattern.compile(".*"+CHROMOSOME_STRING+"\\s[0-9]"+FASTA_FILE_ENDING+"$");
     public static boolean isChromosomeFile(String filename) {

@@ -132,7 +132,7 @@ public class Genome {
         saveSequence(sequences, outputFolder, filename + suffix);
     }
 
-    public static Genome loadGenome(File file) throws Exception {
+    public static Genome loadSequenceFile(File file) throws Exception {
         Path filePath = Path.of(file.getAbsolutePath());
         BufferedReader reader = Files.newBufferedReader(filePath);
         Genome genome = new Genome(true, file.getName(), reader.readLine()+ "\n");

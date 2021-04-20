@@ -1,6 +1,7 @@
 package com.henrikroslund.pipeline.stage;
 
 import com.henrikroslund.Genome;
+import com.henrikroslund.Utils;
 import com.henrikroslund.sequence.Sequence;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,7 +28,7 @@ public abstract class Stage {
     final private String name;
 
     @Getter(AccessLevel.PROTECTED)
-    private static final String resultFilename = "result.sequences";
+    private static final String resultFilename = "result" + Utils.SEQUENCE_FILE_ENDING;
 
     protected String inputFolder;
     protected String outputFolder;

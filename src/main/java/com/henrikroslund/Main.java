@@ -12,6 +12,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -31,7 +32,8 @@ public class Main {
 
     public static final boolean DEBUG = false;
 
-    static final String baseOutputFolder = "../crispr-cas12a-output/" + new Date();
+
+    static final String baseOutputFolder = "../crispr-cas12a-output/" + new SimpleDateFormat("yyyy-MM-dd hhmmss z").format(new Date());
     static final String baseInputFolder = "../crispr-cas12a-input";
 
     private final static Logger log = Logger.getLogger("");
