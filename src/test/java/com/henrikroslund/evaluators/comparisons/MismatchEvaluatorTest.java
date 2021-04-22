@@ -99,4 +99,22 @@ public class MismatchEvaluatorTest {
         assertTrue(evaluator.evaluate(new Sequence("TTTTTTTTTTTATTTTTTTTTTTT", 0, "")));
         assertTrue(evaluator.evaluate(new Sequence("TTTTTTTTTTAATTTTTTTTTTTT", 0, "")));
     }
+
+    @Test
+    public void testToString() {
+        String original = "TTTTTTTTTTTTTTTTTTTTTTTT";
+        Sequence sequence = new Sequence(original, 0, "");
+        MismatchEvaluator evaluator = new MismatchEvaluator(sequence, Range.is(0), Range.is(0));
+
+        assertTrue(evaluator.toString().contains("???? ????? ????? ????? ?????"));
+
+        evaluator.evaluate(new Sequence("TTTTTTTTTTTTTTTTTTTTTTTT", 0, ""));
+        assertTrue(evaluator.toString().contains("=??? ????? ????? ????? ?????"));
+
+        evaluator = new MismatchEvaluator(sequence, Range.is(0), Range.between(0,23));
+        evaluator.evaluate(new Sequence("TTTTTTTTTTTTTTTTTTTTTTTT", 0, ""));
+        assertTrue(evaluator.toString().contains("==== ===== ===== ===== ====="));
+        evaluator.evaluate(new Sequence("AAAAAAAAAAAAAAAAAAAAAAAA", 0, ""));
+        assertTrue(evaluator.toString().contains("XXXX XXXXX XXXXX XXXXX XXXXX"));
+    }
 }

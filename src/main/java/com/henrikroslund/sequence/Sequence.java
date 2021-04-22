@@ -60,7 +60,7 @@ public class Sequence implements Comparable<Sequence> {
 
     // metaData is created upon first get to save memory
     @Setter
-    private Map<TypeEvaluator.Type, Integer> metaData = null;
+    private Map<TypeEvaluator.Type, Integer> metaData;
 
     @SneakyThrows
     public Sequence(String raw, int startIndex, String genome) {
@@ -162,7 +162,7 @@ public class Sequence implements Comparable<Sequence> {
         if(metaData == null) {
             return "";
         }
-        StringBuilder result = new StringBuilder();
+        StringBuilder result = new StringBuilder(120);
         metaData.forEach((s, s2) -> {
             result.append(s).append("=").append(s2).append("&");
         });
@@ -187,7 +187,7 @@ public class Sequence implements Comparable<Sequence> {
     private String toStringRepresentation(boolean forSerialization) {
         String genomeName = genome;
         if(forSerialization) {
-            // This operation is expensive
+            // This operation is expensive so we only do it during serialization
             genomeName = Utils.getStringWithoutWhitespaces(genome);
         }
         return raw + " " + (isComplement ? "-" : "+") + " " + startIndex + " " + (genomeName != null ? genomeName : "NAME_UNAVAILABLE") + " " + metaDataToString();

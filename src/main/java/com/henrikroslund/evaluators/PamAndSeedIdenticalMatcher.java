@@ -1,10 +1,12 @@
 package com.henrikroslund.evaluators;
 
 import com.henrikroslund.sequence.Sequence;
+import lombok.AccessLevel;
 import lombok.Getter;
 
 public class PamAndSeedIdenticalMatcher implements SequenceEvaluator {
 
+    @Getter(AccessLevel.PROTECTED)
     private final Sequence sequence;
 
     @Getter

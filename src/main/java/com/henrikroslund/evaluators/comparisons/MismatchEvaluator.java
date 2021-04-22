@@ -13,15 +13,12 @@ public class MismatchEvaluator implements SequenceEvaluator {
 
     final Sequence sequence;
 
-    @Getter
     private final Range<Integer> mismatchRange;
-    @Getter
     private final List<Range<Integer>> indexesToCompare;
-    private String describeIndexesToCompare = "";
+    private final String describeIndexesToCompare;
 
     @Getter
     private Sequence match = null;
-    @Getter
     private int mismatches = -1;
     private final String[] matchRepresentation = new String[]{"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?"};
 
@@ -30,12 +27,14 @@ public class MismatchEvaluator implements SequenceEvaluator {
         this.mismatchRange = mismatchRange;
         this.indexesToCompare = indexesToCompare;
         Iterator<Range<Integer>> it = indexesToCompare.iterator();
+        StringBuilder describeIndexes = new StringBuilder();
         while(it.hasNext()) {
-            describeIndexesToCompare += it.next();
+            describeIndexes.append(it.next());
             if(it.hasNext()) {
-                describeIndexesToCompare += ", ";
+                describeIndexes.append(", ");
             }
         }
+        describeIndexesToCompare = describeIndexes.toString();
     }
     public MismatchEvaluator(Sequence sequence, Range<Integer> mismatchRange, Range<Integer> indexesToCompare) {
         this(sequence, mismatchRange, Collections.singletonList(indexesToCompare));
@@ -86,6 +85,6 @@ public class MismatchEvaluator implements SequenceEvaluator {
     @Override
     public String toString() {
         return describe() + " mismatches: " + mismatches + " ( "
-                + SequenceEvaluator.toMatchRepresentation(matchRepresentation) +  " ) " + match.toString();
+                + SequenceEvaluator.toMatchRepresentation(matchRepresentation) +  " ) " + (match != null ? match.toString() : "");
     }
 }
