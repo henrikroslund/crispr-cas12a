@@ -58,11 +58,11 @@ public class IdenticalEvaluator implements SequenceEvaluator {
 
     @Override
     public String describe() {
-        return "IdenticalEvaluator";
+        return "IdenticalEvaluator( checkPam="+checkPam + " checkSeed="+checkSeed + " checkN7N20=" + checkN7N20 + " )";
     }
 
     @Override
     public String toString() {
-        return describe() + " " + match;
+        return describe() + (match != null ?  " " + match : "");
     }
 }

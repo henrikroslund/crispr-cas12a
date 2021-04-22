@@ -23,7 +23,6 @@ public class Genome {
     @Getter
     private final String outputFilename;
     private final String firstRow;
-    private String data;
 
     @Getter
     private final Collection<Sequence> sequences;
@@ -55,9 +54,6 @@ public class Genome {
                         log.info("Adding file " + genomeFile.getName());
                         String firstRow = Utils.getFirstRow(file.getAbsolutePath());
                         String genomeFileData = getFileContent(chromosomeFile).substring(firstRow.length());
-                        if(isPrimaryChromosomeFile(genomeFile.getAbsolutePath())) {
-                            this.data = genomeFileData;
-                        }
                         createSequences(criteria, genomeFileData);
                     }
                 }
@@ -65,8 +61,8 @@ public class Genome {
                 throw new IllegalArgumentException("Tried to create genome that includes all chromosomes but which is not a primary choromosome: " + file.getName());
             }
         } else {
-            this.data = getFileContent(file.getAbsolutePath()).substring(firstRow.length()-1);
-            createSequences(criteria, this.data);
+            String data = getFileContent(file.getAbsolutePath()).substring(firstRow.length()-1);
+            createSequences(criteria, data);
         }
     }
 

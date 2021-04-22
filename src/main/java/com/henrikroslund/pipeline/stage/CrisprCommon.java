@@ -1,7 +1,6 @@
 package com.henrikroslund.pipeline.stage;
 
 import com.henrikroslund.Genome;
-import com.henrikroslund.Main;
 import com.henrikroslund.Utils;
 import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.IdenticalEvaluator;
@@ -18,6 +17,7 @@ import java.util.*;
 public class CrisprCommon extends Stage {
 
     private int n7n20AllowedMismatches = 0;
+    List<SequenceEvaluator> evaluators = new ArrayList<>();
 
     public CrisprCommon() {
         super(CrisprCommon.class);
@@ -26,6 +26,9 @@ public class CrisprCommon extends Stage {
     public CrisprCommon(int n7n20AllowedMismatches) {
         this();
         this.n7n20AllowedMismatches = n7n20AllowedMismatches;
+        // We do not check pam because we know that all sequences are already Crispr sequences
+        evaluators.add(new IdenticalEvaluator(null, false, true, false));
+        evaluators.add(new MismatchEvaluator(null, Range.between(0, n7n20AllowedMismatches), Range.between(Sequence.N7_INDEX, Sequence.N20_INDEX)));
     }
 
     @Override
@@ -37,11 +40,9 @@ public class CrisprCommon extends Stage {
         if(genome.exists(sequence)) {
             return true;
         } else if(n7n20AllowedMismatches > 0) {
-            List<SequenceEvaluator> evaluators = new ArrayList<>();
-            // We do not check pam because we know that all sequences are already Crispr sequences
-            evaluators.add(new IdenticalEvaluator(sequence, false, true, false));
-            evaluators.add(new MismatchEvaluator(sequence, Range.between(0, n7n20AllowedMismatches), Range.between(Sequence.N7_INDEX, Sequence.N20_INDEX)));
-            Sequence matchingSequence = genome.getSequenceMatchingAllEvaluators(evaluators);
+            List<SequenceEvaluator> sequenceEvaluators = new ArrayList<>();
+            evaluators.forEach(evaluator -> sequenceEvaluators.add(evaluator.getNewEvaluator(sequence)));
+            Sequence matchingSequence = genome.getSequenceMatchingAllEvaluators(sequenceEvaluators);
             if(matchingSequence != null) {
                 log.info("Found match for sequence " + sequence + " with " + matchingSequence);
                 return true;
@@ -90,6 +91,7 @@ public class CrisprCommon extends Stage {
         description.append(getName());
         description.append(" ").append(getStageFolder());
         description.append(" n7n20AllowedMismatches=").append(n7n20AllowedMismatches);
+        evaluators.forEach(evaluator -> description.append(" ").append(evaluator));
         return description.toString();
     }
 

@@ -24,15 +24,16 @@ public class CandidateTyping extends Stage {
     private static final String PROCESSED_GENOMES_FILE = "genomesProcessed";
     private final boolean ENABLED_ALREADY_PROCESSED_FILE = false;
 
+    private final SequenceEvaluator bindCriteria;
+
     public CandidateTyping() {
         super(CandidateTyping.class);
+        bindCriteria = new MatchEvaluator(null, Range.between(15, 24),
+                Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END)));
     }
 
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
-        SequenceEvaluator bindCriteria = new MatchEvaluator(null, Range.between(15, 24),
-                Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END)));
-
         HashSet<String> alreadyProcessed = ENABLED_ALREADY_PROCESSED_FILE ?
                 getAlreadyProcessedGenomes(inputFolder) :
                 new HashSet<>();
@@ -119,6 +120,7 @@ public class CandidateTyping extends Stage {
         StringBuilder description = new StringBuilder();
         description.append(getName());
         description.append(" ").append(getStageFolder());
+        description.append(" bindCriteria=").append(bindCriteria.describe());
         return description.toString();
     }
 
