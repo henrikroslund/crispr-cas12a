@@ -85,7 +85,7 @@ public class TypeEvaluator implements SequenceEvaluator {
             }
         }
 
-        matchType = getType(pamWithoutVMismatches, seedMismatchesInARow);
+        matchType = getType(pamWithoutVMismatches, seedMismatchesInARow, mismatchesN7toN20);
         match = sequence;
         mismatches = numberOfMismatches;
         return matchType != null;
@@ -96,7 +96,7 @@ public class TypeEvaluator implements SequenceEvaluator {
         return new TypeEvaluator(sequence);
     }
 
-    private Type getType(int pamMismatches, int seedMismatchesInARow) {
+    private static Type getType(int pamMismatches, int seedMismatchesInARow, int mismatchesN7toN20) {
         Type result = mismatchesN7toN20 >= 3 ? Type.TYPE_5 : Type.TYPE_DISCARD;
         if(pamMismatches >= 2) {
             result = Type.TYPE_1;

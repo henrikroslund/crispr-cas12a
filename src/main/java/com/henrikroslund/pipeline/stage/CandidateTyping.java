@@ -25,11 +25,17 @@ public class CandidateTyping extends Stage {
     private final boolean ENABLED_ALREADY_PROCESSED_FILE = false;
 
     private final SequenceEvaluator bindCriteria;
+    private final List<SequenceEvaluator> sampleSetCriteria;
+
+    public CandidateTyping(List<SequenceEvaluator> sampleSetCriteria) {
+        super(CandidateTyping.class);
+        this.bindCriteria = new MatchEvaluator(null, Range.between(15, 24),
+                Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END)));
+        this.sampleSetCriteria = sampleSetCriteria;
+    }
 
     public CandidateTyping() {
-        super(CandidateTyping.class);
-        bindCriteria = new MatchEvaluator(null, Range.between(15, 24),
-                Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END)));
+        this(Collections.emptyList());
     }
 
     @Override
@@ -56,7 +62,7 @@ public class CandidateTyping extends Stage {
                 continue;
             }
             Date startTime = new Date();
-            Genome genome = new Genome(file, Collections.emptyList(), true, false);
+            Genome genome = new Genome(file, sampleSetCriteria, true, false);
             AtomicInteger counter = new AtomicInteger(0);
 
             Collection<Sequence> discards = new HashSet<>();
@@ -66,7 +72,7 @@ public class CandidateTyping extends Stage {
                         genome.getSequencesMatchingAnyEvaluator(bindCriteria.getNewEvaluator(mainGenomeSequence));
 
                 if(allMatchesInOtherGenomes.isEmpty()) {
-                    log.info("There were not matches for sequence " + mainGenomeSequence.toString() + " in genome " + genome.getOutputFilename());
+                    log.info("There were no matches for sequence " + mainGenomeSequence.toString() + " in genome " + genome.getOutputFilename());
                     mainGenomeSequence.increaseMetaDataCounter(TypeEvaluator.Type.TYPE_4);
                 }
 
@@ -108,9 +114,7 @@ public class CandidateTyping extends Stage {
         }
         Path filePath = Path.of(file.getAbsolutePath());
         BufferedReader reader = Files.newBufferedReader(filePath);
-        reader.lines().forEach(line -> {
-            files.add(line);
-        });
+        reader.lines().forEach(files::add);
         log.info("Previously processed file count: " + files.size());
         return files;
     }
@@ -120,6 +124,7 @@ public class CandidateTyping extends Stage {
         StringBuilder description = new StringBuilder();
         description.append(getName());
         description.append(" ").append(getStageFolder());
+        description.append(" sampleSetCriteria=").append(sampleSetCriteria);
         description.append(" bindCriteria=").append(bindCriteria.describe());
         return description.toString();
     }
