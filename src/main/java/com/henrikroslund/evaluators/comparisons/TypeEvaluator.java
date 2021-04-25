@@ -19,14 +19,16 @@ public class TypeEvaluator implements SequenceEvaluator {
         TYPE_DISCARD // If no other type applies
     }
 
+    private static final int type1Criteria = 2;
+    private static final int type2Criteria = 2;
+    private static final int type5Criteria = 3;
+
     final Sequence sequence;
 
     @Getter
     private Sequence match = null;
-
     @Getter
     private final List<Type> matchTypes = new ArrayList<>();
-
     private final String[] matchRepresentation = new String[]{"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?"};
 
     public TypeEvaluator(Sequence sequence) {
@@ -95,16 +97,16 @@ public class TypeEvaluator implements SequenceEvaluator {
 
     private void evaluateTypes(int pamMismatches, int seedMismatches, int seedMismatchesInARow, int mismatchesN7toN20) {
         // TODO add the different types to be turned on/off
-        if(pamMismatches >= 2) {
+        if(pamMismatches >= type1Criteria) {
             matchTypes.add(Type.TYPE_1);
         }
-        if(seedMismatchesInARow >= 2) {
+        if(seedMismatchesInARow >= type2Criteria) {
             matchTypes.add(Type.TYPE_2);
         }
         if(matchTypes.containsAll(Arrays.asList(Type.TYPE_1, Type.TYPE_2))) {
             matchTypes.add(Type.TYPE_3);
         }
-        if(mismatchesN7toN20 >= 3) {
+        if(mismatchesN7toN20 >= type5Criteria) {
             matchTypes.add(Type.TYPE_5);
         }
         if(seedMismatches > 3)
@@ -115,7 +117,11 @@ public class TypeEvaluator implements SequenceEvaluator {
 
     @Override
     public String describe() {
-        return "TypeEvaluator";
+        return "TypeEvaluator( "
+                + Type.TYPE_1.name() + ": " + type1Criteria + " "
+                + Type.TYPE_2.name() + ": " + type2Criteria + " "
+                + Type.TYPE_5.name() + ": " + type5Criteria + " "
+                + ")";
     }
 
     @Override
