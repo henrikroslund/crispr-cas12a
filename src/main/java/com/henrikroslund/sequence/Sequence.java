@@ -9,6 +9,7 @@ import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -95,10 +96,13 @@ public class Sequence implements Comparable<Sequence> {
         return metaData;
     }
 
-    public void increaseMetaDataCounter(TypeEvaluator.Type key) {
-        Integer value = getMetaData().get(key);
-        value++;
-        metaData.put(key, value);
+    // This method is synchronized because it is not thread safe
+    public synchronized void increaseMetaDataCounters(List<TypeEvaluator.Type> keys) {
+        keys.forEach(key -> {
+            Integer value = getMetaData().get(key);
+            value++;
+            metaData.put(key, value);
+        });
     }
 
     public boolean equalsPam(Sequence sequence) {
@@ -162,10 +166,14 @@ public class Sequence implements Comparable<Sequence> {
         if(metaData == null) {
             return "";
         }
+        if(metaData.isEmpty()) {
+            return "";
+        }
         StringBuilder result = new StringBuilder(120);
         metaData.forEach((s, s2) -> {
             result.append(s).append("=").append(s2).append("&");
         });
+        result.deleteCharAt(result.length()-1);
         return result.toString();
     }
 

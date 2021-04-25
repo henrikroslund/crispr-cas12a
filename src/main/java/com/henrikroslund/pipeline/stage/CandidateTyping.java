@@ -73,14 +73,14 @@ public class CandidateTyping extends Stage {
 
                 if(allMatchesInOtherGenomes.isEmpty()) {
                     log.info("There were no matches for sequence " + mainGenomeSequence.toString() + " in genome " + genome.getOutputFilename());
-                    mainGenomeSequence.increaseMetaDataCounter(TypeEvaluator.Type.TYPE_4);
+                    mainGenomeSequence.increaseMetaDataCounters(Collections.singletonList(TypeEvaluator.Type.TYPE_4));
                 }
 
                 allMatchesInOtherGenomes.forEach(sequence -> {
                     TypeEvaluator typeEvaluator = new TypeEvaluator(mainGenomeSequence);
                     typeEvaluator.evaluate(sequence);
-                    mainGenomeSequence.increaseMetaDataCounter(typeEvaluator.getMatchType());
-                    if(typeEvaluator.getMatchType() == TypeEvaluator.Type.TYPE_DISCARD) {
+                    mainGenomeSequence.increaseMetaDataCounters(typeEvaluator.getMatchTypes());
+                    if(typeEvaluator.getMatchTypes().contains(TypeEvaluator.Type.TYPE_DISCARD)) {
                         discards.add(mainGenomeSequence);
                     }
                     log.info("allMatches: " + allMatchesInOtherGenomes.size() + " " + mainGenomeSequence + " " + typeEvaluator + " discardCount: " + discards.size());
