@@ -67,7 +67,7 @@ public class CandidateFeature extends Stage {
                     Collections.singletonList(new IdenticalEvaluator(candidate)));
             boolean foundInReferenceGenome = !matches.isEmpty();
             if(matches.size()  > 1) {
-                log.info("Matches:" + matches.size() + " " + candidate.toString());
+                log.info("Multiple matches found:" + matches.size() + " " + candidate.toString());
             }
             // We need to maintain the meta data so add it for all
             for(Sequence sequence : matches) {

@@ -160,11 +160,11 @@ public class Genome {
      * Will return sequences that match any of the evaluators
      */
     public List<Sequence> getSequencesMatchingAnyEvaluator(SequenceEvaluator evaluator) {
-        return getSequencesMatchingAnyEvaluator(Arrays.asList(evaluator));
+        return getSequencesMatchingAnyEvaluator(Collections.singletonList(evaluator));
     }
     public List<Sequence> getSequencesMatchingAnyEvaluator(List<SequenceEvaluator> evaluators) {
         List<Sequence> results = Collections.synchronizedList(new ArrayList<>());
-        sequences.stream().forEach(sequence -> {
+        sequences.forEach(sequence -> {
             if(SequenceEvaluator.matchAny(evaluators, sequence) != null) {
                 results.add(sequence);
             }
