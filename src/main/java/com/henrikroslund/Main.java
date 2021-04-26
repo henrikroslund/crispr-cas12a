@@ -1,5 +1,6 @@
 package com.henrikroslund;
 
+import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
@@ -28,6 +29,7 @@ public class Main {
     static ScheduledFuture<?> memUsageHandle = scheduler.scheduleAtFixedRate(Utils::printMemoryStat, 1, 15, TimeUnit.SECONDS);
 
     public static final boolean DEBUG = false;
+    public static FileHandler mainLoggerFileHandler;
 
     static final String baseOutputFolder = "../crispr-cas12a-output/" + new SimpleDateFormat("yyyy-MM-dd hhmmss z").format(new Date());
     static final String baseInputFolder = "../crispr-cas12a-input";
@@ -41,12 +43,12 @@ public class Main {
             setupLogging();
             log.info("Started Crispr-cas12a");
 
-            crisprBp04_17_21_optimized_pipline();
+            //crisprBp04_17_21_optimized_pipline();
             //crisprBp04_17_21();
             //suisrRNA();
             //suisCommonCoverage();
             //rerunPartOfSuis();
-            //performanceTesting();
+            performanceTesting();
 
         } catch(Exception e) {
             StringWriter sw = new StringWriter();
@@ -92,16 +94,18 @@ public class Main {
         String inputFolder = baseInputFolder+"/performance-testing";
         Pipeline pipeline = new Pipeline("Performance testing", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(false, false, true));
-        for(int i=0; i<100; i++) {
+        for(int i=0; i<1; i++) {
             //pipeline.addStage(new CrisprSelection(false, false, true));
             //pipeline.addStage(new CrisprCommon());
+            /*
             List<SequenceEvaluator> evaluators = new ArrayList<>();
             SequenceEvaluator seedEliminator = new MismatchEvaluator(null, Range.between(0,2), Range.between(Sequence.SEED_INDEX_START, Sequence.SEED_INDEX_END));
             SequenceEvaluator n7N20Eliminator = new MismatchEvaluator(null, Range.between(0,4), Range.between(Sequence.N7_INDEX, Sequence.N20_INDEX));
             evaluators.add(seedEliminator);
             evaluators.add(n7N20Eliminator);
             pipeline.addStage(new CrisprElimination(evaluators));
-            //pipeline.addStage(new CandidateTyping());
+             */
+            pipeline.addStage(new CandidateTyping(Collections.singletonList(new CrisprPamEvaluator(false))));
         }
         pipeline.run();
     }
@@ -202,8 +206,8 @@ public class Main {
     private static void setupLogging() throws IOException {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s %5$s%6$s%n");
         SimpleFormatter simpleFormatter = new SimpleFormatter();
-        FileHandler fh = new FileHandler(baseOutputFolder + "/application.log");
-        fh.setFormatter(simpleFormatter);
-        log.addHandler(fh);
+        mainLoggerFileHandler = new FileHandler(baseOutputFolder + "/application.log");
+        mainLoggerFileHandler.setFormatter(simpleFormatter);
+        log.addHandler(mainLoggerFileHandler);
     }
 }

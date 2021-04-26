@@ -1,6 +1,7 @@
 package com.henrikroslund.pipeline.stage;
 
 import com.henrikroslund.Genome;
+import com.henrikroslund.Main;
 import com.henrikroslund.Utils;
 import com.henrikroslund.sequence.Sequence;
 import lombok.AccessLevel;
@@ -53,6 +54,9 @@ public abstract class Stage {
         logFileHandler = new FileHandler(outputFolder + "/application.log");
         logFileHandler.setFormatter(simpleFormatter);
         rootLogger.addHandler(logFileHandler);
+        // We remove the main logger for performance reasons
+        rootLogger.removeHandler(Main.mainLoggerFileHandler);
+
         log.info("Starting stage: " + name);
         log.info(name + " configuration:\n" + this);
     }
@@ -63,6 +67,7 @@ public abstract class Stage {
         }
         log.info("Completed stage: " + name);
         Logger rootLogger = Logger.getLogger("");
+        rootLogger.addHandler(Main.mainLoggerFileHandler);
         rootLogger.removeHandler(logFileHandler);
         logFileHandler.close();
     }

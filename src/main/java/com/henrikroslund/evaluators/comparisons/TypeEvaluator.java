@@ -16,12 +16,14 @@ public class TypeEvaluator implements SequenceEvaluator {
         TYPE_3, // If Type_1 & Type_2
         TYPE_4, // Did not bind in genome. Cannot be evaluated in this class on a sequence comparison level.
         TYPE_5, // >=X mismatches in N7-N20
+        TYPE_6, // >=X mismatches in Seed
         TYPE_DISCARD // If no other type applies
     }
 
     private static final int type1Criteria = 2;
     private static final int type2Criteria = 2;
     private static final int type5Criteria = 3;
+    private static final int type6Criteria = 3;
 
     final Sequence sequence;
 
@@ -96,7 +98,6 @@ public class TypeEvaluator implements SequenceEvaluator {
     }
 
     private void evaluateTypes(int pamMismatches, int seedMismatches, int seedMismatchesInARow, int mismatchesN7toN20) {
-        // TODO add the different types to be turned on/off
         if(pamMismatches >= type1Criteria) {
             matchTypes.add(Type.TYPE_1);
         }
@@ -109,7 +110,9 @@ public class TypeEvaluator implements SequenceEvaluator {
         if(mismatchesN7toN20 >= type5Criteria) {
             matchTypes.add(Type.TYPE_5);
         }
-        if(seedMismatches > 3)
+        if(seedMismatches > type6Criteria) {
+            matchTypes.add(Type.TYPE_6);
+        }
         if(matchTypes.isEmpty()) {
             matchTypes.add(Type.TYPE_DISCARD);
         }
@@ -121,6 +124,7 @@ public class TypeEvaluator implements SequenceEvaluator {
                 + Type.TYPE_1.name() + ": " + type1Criteria + " "
                 + Type.TYPE_2.name() + ": " + type2Criteria + " "
                 + Type.TYPE_5.name() + ": " + type5Criteria + " "
+                + Type.TYPE_6.name() + ": " + type6Criteria + " "
                 + ")";
     }
 

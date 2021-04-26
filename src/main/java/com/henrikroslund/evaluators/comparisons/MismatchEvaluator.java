@@ -14,27 +14,36 @@ public class MismatchEvaluator implements SequenceEvaluator {
     final Sequence sequence;
 
     private final Range<Integer> mismatchRange;
-    private final List<Range<Integer>> indexesToCompare;
     private final String describeIndexesToCompare;
+    private final boolean[] indexesToCompare = new boolean[Sequence.RAW_LENGTH];
+    private final List<Range<Integer>> rangeIndexesToCompare;
 
     @Getter
     private Sequence match = null;
     private int mismatches = -1;
     private final String[] matchRepresentation = new String[]{"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?"};
 
-    public MismatchEvaluator(Sequence sequence, Range<Integer> mismatchRange, List<Range<Integer>> indexesToCompare) {
+    public MismatchEvaluator(Sequence sequence, Range<Integer> mismatchRange, List<Range<Integer>> rangeIndexesToCompare) {
         this.sequence = sequence;
         this.mismatchRange = mismatchRange;
-        this.indexesToCompare = indexesToCompare;
-        Iterator<Range<Integer>> it = indexesToCompare.iterator();
+        this.rangeIndexesToCompare = rangeIndexesToCompare;
+
+        Iterator<Range<Integer>> it = rangeIndexesToCompare.iterator();
         StringBuilder describeIndexes = new StringBuilder();
         while(it.hasNext()) {
-            describeIndexes.append(it.next());
+            Range<Integer> range = it.next();
+            for(int i = 0; i<indexesToCompare.length; i++) {
+                if(range.contains(i)) {
+                    indexesToCompare[i] = true;
+                }
+            }
+            describeIndexes.append(range);
             if(it.hasNext()) {
                 describeIndexes.append(", ");
             }
         }
         describeIndexesToCompare = describeIndexes.toString();
+
     }
     public MismatchEvaluator(Sequence sequence, Range<Integer> mismatchRange, Range<Integer> indexesToCompare) {
         this(sequence, mismatchRange, Collections.singletonList(indexesToCompare));
@@ -49,9 +58,7 @@ public class MismatchEvaluator implements SequenceEvaluator {
     public boolean evaluate(Sequence sequence) {
         int numberOfMismatches = 0;
         for(int i=0; i<Sequence.RAW_LENGTH; i++) {
-            int finalI = i;
-            boolean inRange = indexesToCompare.stream().anyMatch(integerRange -> integerRange.contains(finalI));
-            if(inRange) {
+            if(indexesToCompare[i]) {
                 if(this.sequence.getRaw().charAt(i) != sequence.getRaw().charAt(i)) {
                     numberOfMismatches++;
                     matchRepresentation[i] = MISMATCH_CHAR;
@@ -74,7 +81,7 @@ public class MismatchEvaluator implements SequenceEvaluator {
 
     @Override
     public SequenceEvaluator getNewEvaluator(Sequence sequence) {
-        return new MismatchEvaluator(sequence, mismatchRange, indexesToCompare);
+        return new MismatchEvaluator(sequence, mismatchRange, rangeIndexesToCompare);
     }
 
     @Override

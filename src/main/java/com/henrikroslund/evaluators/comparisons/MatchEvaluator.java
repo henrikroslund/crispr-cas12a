@@ -12,20 +12,25 @@ public class MatchEvaluator implements SequenceEvaluator {
 
     final Sequence sequence;
 
-    @Getter
     private final Range<Integer> matchRange;
-    @Getter
-    private final List<Range<Integer>> indexesToCompare;
+    private final List<Range<Integer>> rangeIndexesToCompare;
+    private final boolean[] indexesToCompare = new boolean[Sequence.RAW_LENGTH];
 
     @Getter
     private Sequence match = null;
-    @Getter
     private int matches = -1;
 
-    public MatchEvaluator(Sequence sequence, Range<Integer> matchRange, List<Range<Integer>> indexesToCompare) {
+    public MatchEvaluator(Sequence sequence, Range<Integer> matchRange, List<Range<Integer>> rangeIndexesToCompare) {
         this.matchRange = matchRange;
         this.sequence = sequence;
-        this.indexesToCompare = indexesToCompare;
+        this.rangeIndexesToCompare = rangeIndexesToCompare;
+        for (Range<Integer> range : rangeIndexesToCompare) {
+            for (int i = 0; i < indexesToCompare.length; i++) {
+                if (range.contains(i)) {
+                    indexesToCompare[i] = true;
+                }
+            }
+        }
     }
 
     public MatchEvaluator(Sequence sequence, Range<Integer> matchRange) {
@@ -36,11 +41,8 @@ public class MatchEvaluator implements SequenceEvaluator {
     public boolean evaluate(Sequence sequence) {
         int numberOfMatches = 0;
 
-        // TODO need to write tests for the indexesToCompare...
         for(int i=0; i<Sequence.RAW_LENGTH; i++) {
-            int finalI = i;
-            boolean inRange = indexesToCompare.stream().anyMatch(integerRange -> integerRange.contains(finalI));
-            if(inRange) {
+            if(indexesToCompare[i]) {
                 if(this.sequence.getRaw().charAt(i) == sequence.getRaw().charAt(i)) {
                     numberOfMatches++;
                 }
@@ -60,12 +62,12 @@ public class MatchEvaluator implements SequenceEvaluator {
 
     @Override
     public SequenceEvaluator getNewEvaluator(Sequence sequence) {
-        return new MatchEvaluator(sequence, matchRange, indexesToCompare);
+        return new MatchEvaluator(sequence, matchRange, rangeIndexesToCompare);
     }
 
     @Override
     public String describe() {
-        return "MatchEvaluator(matches: " + matchRange + " indexes: " + indexesToCompare + " )";
+        return "MatchEvaluator(matches: " + matchRange + " indexes: " + rangeIndexesToCompare + " )";
     }
 
     @Override

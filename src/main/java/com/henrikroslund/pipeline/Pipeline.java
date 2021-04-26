@@ -40,6 +40,7 @@ public class Pipeline {
             description.append("\n").append(stage);
         }
         log.info(description.toString());
+        log.info("Will start pipeline.");
 
         Genome stageResult = null;
         for(Stage stage : stages) {
