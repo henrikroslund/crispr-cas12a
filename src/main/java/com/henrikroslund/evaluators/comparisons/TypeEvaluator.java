@@ -20,10 +20,10 @@ public class TypeEvaluator implements SequenceEvaluator {
         TYPE_DISCARD // If no other type applies
     }
 
-    private static final int type1Criteria = 2;
-    private static final int type2Criteria = 2;
-    private static final int type5Criteria = 3;
-    private static final int type6Criteria = 3;
+    private final int type1Criteria;
+    private final int type2Criteria;
+    private final int type5Criteria;
+    private final int type6Criteria;
 
     final Sequence sequence;
 
@@ -33,8 +33,16 @@ public class TypeEvaluator implements SequenceEvaluator {
     private final List<Type> matchTypes = new ArrayList<>();
     private final String[] matchRepresentation = new String[]{"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?"};
 
-    public TypeEvaluator(Sequence sequence) {
+    public TypeEvaluator(Sequence sequence, int type1Criteria, int type2Criteria, int type5Criteria, int type6Criteria) {
         this.sequence = sequence;
+        this.type1Criteria = type1Criteria;
+        this.type2Criteria = type2Criteria;
+        this.type5Criteria = type5Criteria;
+        this.type6Criteria = type6Criteria;
+    }
+
+    public TypeEvaluator(Sequence sequence) {
+        this(sequence, 2, 2, 3, 3);
     }
 
     private void reset() {
@@ -94,7 +102,7 @@ public class TypeEvaluator implements SequenceEvaluator {
 
     @Override
     public SequenceEvaluator getNewEvaluator(Sequence sequence) {
-        return new TypeEvaluator(sequence);
+        return new TypeEvaluator(sequence, type1Criteria, type2Criteria, type5Criteria, type6Criteria);
     }
 
     private void evaluateTypes(int pamMismatches, int seedMismatches, int seedMismatchesInARow, int mismatchesN7toN20) {

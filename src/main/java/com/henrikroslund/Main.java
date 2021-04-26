@@ -36,10 +36,12 @@ public class Main {
 
     private final static Logger log = Logger.getLogger("");
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         long start = new Date().getTime();
         try {
-            new File(baseOutputFolder).mkdirs();
+            if(!new File(baseOutputFolder).mkdirs()) {
+                throw new Exception("Could not create output directory: " + baseOutputFolder);
+            }
             setupLogging();
             log.info("Started Crispr-cas12a");
 
@@ -105,7 +107,7 @@ public class Main {
             evaluators.add(n7N20Eliminator);
             pipeline.addStage(new CrisprElimination(evaluators));
              */
-            pipeline.addStage(new CandidateTyping(Collections.singletonList(new CrisprPamEvaluator(false))));
+            pipeline.addStage(new CandidateTyping(Collections.singletonList(new CrisprPamEvaluator(false)), new TypeEvaluator(null)));
         }
         pipeline.run();
     }
@@ -150,8 +152,6 @@ public class Main {
         candidates.removeAll(discards);
         log.info("Candidate size: " + candidates.getSequences().size());
     }
-
-
 
     private static Genome removeTooSimilarSequences(Genome mainGenome, String outputFolder, String inputFolder) throws Exception {
         log.info("removeTooSimilarSequences");

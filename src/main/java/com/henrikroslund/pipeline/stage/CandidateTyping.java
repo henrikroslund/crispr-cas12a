@@ -26,16 +26,18 @@ public class CandidateTyping extends Stage {
 
     private final SequenceEvaluator bindCriteria;
     private final List<SequenceEvaluator> sampleSetCriteria;
+    private final TypeEvaluator typeEvaluator;
 
-    public CandidateTyping(List<SequenceEvaluator> sampleSetCriteria) {
+    public CandidateTyping(List<SequenceEvaluator> sampleSetCriteria, TypeEvaluator typeEvaluator) {
         super(CandidateTyping.class);
         this.bindCriteria = new MatchEvaluator(null, Range.between(15, 24),
                 Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END)));
         this.sampleSetCriteria = sampleSetCriteria;
+        this.typeEvaluator = typeEvaluator;
     }
 
     public CandidateTyping() {
-        this(Collections.emptyList());
+        this(Collections.emptyList(), new TypeEvaluator(null));
     }
 
     @Override
@@ -77,13 +79,13 @@ public class CandidateTyping extends Stage {
                 }
 
                 allMatchesInOtherGenomes.forEach(sequence -> {
-                    TypeEvaluator typeEvaluator = new TypeEvaluator(mainGenomeSequence);
-                    typeEvaluator.evaluate(sequence);
-                    mainGenomeSequence.increaseMetaDataCounters(typeEvaluator.getMatchTypes());
-                    if(typeEvaluator.getMatchTypes().contains(TypeEvaluator.Type.TYPE_DISCARD)) {
+                    TypeEvaluator evaluator = (TypeEvaluator) typeEvaluator.getNewEvaluator(mainGenomeSequence);
+                    evaluator.evaluate(sequence);
+                    mainGenomeSequence.increaseMetaDataCounters(evaluator.getMatchTypes());
+                    if(evaluator.getMatchTypes().contains(TypeEvaluator.Type.TYPE_DISCARD)) {
                         discards.add(mainGenomeSequence);
                     }
-                    log.info("allMatches: " + allMatchesInOtherGenomes.size() + " " + mainGenomeSequence + " " + typeEvaluator + " discardCount: " + discards.size());
+                    log.info("allMatches: " + allMatchesInOtherGenomes.size() + " " + mainGenomeSequence + " " + evaluator + " discardCount: " + discards.size());
                 });
 
                 counter.incrementAndGet();
@@ -127,7 +129,7 @@ public class CandidateTyping extends Stage {
         description.append(" sampleSetCriteria=");
         sampleSetCriteria.forEach(evaluator -> description.append(evaluator.describe()));
         description.append(" bindCriteria=").append(bindCriteria.describe());
-        description.append(" typeCriterias=").append(new TypeEvaluator(null).describe());
+        description.append(" typeCriterias=").append(typeEvaluator.describe());
         return description.toString();
     }
 
