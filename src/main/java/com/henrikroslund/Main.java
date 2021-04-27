@@ -50,7 +50,8 @@ public class Main {
             //suisrRNA();
             //suisCommonCoverage();
             //rerunPartOfSuis();
-            performanceTesting();
+            //performanceTesting();
+            suis_pipeline_3();
 
         } catch(Exception e) {
             StringWriter sw = new StringWriter();
@@ -88,6 +89,23 @@ public class Main {
         pipeline.addStage(new CrisprCommon(0));
         pipeline.addStage(new CrisprElimination());
         pipeline.addStage(new CandidateTyping());
+        pipeline.addStage(new CandidateFeature());
+        pipeline.run();
+    }
+
+    public static void suis_pipeline_3() throws Exception {
+        String inputFolder = baseInputFolder+"/CRISPR Suis 04_20_21";
+        Pipeline pipeline = new Pipeline("suis_pipeline_3", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(true, true, true));
+        pipeline.addStage(new CrisprCommon(0));
+
+        SequenceEvaluator n1N20Eliminator = new MismatchEvaluator(null, Range.is(0), Range.between(Sequence.TARGET_INDEX_START, Sequence.N20_INDEX));
+        pipeline.addStage(new CrisprElimination(Arrays.asList(n1N20Eliminator)));
+
+        SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
+        TypeEvaluator typeEvaluator = new TypeEvaluator(null,2,2,4,3);
+        pipeline.addStage(new CandidateTyping(Arrays.asList(crisprEvaluator),typeEvaluator));
+
         pipeline.addStage(new CandidateFeature());
         pipeline.run();
     }
