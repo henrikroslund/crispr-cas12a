@@ -11,7 +11,7 @@ import java.util.List;
 public class TypeEvaluator implements SequenceEvaluator {
 
     public enum Type {
-        TYPE_1, // >=X mismatches in PAM
+        TYPE_1, // >=X mismatches in PAM's first 3
         TYPE_2, // >=X consecutive mismatches in Seed
         TYPE_3, // If Type_1 & Type_2
         TYPE_4, // Did not bind in genome. Cannot be evaluated in this class on a sequence comparison level.
@@ -97,7 +97,7 @@ public class TypeEvaluator implements SequenceEvaluator {
 
         evaluateTypes(pamWithoutVMismatches, seedMismatches, seedMismatchesInARow, mismatchesN7toN20);
         match = sequence;
-        return true; // TODO is this good?
+        return true;
     }
 
     @Override
@@ -118,7 +118,7 @@ public class TypeEvaluator implements SequenceEvaluator {
         if(mismatchesN7toN20 >= type5Criteria) {
             matchTypes.add(Type.TYPE_5);
         }
-        if(seedMismatches > type6Criteria) {
+        if(seedMismatches >= type6Criteria) {
             matchTypes.add(Type.TYPE_6);
         }
         if(matchTypes.isEmpty()) {
