@@ -12,7 +12,7 @@ public class GCContentN1N20Evaluator implements SequenceEvaluator {
     private Sequence match = null;
 
     public GCContentN1N20Evaluator() {
-        range = Range.between(9,11);
+        this(Range.between(9,11));
     }
 
     public GCContentN1N20Evaluator(Range<Integer> range) {
