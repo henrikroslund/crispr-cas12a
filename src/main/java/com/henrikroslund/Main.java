@@ -94,7 +94,7 @@ public class Main {
     }
 
     public static void suis_pipeline_3() throws Exception {
-        String inputFolder = baseInputFolder+"/CRISPR Suis 04_20_21";
+        String inputFolder = baseInputFolder+"/Bp 05_01_21";
         Pipeline pipeline = new Pipeline("suis_pipeline_3", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true));
         pipeline.addStage(new CrisprCommon(0));
