@@ -59,7 +59,7 @@ public class CandidateFeature extends Stage {
     private void processFeatures(Genome candidates, Genome mainGenomeWithDuplicates, GenomeFeature genomeFeature) throws Exception {
         PopCsv popCsv = new PopCsv();
 
-        String resultFile = outputFolder+"/"+mainGenomeWithDuplicates.getOutputFilename() + ".csv";
+        String resultFile = outputFolder+"/result.csv";
         throwIfFileExists(resultFile);
 
         for(Sequence candidate : candidates.getSequences()) {
@@ -69,6 +69,12 @@ public class CandidateFeature extends Stage {
             if(matches.size()  > 1) {
                 log.info("Multiple matches found:" + matches.size() + " " + candidate.toString());
             }
+
+            // If we did not find it in the reference genome we should 0 the index since location does not make sense
+            if(!foundInReferenceGenome) {
+                matches.add(new Sequence(candidate.getRaw(), 0, candidate.getGenome(), candidate.getIsComplement()));
+            }
+
             // We need to maintain the meta data so add it for all
             for(Sequence sequence : matches) {
                 sequence.setMetaData(candidate.getMetaData());
