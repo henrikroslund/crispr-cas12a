@@ -59,7 +59,7 @@ public class CandidateFeature extends Stage {
     private void processFeatures(Genome candidates, Genome mainGenomeWithDuplicates, GenomeFeature genomeFeature) throws Exception {
         PopCsv popCsv = new PopCsv();
 
-        String resultFile = outputFolder+"/result.csv";
+        String resultFile = outputFolder+"/"+mainGenomeWithDuplicates.getOutputFilename() + ".csv";
         throwIfFileExists(resultFile);
 
         for(Sequence candidate : candidates.getSequences()) {
@@ -85,7 +85,6 @@ public class CandidateFeature extends Stage {
                 features = genomeFeature.getMatchingFeatures(matches, false);
             } else {
                 log.warning("No matches for sequence: " + candidate.toString());
-                matches.add(candidate);
             }
             popCsv.addFeatureMatches(matches, features, foundInReferenceGenome);
         }

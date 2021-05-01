@@ -57,6 +57,7 @@ public class Sequence implements Comparable<Sequence> {
 
     private final boolean isComplement;
 
+    @Getter
     private final String genome;
 
     // metaData is created upon first get to save memory
