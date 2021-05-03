@@ -31,7 +31,7 @@ public class Main {
     public static final boolean DEBUG = false;
     public static FileHandler mainLoggerFileHandler;
 
-    static final String baseOutputFolder = "../crispr-cas12a-output/" + new SimpleDateFormat("yyyy-MM-dd hhmmss z").format(new Date());
+    static final String baseOutputFolder = "../crispr-cas12a-output/" + new SimpleDateFormat("yyyy-MM-dd hhmmss aa z").format(new Date());
     static final String baseInputFolder = "../crispr-cas12a-input";
 
     private final static Logger log = Logger.getLogger("");
