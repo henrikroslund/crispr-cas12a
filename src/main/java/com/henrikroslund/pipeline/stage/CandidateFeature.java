@@ -85,7 +85,6 @@ public class CandidateFeature extends Stage {
                 features = genomeFeature.getMatchingFeatures(matches, false);
             } else {
                 log.warning("No matches for sequence: " + candidate.toString());
-                matches.add(candidate);
             }
             popCsv.addFeatureMatches(matches, features, foundInReferenceGenome);
         }
