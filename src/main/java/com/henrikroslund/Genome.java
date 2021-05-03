@@ -5,10 +5,7 @@ import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -21,7 +18,7 @@ import static com.henrikroslund.Utils.*;
 public class Genome {
 
     @Getter
-    private final String outputFilename;
+    private final String filename;
     private final String firstRow;
 
     @Getter
@@ -31,19 +28,19 @@ public class Genome {
 
     private static final int INITIAL_COLLECTION_CAPACITY = 75000;
 
-    public Genome(boolean skipDuplicates, String outputFilename, String firstRow) {
+    public Genome(boolean skipDuplicates, String filename, String firstRow) {
         this.skipDuplicates = skipDuplicates;
         if(skipDuplicates) {
             sequences = Collections.synchronizedSet(new HashSet<>(INITIAL_COLLECTION_CAPACITY));
         } else {
             sequences = Collections.synchronizedList(new ArrayList<>(INITIAL_COLLECTION_CAPACITY));
         }
-        this.outputFilename = outputFilename;
+        this.filename = filename.replace(".fasta", "");
         this.firstRow = firstRow;
     }
 
     public Genome(File file, List<SequenceEvaluator> criteria, boolean skipDuplicates, boolean includeAllChromosomes) throws Exception {
-        this(skipDuplicates, file.getName().replace(".fasta", ""), Utils.getFirstRow(file.getAbsolutePath()));
+        this(skipDuplicates, file.getName(), Utils.getFirstRow(file.getAbsolutePath()));
 
         if(includeAllChromosomes && isChromosomeFile(file.getAbsolutePath())) {
             if(isPrimaryChromosomeFile(file.getAbsolutePath())) {
@@ -52,13 +49,13 @@ public class Genome {
                     File genomeFile = new File(chromosomeFile);
                     if(genomeFile.exists()) {
                         log.info("Adding file " + genomeFile.getName());
-                        String firstRow = Utils.getFirstRow(file.getAbsolutePath());
-                        String genomeFileData = getFileContent(chromosomeFile).substring(firstRow.length());
+                        String firstRow = Utils.getFirstRow(genomeFile.getAbsolutePath());
+                        String genomeFileData = getFileContent(chromosomeFile).substring(firstRow.length()-1);
                         createSequences(criteria, genomeFileData);
                     }
                 }
             } else {
-                throw new IllegalArgumentException("Tried to create genome that includes all chromosomes but which is not a primary choromosome: " + file.getName());
+                throw new IllegalArgumentException("Tried to create genome that includes all chromosomes but which is not a primary chromosome: " + file.getName());
             }
         } else {
             String data = getFileContent(file.getAbsolutePath()).substring(firstRow.length()-1);
@@ -69,11 +66,11 @@ public class Genome {
     /**
      * Will return file content without any newlines
      */
-    private static String getFileContent(String filename) throws Exception {
+    private static String getFileContent(String filename) throws IOException {
         Path filePath = Path.of(filename);
         log.info("Reading file: " + filePath.toAbsolutePath());
         if (Files.notExists(filePath)) {
-            throw new Exception("File does not exist: " + filePath.toAbsolutePath());
+            throw new IOException("File does not exist: " + filePath.toAbsolutePath());
         }
         String fileContent = Files.readString(filePath).replaceAll("\n", "");
         log.finest(fileContent);
@@ -89,7 +86,7 @@ public class Genome {
         List<Integer> range = IntStream.rangeClosed(0, sequenceData.length() - (Sequence.RAW_LENGTH-1) - 1)
                 .boxed().collect(Collectors.toList());
 
-        String genomeName = getStringWithoutWhitespaces(outputFilename);
+        String genomeName = getStringWithoutWhitespaces(filename);
         range.parallelStream().forEach(i -> {
             Sequence sequence = new Sequence(sequenceData.substring(i, i+Sequence.RAW_LENGTH), i, genomeName);
 
@@ -105,7 +102,7 @@ public class Genome {
             }
         });
         log.info("Finished creating " + getTotalSequences() + " ( " + calculatePotentialSequences(sequenceData)
-                + " ) sequences for " + outputFilename);
+                + " ) sequences for " + filename);
     }
 
     private int calculatePotentialSequences(String sequenceData) {
@@ -114,14 +111,6 @@ public class Genome {
 
     private boolean shouldAdd(List<SequenceEvaluator> criteria, Sequence sequence) {
         return SequenceEvaluator.matchAll(criteria, sequence);
-    }
-
-    public void writeSequences(String outputFolder) throws  Exception {
-        writeSequences(outputFolder, "");
-    }
-
-    public void writeSequences(String outputFolder, String suffix) throws Exception {
-        writeSequences(outputFolder, outputFilename, suffix);
     }
 
     public void writeSequences(String outputFolder, String filename, String suffix) throws Exception {
@@ -194,10 +183,6 @@ public class Genome {
 
     public boolean removeAll(Collection<Sequence> sequences) {
         return this.sequences.removeAll(sequences);
-    }
-
-    public boolean removeMatchingSequences(SequenceEvaluator evaluator) {
-        return sequences.removeIf(sequence -> evaluator.evaluate(sequence));
     }
 
     public int getTotalSequences() {

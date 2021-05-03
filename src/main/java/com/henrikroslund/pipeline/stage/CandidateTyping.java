@@ -74,7 +74,7 @@ public class CandidateTyping extends Stage {
                         genome.getSequencesMatchingAnyEvaluator(bindCriteria.getNewEvaluator(mainGenomeSequence));
 
                 if(allMatchesInOtherGenomes.isEmpty()) {
-                    log.info("There were no matches for sequence " + mainGenomeSequence.toString() + " in genome " + genome.getOutputFilename());
+                    log.info("There were no matches for sequence " + mainGenomeSequence.toString() + " in genome " + genome.getFilename());
                     mainGenomeSequence.increaseMetaDataCounters(Collections.singletonList(TypeEvaluator.Type.TYPE_4));
                 }
 

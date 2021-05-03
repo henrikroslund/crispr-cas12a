@@ -46,7 +46,7 @@ public class CrisprSelection extends Stage {
             result = genomes.get(0);
         } else {
             log.info("Found " + genomes.size() + " files in " + inputFolder + " so will build a genome with all sequences");
-            result = new Genome(skipDuplicates, "result.fasta", "");
+            result = new Genome(skipDuplicates, "merged.fasta", "");
             for(Genome genome : genomes) {
                 result.addAll(genome.getSequences());
             }
