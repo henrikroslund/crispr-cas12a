@@ -29,7 +29,7 @@ public abstract class Stage {
     final private String name;
 
     @Getter(AccessLevel.PROTECTED)
-    private static final String resultFilename = "result" + Utils.SEQUENCE_FILE_ENDING;
+    private static final String resultFilename = "result";
 
     protected String inputFolder;
     protected String outputFolder;
@@ -76,7 +76,7 @@ public abstract class Stage {
         preExecute();
         Genome result = execute(inputGenome);
         if(result != null && result.getTotalSequences() > 0) {
-            result.writeSequences(outputFolder, getResultFilename(), "");
+            result.writeSequences(outputFolder, getResultFilename());
         }
         postExecute();
         return result;
@@ -84,7 +84,7 @@ public abstract class Stage {
 
     protected BufferedWriter getDiscardWriter() throws IOException {
         if(discardWriter == null) {
-            discardWriter = new BufferedWriter(new FileWriter(outputFolder + "/discarded.sequences", true));
+            discardWriter = new BufferedWriter(new FileWriter(outputFolder + "/discarded.log", true));
         }
         return discardWriter;
     }

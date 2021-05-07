@@ -41,7 +41,7 @@ public class CandidateFeature extends Stage {
     }
 
     private Genome loadGenome(File directory) throws Exception {
-        List<Genome> genomes = loadGenomes(directory.getPath(), Collections.emptyList(), false, false);
+        List<Genome> genomes = loadGenomesInFolder(directory.getPath(), Collections.emptyList(), false, false);
         if(genomes.size() != 1) {
             throw new Exception("Did not expect " + genomes.size() + " genomes to be found in folder " + directory.getPath());
         }

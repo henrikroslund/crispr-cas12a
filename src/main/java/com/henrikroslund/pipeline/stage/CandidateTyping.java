@@ -99,7 +99,7 @@ public class CandidateTyping extends Stage {
             log.info("Finished processing file " + fileNumber + "/" + otherGenomes.size() + " in " + (new Date().getTime() - startTime.getTime()) / 1000 + " seconds");
             processedGenomeWriter.write(file.getName()+"\n");
             processedGenomeWriter.close();
-            inputGenome.writeSequences(outputFolder, "candidates_files_processed_"+fileNumber, ".sequences");
+            inputGenome.writeSequences(outputFolder, "candidates_files_processed_"+fileNumber);
             if (inputGenome.getSequences().isEmpty()) {
                 break;
             }

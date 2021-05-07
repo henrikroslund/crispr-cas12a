@@ -2,6 +2,7 @@ package com.henrikroslund;
 
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
@@ -19,6 +20,7 @@ public class Genome {
 
     @Getter
     private final String filename;
+    @Getter(AccessLevel.PROTECTED)
     private final String firstRow;
 
     @Getter
@@ -27,6 +29,7 @@ public class Genome {
     private final boolean skipDuplicates;
 
     private static final int INITIAL_COLLECTION_CAPACITY = 75000;
+    public static final String GENOME_FILE_ENDING = ".genome";
 
     public Genome(boolean skipDuplicates, String filename, String firstRow) {
         this.skipDuplicates = skipDuplicates;
@@ -41,25 +44,38 @@ public class Genome {
 
     public Genome(File file, List<SequenceEvaluator> criteria, boolean skipDuplicates, boolean includeAllChromosomes) throws Exception {
         this(skipDuplicates, file.getName(), Utils.getFirstRow(file.getAbsolutePath()));
-
-        if(includeAllChromosomes && isChromosomeFile(file.getAbsolutePath())) {
-            if(isPrimaryChromosomeFile(file.getAbsolutePath())) {
-                ArrayList<String> chromosomeFiles = getChromosomeFiles(file.getAbsolutePath());
-                for(String chromosomeFile : chromosomeFiles) {
-                    File genomeFile = new File(chromosomeFile);
-                    if(genomeFile.exists()) {
-                        log.info("Adding file " + genomeFile.getName());
-                        String firstRow = Utils.getFirstRow(genomeFile.getAbsolutePath());
-                        String genomeFileData = getFileContent(chromosomeFile).substring(firstRow.length()-1);
-                        createSequences(criteria, genomeFileData);
+        String filePath = file.getAbsolutePath();
+        if(filePath.endsWith(FASTA_FILE_ENDING)) {
+            if(includeAllChromosomes && isChromosomeFile(filePath)) {
+                if(isPrimaryChromosomeFile(filePath)) {
+                    ArrayList<String> chromosomeFiles = getChromosomeFiles(filePath);
+                    for(String chromosomeFile : chromosomeFiles) {
+                        File genomeFile = new File(chromosomeFile);
+                        if(genomeFile.exists()) {
+                            log.info("Adding file " + genomeFile.getName());
+                            String firstRow = Utils.getFirstRow(genomeFile.getAbsolutePath());
+                            String genomeFileData = getFileContent(chromosomeFile).substring(firstRow.length()-1);
+                            createSequences(criteria, genomeFileData);
+                        }
                     }
+                } else {
+                    throw new IllegalArgumentException("Tried to create genome that includes all chromosomes but which is not a primary chromosome: " + file.getName());
                 }
             } else {
-                throw new IllegalArgumentException("Tried to create genome that includes all chromosomes but which is not a primary chromosome: " + file.getName());
+                String data = getFileContent(filePath).substring(firstRow.length()-1);
+                createSequences(criteria, data);
             }
+        } else if(filePath.endsWith(GENOME_FILE_ENDING)) {
+            BufferedReader reader = Files.newBufferedReader(Path.of(filePath));
+            reader.readLine();
+            reader.lines().forEach(line -> {
+                Sequence sequence = Sequence.parseFromToString(line);
+                if(shouldAdd(criteria, sequence)) {
+                    sequences.add(sequence);
+                }
+            });
         } else {
-            String data = getFileContent(file.getAbsolutePath()).substring(firstRow.length()-1);
-            createSequences(criteria, data);
+            throw new Exception("Unknown file ending for file" + filePath);
         }
     }
 
@@ -113,18 +129,8 @@ public class Genome {
         return SequenceEvaluator.matchAll(criteria, sequence);
     }
 
-    public void writeSequences(String outputFolder, String filename, String suffix) throws Exception {
-        saveSequence(sequences, outputFolder, filename + suffix);
-    }
-
-    public static Genome loadSequenceFile(File file) throws Exception {
-        Path filePath = Path.of(file.getAbsolutePath());
-        BufferedReader reader = Files.newBufferedReader(filePath);
-        Genome genome = new Genome(true, file.getName(), reader.readLine()+ "\n");
-        reader.lines().forEach(line -> {
-            genome.sequences.add(Sequence.parseFromToString(line));
-        });
-        return genome;
+    public void writeSequences(String outputFolder, String filename) throws Exception {
+        saveSequence(sequences, outputFolder, filename + GENOME_FILE_ENDING);
     }
 
     private void saveSequence(Collection<Sequence> sequences, String outputFolder, String filename) throws Exception {

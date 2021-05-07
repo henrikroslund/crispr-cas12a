@@ -194,4 +194,37 @@ public class GenomeTest {
         genome.removeAll(Collections.singletonList(sequence));
         assertTrue(genome.getSequences().isEmpty());
     }
+
+    @Test
+    public void testSaveGenomeLoadGenome() throws Exception {
+        File chromosome1 = new File("src/test/resources/chromosomes/genome chromosome 1.fasta");
+        Genome genome = new Genome(chromosome1, Collections.emptyList(), false, false);
+        assertEquals(2, genome.getTotalSequences());
+
+        String outputFolder = "target/tmp";
+        String outputFilename = "test";
+        setupForFileTest(outputFolder, outputFilename);
+
+        genome.writeSequences(outputFolder, outputFilename);
+        Genome writtenGenome = new Genome(new File(outputFolder+"/"+outputFilename+Genome.GENOME_FILE_ENDING),
+                Collections.emptyList(), false, false);
+
+        assertEquals(genome.getSequences(), writtenGenome.getSequences());
+        assertEquals(genome.getFirstRow(), writtenGenome.getFirstRow());
+    }
+
+    // TODO do save/load testing with check for meta data and stuff
+
+    private void setupForFileTest(String folderPath, String filename) throws Exception {
+        File folder = new File(folderPath);
+        if(!folder.exists()) {
+            if(!new File(folderPath).mkdirs()) {
+                throw new Exception("Could not create output directory: " + folderPath);
+            }
+        }
+        File file = new File(folder+"/"+filename+Genome.GENOME_FILE_ENDING);
+        if(file.exists()) {
+            assertTrue(file.delete());
+        }
+    }
 }

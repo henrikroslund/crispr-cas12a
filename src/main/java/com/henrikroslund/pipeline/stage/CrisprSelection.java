@@ -11,7 +11,7 @@ import org.apache.commons.lang3.Range;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.henrikroslund.Utils.loadGenomes;
+import static com.henrikroslund.Utils.loadGenomesInFolder;
 import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.Type.QUADRUPLE;
 
 @Log
@@ -38,7 +38,7 @@ public class CrisprSelection extends Stage {
 
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
-        List<Genome> genomes = loadGenomes(inputFolder, filters, skipDuplicates, mergeChromosomes);
+        List<Genome> genomes = loadGenomesInFolder(inputFolder, filters, skipDuplicates, mergeChromosomes);
         Genome result;
         if(genomes.isEmpty()) {
             throw new Exception("Could not find any genomes in " + inputFolder);
