@@ -54,7 +54,7 @@ public class CoverageAnalysis extends Stage {
             });
             printProcessingTime(startTime);
         }
-        // TOOD calculate coverage and stuff and save to file
+        // TODO calculate coverage and stuff and save to file
         return inputGenome;
     }
 

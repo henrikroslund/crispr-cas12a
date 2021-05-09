@@ -128,7 +128,7 @@ public class CandidateTyping extends Stage {
         description.append(" sampleSetCriteria=");
         sampleSetCriteria.forEach(evaluator -> description.append(evaluator.describe()));
         description.append(" bindCriteria=").append(bindCriteria.describe());
-        description.append(" typeCriterias=").append(typeEvaluator.describe());
+        description.append(" typeCriteria=").append(typeEvaluator.describe());
         return description.toString();
     }
 
