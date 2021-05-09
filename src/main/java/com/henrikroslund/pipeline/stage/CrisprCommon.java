@@ -56,7 +56,7 @@ public class CrisprCommon extends Stage {
 
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
-        List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, ".fasta");
+        List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
         for(File file : genomeFiles) {
             Collection<Sequence> notFound =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();

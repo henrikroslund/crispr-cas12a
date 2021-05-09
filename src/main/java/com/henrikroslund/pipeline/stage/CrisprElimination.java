@@ -31,7 +31,7 @@ public class CrisprElimination extends Stage {
 
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
-        List<File> otherGenomes = Utils.getFilesInFolder(inputFolder, ".fasta");
+        List<File> otherGenomes = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
         int fileNumber = 0;
         for(File file : otherGenomes) {
             Collection<Sequence> found =  Collections.synchronizedSet(new HashSet<>());

@@ -45,7 +45,7 @@ public class CandidateTyping extends Stage {
         HashSet<String> alreadyProcessed = getAlreadyProcessedGenomes(inputFolder);
 
         int fileNumber = 0;
-        List<File> otherGenomes = Utils.getFilesInFolder(inputFolder, ".fasta");
+        List<File> otherGenomes = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
         log.info("Will process genomes in following order:");
         for(File file : otherGenomes) {
             log.info(file.getName());

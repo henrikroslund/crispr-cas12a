@@ -10,8 +10,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.henrikroslund.Utils.isChromosomeFile;
-import static com.henrikroslund.Utils.isPrimaryChromosomeFile;
+import static com.henrikroslund.Utils.*;
 
 @Log
 public class CoverageAnalysis extends Stage {
@@ -32,7 +31,7 @@ public class CoverageAnalysis extends Stage {
     protected Genome execute(Genome inputGenome) throws Exception {
         initiateCoverageMap(inputGenome);
 
-        List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, ".fasta");
+        List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, FASTA_FILE_ENDING);
         for(File file : genomeFiles) {
             if(isChromosomeFile(file.getAbsolutePath()) && !isPrimaryChromosomeFile(file.getAbsolutePath())) {
                 log.info("Will skip file because it is not primary chromosome " + file.getName());
