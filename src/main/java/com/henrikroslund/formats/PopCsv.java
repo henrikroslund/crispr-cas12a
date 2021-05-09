@@ -32,8 +32,7 @@ public class PopCsv {
     }
 
     public void addFeatureMatches(List<Sequence> suis, List<Feature> features, boolean foundInReferenceGenome) {
-        List<String> row = new ArrayList<>();
-        row.addAll(sequencesToString(suis));
+        List<String> row = new ArrayList<>(sequencesToString(suis));
         row.add(foundInReferenceGenome ? "Yes" : "No");
         row.add(featuresToString(features));
         rows.add(row);
@@ -70,26 +69,26 @@ public class PopCsv {
 
         cell = new StringBuilder();
         for(Sequence sequence: sequences) {
-            cell.append((sequence.getIsComplement() ? "-" : "+") + "\n");
+            cell.append(sequence.getIsComplement() ? "-" : "+").append("\n");
         }
         columns.add(cell.toString());
 
         cell = new StringBuilder();
         for(Sequence sequence: sequences) {
-            cell.append(sequence.getStartIndex() + "\n");
+            cell.append(sequence.getStartIndex()).append("\n");
         }
         columns.add(cell.toString());
 
         cell = new StringBuilder();
         for(Sequence sequence: sequences) {
-            cell.append(sequence.getGCCount() + "\n");
+            cell.append(sequence.getGCCount()).append("\n");
         }
         columns.add(cell.toString());
 
         for(TypeEvaluator.Type type : TypeEvaluator.Type.values()) {
             cell = new StringBuilder();
             for(Sequence sequence: sequences) {
-                cell.append(sequence.getMetaData().get(type) + "\n");
+                cell.append(sequence.getMetaData().get(type)).append("\n");
             }
             columns.add(cell.toString());
         }

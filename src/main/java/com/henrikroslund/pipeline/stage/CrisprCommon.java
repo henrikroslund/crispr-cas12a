@@ -17,7 +17,10 @@ import java.util.*;
 public class CrisprCommon extends Stage {
 
     private int n7n20AllowedMismatches = 0;
-    List<SequenceEvaluator> evaluators = new ArrayList<>();
+    private final List<SequenceEvaluator> evaluators = new ArrayList<>();
+
+    // We include both chromosomes as one genome file because we don't want to require it to be in both chromosomes
+    private final static boolean includeAllChromosomes = true;
 
     public CrisprCommon() {
         super(CrisprCommon.class);
@@ -58,9 +61,7 @@ public class CrisprCommon extends Stage {
             Collection<Sequence> notFound =  Collections.synchronizedSet(new HashSet<>());
             Date startTime = new Date();
 
-            // We include both chromosomes as one genome file because we don't want to require it to be in both chromosomes
-            boolean includeAllChromosomes = true;
-            if(includeAllChromosomes && Utils.isChromosomeFile(file.getName()) && !Utils.isPrimaryChromosomeFile(file.getName())) {
+            if(Utils.isChromosomeFile(file.getName()) && !Utils.isPrimaryChromosomeFile(file.getName())) {
                 log.info("Will skip file because it is not the primary chromosome file: " + file.getName());
                 continue;
             }

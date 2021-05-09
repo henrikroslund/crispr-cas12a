@@ -19,8 +19,9 @@ public class Utils {
 
     public static String getFirstRow(String filename) throws Exception {
         Path filePath = Path.of(filename);
-        Stream<String> lines = Files.lines(filePath);
-        return lines.findFirst().get() + "\n";
+        try(Stream<String> lines = Files.lines(filePath)) {
+            return lines.findFirst().orElseThrow() + "\n";
+        }
     }
 
     public static List<File> getFolders(String path) {
@@ -78,7 +79,7 @@ public class Utils {
         return genomes;
     }
 
-    public static String FASTA_FILE_ENDING = ".fasta";
+    public static final String FASTA_FILE_ENDING = ".fasta";
     protected final static String CHROMOSOME_STRING = "chromosome";
     private final static Pattern CHROMOSOME_PATTERN = Pattern.compile(".*"+CHROMOSOME_STRING+"\\s[0-9]"+FASTA_FILE_ENDING+"$");
     public static boolean isChromosomeFile(String filename) {

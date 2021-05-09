@@ -24,8 +24,8 @@ import static com.henrikroslund.Utils.printMemoryStat;
 
 public class Main {
 
-    static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    static ScheduledFuture<?> memUsageHandle = scheduler.scheduleAtFixedRate(Utils::printMemoryStat, 1, 15, TimeUnit.SECONDS);
+    private final static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final static ScheduledFuture<?> memUsageHandle = scheduler.scheduleAtFixedRate(Utils::printMemoryStat, 1, 15, TimeUnit.SECONDS);
 
     public static final boolean DEBUG = false;
     public static FileHandler mainLoggerFileHandler;
@@ -68,10 +68,9 @@ public class Main {
     public static void crisprBp04_17_21_optimized_pipline() throws Exception {
         String inputFolder = baseInputFolder+"/CRIPSR Bp 04_17_21";
 
-        List<SequenceEvaluator> eliminationEvaluators = new ArrayList<>();
         SequenceEvaluator seedEliminator = new MismatchEvaluator(null, Range.between(0,2), Range.between(Sequence.SEED_INDEX_START, Sequence.SEED_INDEX_END));
         SequenceEvaluator n7N20Eliminator = new MismatchEvaluator(null, Range.between(0,4), Range.between(Sequence.N7_INDEX, Sequence.N20_INDEX));
-        eliminationEvaluators.addAll(Arrays.asList(seedEliminator, n7N20Eliminator));
+        List<SequenceEvaluator> eliminationEvaluators = new ArrayList<>(Arrays.asList(seedEliminator, n7N20Eliminator));
 
         Pipeline pipeline = new Pipeline("CRIPSR Bp 04_17_21_optimized_pipline", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true));
@@ -99,34 +98,35 @@ public class Main {
         pipeline.addStage(new CrisprCommon(0));
 
         SequenceEvaluator n1N20Eliminator = new MismatchEvaluator(null, Range.is(0), Range.between(Sequence.TARGET_INDEX_START, Sequence.N20_INDEX));
-        pipeline.addStage(new CrisprElimination(Arrays.asList(n1N20Eliminator)));
+        pipeline.addStage(new CrisprElimination(Collections.singletonList(n1N20Eliminator)));
 
         SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
         TypeEvaluator typeEvaluator = new TypeEvaluator(null,2,2,4,3);
-        pipeline.addStage(new CandidateTyping(Arrays.asList(crisprEvaluator),typeEvaluator));
+        pipeline.addStage(new CandidateTyping(Collections.singletonList(crisprEvaluator),typeEvaluator));
 
         pipeline.addStage(new CandidateFeature());
         pipeline.run();
     }
 
     public static void performanceTesting() throws Exception {
-        String inputFolder = baseInputFolder+"/performance-testing";
-        Pipeline pipeline = new Pipeline("Performance testing", inputFolder, baseOutputFolder);
-        pipeline.addStage(new CrisprSelection(false, false, true));
         for(int i=0; i<1; i++) {
-            //pipeline.addStage(new CrisprSelection(false, false, true));
-            //pipeline.addStage(new CrisprCommon());
-            /*
+            String inputFolder = baseInputFolder+"/performance-testing";
+            Pipeline pipeline = new Pipeline("Performance testing", inputFolder, baseOutputFolder);
+            pipeline.addStage(new CrisprSelection(false, false, true));
+
+            pipeline.addStage(new CrisprSelection(false, false, true));
+            pipeline.addStage(new CrisprCommon());
+
             List<SequenceEvaluator> evaluators = new ArrayList<>();
             SequenceEvaluator seedEliminator = new MismatchEvaluator(null, Range.between(0,2), Range.between(Sequence.SEED_INDEX_START, Sequence.SEED_INDEX_END));
             SequenceEvaluator n7N20Eliminator = new MismatchEvaluator(null, Range.between(0,4), Range.between(Sequence.N7_INDEX, Sequence.N20_INDEX));
             evaluators.add(seedEliminator);
             evaluators.add(n7N20Eliminator);
             pipeline.addStage(new CrisprElimination(evaluators));
-             */
             pipeline.addStage(new CandidateTyping(Collections.singletonList(new CrisprPamEvaluator(false)), new TypeEvaluator(null)));
+
+            pipeline.run();
         }
-        pipeline.run();
     }
 
     public static void suisrRNA() throws Exception {

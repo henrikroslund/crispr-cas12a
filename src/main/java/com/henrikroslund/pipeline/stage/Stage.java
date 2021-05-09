@@ -2,7 +2,6 @@ package com.henrikroslund.pipeline.stage;
 
 import com.henrikroslund.Genome;
 import com.henrikroslund.Main;
-import com.henrikroslund.Utils;
 import com.henrikroslund.sequence.Sequence;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -38,14 +37,17 @@ public abstract class Stage {
 
     private BufferedWriter discardWriter = null;
 
-    protected Stage(Class clazz) {
+    protected Stage(Class<?> clazz) {
         this.name = clazz.getSimpleName();
     }
 
     public void configure(String inputBaseFolder, String baseOutputFolder) {
         this.inputFolder = inputBaseFolder + getStageFolder();
         this.outputFolder = baseOutputFolder + "/" + name;
-        new File(outputFolder).mkdirs();
+        File file = new File(outputFolder);
+        if(file.mkdirs()) {
+            log.info("Created directory: " + file.getAbsolutePath());
+        }
     }
 
     protected void preExecute() throws Exception {

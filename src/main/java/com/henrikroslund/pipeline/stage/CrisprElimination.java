@@ -9,7 +9,6 @@ import lombok.extern.java.Log;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Log
 public class CrisprElimination extends Stage {

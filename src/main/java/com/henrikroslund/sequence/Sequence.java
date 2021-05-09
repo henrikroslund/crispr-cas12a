@@ -127,20 +127,11 @@ public class Sequence implements Comparable<Sequence> {
         for(int i=RAW_LENGTH-1; i>=0; i--) {
             char character = raw.charAt(i);
             switch (character) {
-                case 'A':
-                    complement.append('T');
-                    break;
-                case 'T':
-                    complement.append('A');
-                    break;
-                case 'G':
-                    complement.append('C');
-                    break;
-                case 'C':
-                    complement.append('G');
-                    break;
-                default:
-                    complement.append(character);
+                case 'A' -> complement.append('T');
+                case 'T' -> complement.append('A');
+                case 'G' -> complement.append('C');
+                case 'C' -> complement.append('G');
+                default -> complement.append(character);
             }
         }
         if(log.isLoggable(Level.FINE)) {
@@ -171,9 +162,7 @@ public class Sequence implements Comparable<Sequence> {
             return "";
         }
         StringBuilder result = new StringBuilder(120);
-        metaData.forEach((s, s2) -> {
-            result.append(s).append("=").append(s2).append("&");
-        });
+        metaData.forEach((s, s2) -> result.append(s).append("=").append(s2).append("&"));
         result.deleteCharAt(result.length()-1);
         return result.toString();
     }
@@ -239,7 +228,6 @@ public class Sequence implements Comparable<Sequence> {
 
     /**
      * Will return GC count excluding PAM
-     * @return
      */
     public int getGCCount() {
         if(gcCount == null) {

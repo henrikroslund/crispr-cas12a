@@ -10,7 +10,7 @@ public class NoConsecutiveIdenticalN1N20Evaluator implements SequenceEvaluator {
 
     public enum Type {
         TRIPLE(3), QUADRUPLE(4);
-        protected int value;
+        protected final int value;
         Type(int i) {
             this.value = i;
         }

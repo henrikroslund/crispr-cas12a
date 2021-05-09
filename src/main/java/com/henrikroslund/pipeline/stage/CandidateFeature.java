@@ -18,7 +18,7 @@ import static com.henrikroslund.Utils.*;
 @Log
 public class CandidateFeature extends Stage {
 
-    public static String FEATURE_FILE_ENDING = ".feature";
+    private static final String FEATURE_FILE_ENDING = ".feature";
 
     public CandidateFeature() {
         super(CandidateFeature.class);
@@ -84,7 +84,7 @@ public class CandidateFeature extends Stage {
             if(foundInReferenceGenome) {
                 features = genomeFeature.getMatchingFeatures(matches, false);
             } else {
-                log.warning("No matches for sequence: " + candidate.toString());
+                log.warning("No matches for sequence: " + candidate);
             }
             popCsv.addFeatureMatches(matches, features, foundInReferenceGenome);
         }
@@ -93,9 +93,6 @@ public class CandidateFeature extends Stage {
 
     @Override
     public String toString() {
-        StringBuilder description = new StringBuilder();
-        description.append(getName());
-        description.append(" ").append(getStageFolder());
-        return description.toString();
+        return getName() + " " + getStageFolder();
     }
 }

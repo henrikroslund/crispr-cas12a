@@ -13,14 +13,12 @@ import java.util.stream.Stream;
 
 public class SequenceReader {
 
-    public static List<Sequence> SequenceReader(File file) throws IOException {
+    public static List<Sequence> getSequencesFromFile(File file) throws IOException {
         List<Sequence> sequences = Collections.synchronizedList(new ArrayList<>());
         Path filePath = Path.of(file.getAbsolutePath());
         Stream<String> lines = Files.lines(filePath);
         String genome = Utils.getStringWithoutWhitespaces(file.getName());
-        lines.parallel().forEach(line -> {
-            sequences.add(new Sequence(line, 0, genome));
-        });
+        lines.parallel().forEach(line -> sequences.add(new Sequence(line, 0, genome)));
         return sequences;
     }
 }

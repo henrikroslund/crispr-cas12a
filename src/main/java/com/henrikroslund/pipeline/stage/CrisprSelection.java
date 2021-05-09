@@ -17,7 +17,7 @@ import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.
 @Log
 public class CrisprSelection extends Stage {
 
-    List<SequenceEvaluator> filters = new ArrayList<>();
+    private final List<SequenceEvaluator> filters = new ArrayList<>();
 
     private final boolean skipDuplicates;
     private final boolean mergeChromosomes = true;

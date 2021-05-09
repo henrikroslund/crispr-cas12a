@@ -42,9 +42,7 @@ public class CandidateTyping extends Stage {
 
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
-        HashSet<String> alreadyProcessed = ENABLED_ALREADY_PROCESSED_FILE ?
-                getAlreadyProcessedGenomes(inputFolder) :
-                new HashSet<>();
+        HashSet<String> alreadyProcessed = getAlreadyProcessedGenomes(inputFolder);
 
         int fileNumber = 0;
         List<File> otherGenomes = Utils.getFilesInFolder(inputFolder, ".fasta");
@@ -112,6 +110,7 @@ public class CandidateTyping extends Stage {
         HashSet<String> files = new HashSet<>();
         File file = new File(inputFolder+PROCESSED_GENOMES_FILE);
         if(!file.exists()) {
+            log.info("File with already processed genomes does not exist. No input files will be skipped");
             return files;
         }
         Path filePath = Path.of(file.getAbsolutePath());

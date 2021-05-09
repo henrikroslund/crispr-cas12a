@@ -16,8 +16,6 @@ import static com.henrikroslund.Utils.isPrimaryChromosomeFile;
 @Log
 public class CoverageAnalysis extends Stage {
 
-    private final boolean mergeAllChromosomes = true;
-
     public CoverageAnalysis() {
         super(CoverageAnalysis.class);
     }
@@ -36,13 +34,13 @@ public class CoverageAnalysis extends Stage {
 
         List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, ".fasta");
         for(File file : genomeFiles) {
-            if(mergeAllChromosomes && isChromosomeFile(file.getAbsolutePath()) && !isPrimaryChromosomeFile(file.getAbsolutePath())) {
+            if(isChromosomeFile(file.getAbsolutePath()) && !isPrimaryChromosomeFile(file.getAbsolutePath())) {
                 log.info("Will skip file because it is not primary chromosome " + file.getName());
                 continue;
             }
             Date startTime = new Date();
 
-            Genome genome = new Genome(file, Collections.emptyList(), true, mergeAllChromosomes);
+            Genome genome = new Genome(file, Collections.emptyList(), true, true);
 
             AtomicInteger counter = new AtomicInteger(0);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
@@ -62,10 +60,7 @@ public class CoverageAnalysis extends Stage {
 
     @Override
     public String toString() {
-        StringBuilder description = new StringBuilder();
-        description.append(getName());
-        description.append(" ").append(getStageFolder());
-        return description.toString();
+        return getName() + " " + getStageFolder();
     }
 
     @Override

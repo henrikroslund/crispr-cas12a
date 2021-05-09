@@ -14,14 +14,16 @@ import java.util.stream.Stream;
 @Log
 public class GenomeFeature {
 
-    String genomeFeature;
-    List<Feature> features = new ArrayList<>();
+    private final List<Feature> features = new ArrayList<>();
 
     public GenomeFeature(File file) throws Exception {
+        log.info("Creating GenomeFeature from file " + file.getName());
         Path filePath = Path.of(file.getAbsolutePath());
         Stream<String> lines = Files.lines(filePath);
         Iterator<String> it = lines.iterator();
-        genomeFeature = it.next();
+
+        // The first line is just the name so we ignore
+        it.next();
 
         int start = -1;
         int end = -1;

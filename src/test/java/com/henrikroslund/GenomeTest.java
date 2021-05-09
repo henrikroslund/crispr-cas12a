@@ -108,7 +108,7 @@ public class GenomeTest {
         assertEquals(0, sequences.size());
 
         sequences = genome.getSequencesMatchingAnyEvaluator(
-                Collections.singletonList(new IdenticalEvaluator(genome.getSequences().stream().findFirst().get())));
+                Collections.singletonList(new IdenticalEvaluator(genome.getSequences().stream().findFirst().orElseThrow())));
         assertEquals(1, sequences.size());
         Sequence sequence = sequences.get(0);
         assertEquals(0, sequence.compareTo(sequences.get(0)));
@@ -178,7 +178,7 @@ public class GenomeTest {
         Sequence sequence = new Sequence(TestUtils.VALID_STRICT_CRISPR_SEQUENCE, 0, "filename");
         genome.addAll(Collections.singletonList(sequence));
         assertEquals(1, genome.getTotalSequences());
-        genome.removeAll(Collections.singletonList(sequence));
+        assertTrue(genome.removeAll(Collections.singletonList(sequence)));
         assertTrue(genome.getSequences().isEmpty());
     }
 
@@ -191,7 +191,7 @@ public class GenomeTest {
         assertEquals(1, genome.getTotalSequences());
         genome.addAll(Collections.singletonList(sequence));
         assertEquals(2, genome.getTotalSequences());
-        genome.removeAll(Collections.singletonList(sequence));
+        assertTrue(genome.removeAll(Collections.singletonList(sequence)));
         assertTrue(genome.getSequences().isEmpty());
     }
 

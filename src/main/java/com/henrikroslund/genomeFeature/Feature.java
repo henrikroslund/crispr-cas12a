@@ -7,11 +7,11 @@ import java.util.List;
 
 @Log
 public class Feature {
-    int startIndex;
-    int endIndex;
-    boolean isComplement;
-    String type;
-    List<String> features;
+    private final int startIndex;
+    private final int endIndex;
+    private final boolean isComplement;
+    private final String type;
+    private final List<String> features;
 
     public Feature(int startIndex, int endIndex, String type, List<String> features) {
         this.startIndex = startIndex;

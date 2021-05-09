@@ -20,7 +20,7 @@ public class TypeEvaluatorTest {
     TYPE_6, // >=X mismatches in Seed
     TYPE_DISCARD // If no other type applies
      */
-    List<TypeEvaluator.Type> discard = Collections.singletonList(TypeEvaluator.Type.TYPE_DISCARD);
+    final List<TypeEvaluator.Type> discard = Collections.singletonList(TypeEvaluator.Type.TYPE_DISCARD);
 
     @Test
     public void testType1() {

@@ -21,7 +21,7 @@ public class SequenceTest {
     }
 
     @Test
-    public void testGetComplement() throws Exception {
+    public void testGetComplement() {
         Sequence sequence = new Sequence(TestUtils.VALID_STRICT_CRISPR_SEQUENCE, 5, "test");
         Assert.assertEquals(TestUtils.VALID_STRICT_CRISPR_SEQUENCE, sequence.getRaw());
         Assert.assertEquals(TestUtils.VALID_CRISPR_SEQUENCE_COMPLEMENT, sequence.getComplement().getRaw());
@@ -71,7 +71,7 @@ public class SequenceTest {
         Assert.assertEquals(sequence.getComplement(), sequence2.getComplement());
         Assert.assertEquals(sequence.getIsComplement(), sequence2.getIsComplement());
         Assert.assertEquals(sequence.getStartIndex(), sequence2.getStartIndex());
-        Assert.assertTrue(sequence.toString().compareTo(sequence2.toString()) == 0);
+        Assert.assertEquals(0, sequence.toString().compareTo(sequence2.toString()));
     }
 
     @Test
@@ -87,7 +87,7 @@ public class SequenceTest {
         Assert.assertEquals(sequence.getComplement(), sequence2.getComplement());
         Assert.assertEquals(sequence.getIsComplement(), sequence2.getIsComplement());
         Assert.assertEquals(sequence.getStartIndex(), sequence2.getStartIndex());
-        Assert.assertTrue(sequence.toString().compareTo(sequence2.toString()) == 0);
+        Assert.assertEquals(0, sequence.toString().compareTo(sequence2.toString()));
         Assert.assertEquals(2, sequence.getMetaData().size());
         Assert.assertEquals(Integer.valueOf(5), sequence.getMetaData().get(TypeEvaluator.Type.TYPE_1));
         Assert.assertEquals(Integer.valueOf(10), sequence.getMetaData().get(TypeEvaluator.Type.TYPE_2));
