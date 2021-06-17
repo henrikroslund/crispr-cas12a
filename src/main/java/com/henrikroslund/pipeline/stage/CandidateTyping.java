@@ -28,12 +28,17 @@ public class CandidateTyping extends Stage {
     private final List<SequenceEvaluator> sampleSetCriteria;
     private final TypeEvaluator typeEvaluator;
 
-    public CandidateTyping(List<SequenceEvaluator> sampleSetCriteria, TypeEvaluator typeEvaluator) {
+    public CandidateTyping(List<SequenceEvaluator> sampleSetCriteria, SequenceEvaluator bindCriteria,
+                           TypeEvaluator typeEvaluator) {
         super(CandidateTyping.class);
-        this.bindCriteria = new MatchEvaluator(null, Range.between(15, 24),
-                Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END)));
+        this.bindCriteria = bindCriteria;
         this.sampleSetCriteria = sampleSetCriteria;
         this.typeEvaluator = typeEvaluator;
+    }
+
+    public CandidateTyping(List<SequenceEvaluator> sampleSetCriteria, TypeEvaluator typeEvaluator) {
+        this(sampleSetCriteria, new MatchEvaluator(null, Range.between(15, 24),
+                Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END))), typeEvaluator);
     }
 
     public CandidateTyping() {
