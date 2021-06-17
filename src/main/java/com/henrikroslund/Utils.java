@@ -50,7 +50,7 @@ public class Utils {
             } else if(file.isDirectory()) {
                 results.addAll(getFilesInFolder(file.getPath(), suffix));
             } else {
-                log.severe("Something whent wrong when reading all files");
+                log.severe("Something went wrong when reading all files");
                 System.exit(1);
             }
         });
