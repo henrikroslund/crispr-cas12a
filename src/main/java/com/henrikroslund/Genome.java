@@ -88,7 +88,7 @@ public class Genome {
         if (Files.notExists(filePath)) {
             throw new IOException("File does not exist: " + filePath.toAbsolutePath());
         }
-        String fileContent = Files.readString(filePath).replaceAll("\n", "");
+        String fileContent = Files.readString(filePath).replaceAll("\n", "").toUpperCase();
         log.finest(fileContent);
         log.finest("Number of characters to process: " + fileContent.length());
         return fileContent;
