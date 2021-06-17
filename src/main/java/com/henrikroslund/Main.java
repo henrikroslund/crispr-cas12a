@@ -2,6 +2,7 @@ package com.henrikroslund;
 
 import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.SequenceEvaluator;
+import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.pipeline.Pipeline;
@@ -63,6 +64,17 @@ public class Main {
             printMemoryStat();
             log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
         }
+    }
+
+    public static void crBP6() throws Exception {
+        String inputFolder = baseInputFolder+"/Checking crBP6";
+        Pipeline pipeline = new Pipeline("Checking crBP6", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(true, true, true));
+        pipeline.addStage(new CandidateTyping(
+                Collections.emptyList(),
+                new MismatchEvaluator(null, Range.between(0, 3)),
+                new TypeEvaluator(null, 0, 0, 0, 0)));
+        pipeline.run();
     }
 
     public static void crisprBp04_17_21_optimized_pipline() throws Exception {
