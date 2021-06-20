@@ -2,20 +2,27 @@ package com.henrikroslund.pipeline.stage;
 
 import com.henrikroslund.Genome;
 import com.henrikroslund.Main;
+import com.henrikroslund.Utils;
 import com.henrikroslund.sequence.Sequence;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.java.Log;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import java.util.stream.Stream;
 
 @Log
 public abstract class Stage {
@@ -29,6 +36,8 @@ public abstract class Stage {
 
     @Getter(AccessLevel.PROTECTED)
     private static final String resultFilename = "result";
+
+    private static final Character FASTA_DELIMITER = '>';
 
     protected String inputFolder;
     protected String outputFolder;
@@ -103,6 +112,82 @@ public abstract class Stage {
         if(durationSeconds > 30) {
             log.info("Finished processing in " + durationSeconds + " seconds");
         }
+    }
+
+    // Will do any required pre-processing of the input files.
+    // Right now it will split fasta files with multiple genomes into separate files
+    // and also make sure all characters are upper case.
+    public void preProcessInputFiles() throws  Exception {
+        List<File> fastaFiles = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
+        for(File fastaFile: fastaFiles) {
+            if(hasMultipleGenomesInFastaFile(fastaFile)) {
+                log.info("Found multiple genomes in fasta file so will split file: " + fastaFile.getName());
+                splitFastaWithMultipleGenomes(fastaFile);
+            } else if(hasLowerCaseCharacters(fastaFile)) {
+                log.info("Found lower case letter in fasta file so will create new file: " + fastaFile.getName());
+                splitFastaWithMultipleGenomes(fastaFile);
+            }
+        }
+    }
+
+    private void splitFastaWithMultipleGenomes(File fastaFile) throws Exception {
+        if(!StringUtils.endsWith(fastaFile.getName(), Utils.FASTA_FILE_ENDING)) {
+            throw new Exception("Tried to split a non-fasta file");
+        }
+        BufferedWriter writer = null;
+        Stream<String> lines = Files.lines(fastaFile.toPath());
+        Iterator<String> it = lines.iterator();
+        int fastaCount = 0;
+        while(it.hasNext()) {
+            String line = it.next();
+            if(line.charAt(0) == FASTA_DELIMITER) {
+                if(writer != null) {
+                    writer.close();
+                }
+                if(Utils.isChromosomeFile(fastaFile.getName())) {
+                    throw new Exception("No support for splitting chromosome files at this time!");
+                }
+                String output = inputFolder + "/" + FilenameUtils.removeExtension(fastaFile.getName()) + "_" + fastaCount + Utils.FASTA_FILE_ENDING;
+                if(new File(output).exists()) {
+                    throw new Exception("Did not expect file to already exist while splitting fasta file: " + output);
+                }
+                writer = new BufferedWriter(new FileWriter(output, true));
+                fastaCount++;
+            } else {
+                // We modify everything to be upper case except the first line
+                line = line.toUpperCase();
+            }
+            if(writer == null) {
+                throw new Exception("Something went wrong trying to split fasta file");
+            }
+            writer.write(line);
+            writer.newLine();
+        }
+
+        File renameFile = new File(fastaFile.getAbsolutePath()+".skip");
+        if(!fastaFile.renameTo(renameFile)) {
+            throw new Exception("Unable to rename original file: " + fastaFile.getName() + " to " + renameFile.getName());
+        }
+    }
+
+    private boolean hasMultipleGenomesInFastaFile(File fastaFile) throws IOException {
+        Stream<String> lines = Files.lines(fastaFile.toPath());
+        int numberOfFasta = (int) lines.parallel().filter(s -> s.charAt(0) == FASTA_DELIMITER).count();
+        if(numberOfFasta > 1) {
+            log.info("Found " + numberOfFasta + " genomes inside fasta file: " + fastaFile.getName());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean hasLowerCaseCharacters(File fastaFile) throws IOException {
+        Stream<String> lines = Files.lines(fastaFile.toPath());
+        int linesWithLowerCase = (int) lines.parallel().filter(s -> !StringUtils.isAllUpperCase(s)).count();
+        if(linesWithLowerCase > 1) {
+            log.info("Found lower case letters in file: " + fastaFile.getName());
+            return true;
+        }
+        return false;
     }
 
 }

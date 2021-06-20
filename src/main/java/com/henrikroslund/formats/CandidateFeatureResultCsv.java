@@ -12,13 +12,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class PopCsv {
+public class CandidateFeatureResultCsv {
 
     private final List<String> columnHeaders = new ArrayList<>();
     @Getter
     private final List<List<String>> rows = new ArrayList<>();
 
-    public PopCsv() {
+    public CandidateFeatureResultCsv() {
         columnHeaders.add("Suis sequence");
         columnHeaders.add("Sequence count");
         columnHeaders.add("Strand");

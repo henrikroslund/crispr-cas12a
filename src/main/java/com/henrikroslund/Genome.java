@@ -38,7 +38,7 @@ public class Genome {
         } else {
             sequences = Collections.synchronizedList(new ArrayList<>(INITIAL_COLLECTION_CAPACITY));
         }
-        this.filename = filename.replace(".fasta", "");
+        this.filename = filename.replace(FASTA_FILE_ENDING, "");
         this.firstRow = firstRow;
     }
 
@@ -88,7 +88,7 @@ public class Genome {
         if (Files.notExists(filePath)) {
             throw new IOException("File does not exist: " + filePath.toAbsolutePath());
         }
-        String fileContent = Files.readString(filePath).replaceAll("\n", "").toUpperCase();
+        String fileContent = Files.readString(filePath).replaceAll("\n", "");
         log.finest(fileContent);
         log.finest("Number of characters to process: " + fileContent.length());
         return fileContent;

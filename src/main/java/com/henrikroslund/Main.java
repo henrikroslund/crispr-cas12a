@@ -51,7 +51,9 @@ public class Main {
             //suisCommonCoverage();
             //rerunPartOfSuis();
             //performanceTesting();
-            suis_pipeline_3();
+            //suis_pipeline_3();
+            //testFastaSplit();
+            bpHumanGenome();
 
         } catch(Exception e) {
             StringWriter sw = new StringWriter();
@@ -64,6 +66,25 @@ public class Main {
             printMemoryStat();
             log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
         }
+    }
+
+    public static void bpHumanGenome() throws Exception {
+        String inputFolder = baseInputFolder+"/Checking bp human genome";
+        Pipeline pipeline = new Pipeline("Checking bp human genome", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(true, true, true));
+        SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
+        pipeline.addStage(new CandidateTyping(
+                Collections.singletonList(crisprEvaluator),
+                new TypeEvaluator(null, 0, 0, 0, 0)));
+        pipeline.run();
+    }
+
+    public static void testFastaSplit() throws Exception {
+        String inputFolder = baseInputFolder+"/test fasta splitting";
+        Pipeline pipeline = new Pipeline("test fasta splitting", inputFolder, baseOutputFolder);
+        CandidateTyping stage = new CandidateTyping();
+        pipeline.addStage(stage);
+        pipeline.preProcessStagesInput();
     }
 
     public static void crBP6() throws Exception {

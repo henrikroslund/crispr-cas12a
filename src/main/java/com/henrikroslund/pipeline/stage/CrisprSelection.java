@@ -11,6 +11,7 @@ import org.apache.commons.lang3.Range;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.henrikroslund.Utils.FASTA_FILE_ENDING;
 import static com.henrikroslund.Utils.loadGenomesInFolder;
 import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.Type.QUADRUPLE;
 
@@ -46,7 +47,7 @@ public class CrisprSelection extends Stage {
             result = genomes.get(0);
         } else {
             log.info("Found " + genomes.size() + " files in " + inputFolder + " so will build a genome with all sequences");
-            result = new Genome(skipDuplicates, "merged.fasta", "");
+            result = new Genome(skipDuplicates, "merged"+FASTA_FILE_ENDING, "");
             for(Genome genome : genomes) {
                 result.addAll(genome.getSequences());
             }

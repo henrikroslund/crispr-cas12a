@@ -3,7 +3,7 @@ package com.henrikroslund.pipeline.stage;
 import com.henrikroslund.Genome;
 import com.henrikroslund.Utils;
 import com.henrikroslund.evaluators.IdenticalEvaluator;
-import com.henrikroslund.formats.PopCsv;
+import com.henrikroslund.formats.CandidateFeatureResultCsv;
 import com.henrikroslund.genomeFeature.Feature;
 import com.henrikroslund.genomeFeature.GenomeFeature;
 import com.henrikroslund.sequence.Sequence;
@@ -57,7 +57,7 @@ public class CandidateFeature extends Stage {
     }
 
     private void processFeatures(Genome candidates, Genome mainGenomeWithDuplicates, GenomeFeature genomeFeature) throws Exception {
-        PopCsv popCsv = new PopCsv();
+        CandidateFeatureResultCsv candidateFeatureResultCsv = new CandidateFeatureResultCsv();
 
         String resultFile = outputFolder+"/"+mainGenomeWithDuplicates.getFilename()+".csv";
         throwIfFileExists(resultFile);
@@ -86,9 +86,9 @@ public class CandidateFeature extends Stage {
             } else {
                 log.warning("No matches for sequence: " + candidate);
             }
-            popCsv.addFeatureMatches(matches, features, foundInReferenceGenome);
+            candidateFeatureResultCsv.addFeatureMatches(matches, features, foundInReferenceGenome);
         }
-        popCsv.writeToFile(resultFile);
+        candidateFeatureResultCsv.writeToFile(resultFile);
     }
 
     @Override

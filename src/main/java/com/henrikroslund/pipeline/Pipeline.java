@@ -29,6 +29,13 @@ public class Pipeline {
         stages.add(stage);
     }
 
+    public void preProcessStagesInput() throws Exception {
+        log.info("Will pre-process all stages input files.");
+        for(Stage stage : stages) {
+            stage.preProcessInputFiles();
+        }
+    }
+
     public void run() throws Exception {
         log.info("Starting pipeline: " + name);
         log.info("Pipeline input folder " + inputFolder);
@@ -41,6 +48,8 @@ public class Pipeline {
         }
         log.info(description.toString());
         log.info("Will start pipeline.");
+
+        preProcessStagesInput();
 
         Genome stageResult = null;
         for(Stage stage : stages) {

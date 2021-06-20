@@ -6,17 +6,18 @@ import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.sequence.Sequence;
+import lombok.SneakyThrows;
 import lombok.extern.java.Log;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.Range;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 @Log
 public class CandidateTyping extends Stage {
