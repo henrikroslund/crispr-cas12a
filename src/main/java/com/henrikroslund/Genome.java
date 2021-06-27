@@ -2,6 +2,7 @@ package com.henrikroslund;
 
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
+import com.opencsv.CSVReader;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.java.Log;
@@ -30,6 +31,7 @@ public class Genome {
 
     private static final int INITIAL_COLLECTION_CAPACITY = 75000;
     public static final String GENOME_FILE_ENDING = ".genome";
+    private static String CSV_FILE_ENDING = ".csv";
 
     public Genome(boolean skipDuplicates, String filename, String firstRow) {
         this.skipDuplicates = skipDuplicates;
@@ -74,6 +76,24 @@ public class Genome {
                     sequences.add(sequence);
                 }
             });
+        } else if(filePath.endsWith(CSV_FILE_ENDING)) {
+            CSVReader csvReader = new CSVReader(new FileReader(filePath));
+            String[] values;
+            // First row is just the headers so we skip that one
+            values = csvReader.readNext();
+            while ((values = csvReader.readNext()) != null) {
+                if(values.length != 3) {
+                    throw new Exception("Expected exactly 3 columns but found " + values.length + " in file: " + filePath);
+                }
+                if(values[2].compareTo("+") != 0 && values[2].compareTo("-") != 0) {
+                    throw new Exception("Expected a + or - in column 3 but got: " + values[2]);
+                }
+                boolean isComplement = values[2].compareTo("-") == 0;
+                Sequence sequence = new Sequence(values[1], 0, values[0], isComplement);
+                if(shouldAdd(criteria, sequence)) {
+                    sequences.add(sequence);
+                }
+            }
         } else {
             throw new Exception("Unknown file ending for file" + filePath);
         }

@@ -72,9 +72,10 @@ public class Main {
         String inputFolder = baseInputFolder+"/Checking bp human genome";
         Pipeline pipeline = new Pipeline("Checking bp human genome", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true));
-        SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
+        SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(true);
         pipeline.addStage(new CandidateTyping(
                 Collections.singletonList(crisprEvaluator),
+                new MatchEvaluator(null, Range.between(19, 24), Collections.singletonList(Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX))),
                 new TypeEvaluator(null, 0, 0, 0, 0)));
         pipeline.run();
     }

@@ -43,6 +43,7 @@ public class Sequence implements Comparable<Sequence> {
     public static final int RAW_LENGTH = PAM_LENGTH + TARGET_LENGTH;
     public static final int RAW_INDEX_END = RAW_LENGTH - 1;
 
+    public static final int N1_INDEX = TARGET_INDEX_START;
     public static final int N7_INDEX = TARGET_INDEX_START + 6;
     public static final int N20_INDEX = TARGET_INDEX_START + 19;
 
