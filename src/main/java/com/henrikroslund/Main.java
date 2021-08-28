@@ -75,8 +75,9 @@ public class Main {
         SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(true);
         pipeline.addStage(new CandidateTyping(
                 Collections.singletonList(crisprEvaluator),
-                new MatchEvaluator(null, Range.between(19, 24), Collections.singletonList(Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX))),
-                new TypeEvaluator(null, 0, 0, 0, 0)));
+                new MatchEvaluator(null, Range.between(17, 20), Collections.singletonList(Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX))),
+                new TypeEvaluator(null, 0, 0, 0, 0),
+                true));
         pipeline.run();
     }
 
@@ -95,7 +96,8 @@ public class Main {
         pipeline.addStage(new CandidateTyping(
                 Collections.emptyList(),
                 new MismatchEvaluator(null, Range.between(0, 3)),
-                new TypeEvaluator(null, 0, 0, 0, 0)));
+                new TypeEvaluator(null, 0, 0, 0, 0),
+                false));
         pipeline.run();
     }
 

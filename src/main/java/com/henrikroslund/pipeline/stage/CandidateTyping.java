@@ -6,18 +6,14 @@ import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.sequence.Sequence;
-import lombok.SneakyThrows;
 import lombok.extern.java.Log;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.Range;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 @Log
 public class CandidateTyping extends Stage {
@@ -28,18 +24,21 @@ public class CandidateTyping extends Stage {
     private final SequenceEvaluator bindCriteria;
     private final List<SequenceEvaluator> sampleSetCriteria;
     private final TypeEvaluator typeEvaluator;
+    private final boolean saveSurroundingSequencesForMatches;
 
     public CandidateTyping(List<SequenceEvaluator> sampleSetCriteria, SequenceEvaluator bindCriteria,
-                           TypeEvaluator typeEvaluator) {
+                           TypeEvaluator typeEvaluator, boolean saveSurroundingSequencesForMatches) {
         super(CandidateTyping.class);
         this.bindCriteria = bindCriteria;
         this.sampleSetCriteria = sampleSetCriteria;
         this.typeEvaluator = typeEvaluator;
+        this.saveSurroundingSequencesForMatches = saveSurroundingSequencesForMatches;
     }
 
     public CandidateTyping(List<SequenceEvaluator> sampleSetCriteria, TypeEvaluator typeEvaluator) {
         this(sampleSetCriteria, new MatchEvaluator(null, Range.between(15, 24),
-                Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END))), typeEvaluator);
+                Collections.singletonList(Range.between(Sequence.SEED_INDEX_START, Sequence.RAW_INDEX_END))), typeEvaluator,
+                false);
     }
 
     public CandidateTyping() {
@@ -90,6 +89,9 @@ public class CandidateTyping extends Stage {
                         discards.add(mainGenomeSequence);
                     }
                     log.info("allMatches: " + allMatchesInOtherGenomes.size() + " " + mainGenomeSequence + " " + evaluator + " discardCount: " + discards.size());
+                    if(saveSurroundingSequencesForMatches) {
+                        genome.saveSurroundingSequences(sequence, outputFolder, mainGenomeSequence.getGenome() + "_" + genome.getFilename() + "_" +  sequence.getRaw() + Utils.FASTA_FILE_ENDING);
+                    }
                 });
 
                 counter.incrementAndGet();
