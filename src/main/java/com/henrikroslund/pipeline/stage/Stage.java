@@ -45,18 +45,20 @@ public abstract class Stage {
     private FileHandler logFileHandler;
 
     private BufferedWriter discardWriter = null;
+    private boolean shouldPreProcessFiles = true;
 
     protected Stage(Class<?> clazz) {
         this.name = clazz.getSimpleName();
     }
 
-    public void configure(String inputBaseFolder, String baseOutputFolder) {
+    public void configure(String inputBaseFolder, String baseOutputFolder, boolean shouldPreProcessFiles) {
         this.inputFolder = inputBaseFolder + getStageFolder();
         this.outputFolder = baseOutputFolder + "/" + name;
         File file = new File(outputFolder);
         if(file.mkdirs()) {
             log.info("Created directory: " + file.getAbsolutePath());
         }
+        this.shouldPreProcessFiles = shouldPreProcessFiles;
     }
 
     protected void preExecute() throws Exception {
@@ -118,6 +120,10 @@ public abstract class Stage {
     // Right now it will split fasta files with multiple genomes into separate files
     // and also make sure all characters are upper case.
     public void preProcessInputFiles() throws  Exception {
+        if(!shouldPreProcessFiles) {
+            log.info("Will skip preprocess files for stage " + getName());
+            return;
+        }
         List<File> fastaFiles = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
         for(File fastaFile: fastaFiles) {
             if(hasMultipleGenomesInFastaFile(fastaFile)) {

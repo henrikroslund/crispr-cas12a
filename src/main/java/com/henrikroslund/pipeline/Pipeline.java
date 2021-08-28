@@ -24,9 +24,13 @@ public class Pipeline {
         this.outputFolder = outputFolder;
     }
 
-    public void addStage(Stage stage) {
-        stage.configure(inputFolder, outputFolder);
+    public void addStage(Stage stage, boolean shouldPreProcessFiles) {
+        stage.configure(inputFolder, outputFolder, shouldPreProcessFiles);
         stages.add(stage);
+    }
+
+    public void addStage(Stage stage) {
+        addStage(stage, true);
     }
 
     public void preProcessStagesInput() throws Exception {

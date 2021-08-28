@@ -53,7 +53,8 @@ public class Main {
             //performanceTesting();
             //suis_pipeline_3();
             //testFastaSplit();
-            bpHumanGenome();
+            //bpHumanGenome();
+            suisCoverage();
 
         } catch(Exception e) {
             StringWriter sw = new StringWriter();
@@ -175,11 +176,11 @@ public class Main {
         pipeline.run();
     }
 
-    public static void suisCommonCoverage() throws Exception {
-        String inputFolder = baseInputFolder+"/CRISPR for Suis rRNA gene";
-        Pipeline pipeline = new Pipeline("CRISPR for Suis rRNA gene", inputFolder, baseOutputFolder);
+    public static void suisCoverage() throws Exception {
+        String inputFolder = baseInputFolder+"/Coverage suis";
+        Pipeline pipeline = new Pipeline("Coverage suis", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(false, false, true));
-        pipeline.addStage(new CoverageAnalysis());
+        pipeline.addStage(new CoverageAnalysis(), false);
         pipeline.run();
     }
 

@@ -32,6 +32,7 @@ public class CoverageAnalysis extends Stage {
         initiateCoverageMap(inputGenome);
 
         List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, FASTA_FILE_ENDING);
+        int remainingFiles = genomeFiles.size();
         for(File file : genomeFiles) {
             if(isChromosomeFile(file.getAbsolutePath()) && !isPrimaryChromosomeFile(file.getAbsolutePath())) {
                 log.info("Will skip file because it is not primary chromosome " + file.getName());
@@ -43,6 +44,7 @@ public class CoverageAnalysis extends Stage {
 
             AtomicInteger counter = new AtomicInteger(0);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
+                // TODO need to take the right rules for match as input
                 if(genome.exists(sequence)) {
                     coverageMap.get(sequence).add(file.getName());
                 }
@@ -52,9 +54,15 @@ public class CoverageAnalysis extends Stage {
                 }
             });
             printProcessingTime(startTime);
+            log.info("Files remaining: " + --remainingFiles + " / " + genomeFiles.size());
+            printResults();
         }
-        // TODO calculate coverage and stuff and save to file
+
         return inputGenome;
+    }
+
+    private void printResults() {
+        coverageMap.forEach((sequence, genomeMatches) -> log.info(sequence.toString() + " was found in " + genomeMatches.size() + " genomes"));
     }
 
     @Override
