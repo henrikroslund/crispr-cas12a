@@ -123,6 +123,10 @@ public class Sequence implements Comparable<Sequence> {
         return isComplement;
     }
 
+    public String getStrandRepresentation() {
+        return isComplement ? "-" : "+";
+    }
+
     public Sequence getComplement() {
         StringBuilder complement = new StringBuilder(RAW_LENGTH);
         for(int i=RAW_LENGTH-1; i>=0; i--) {
