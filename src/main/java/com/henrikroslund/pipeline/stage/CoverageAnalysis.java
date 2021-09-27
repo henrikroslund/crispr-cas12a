@@ -4,13 +4,11 @@ import com.henrikroslund.Genome;
 import com.henrikroslund.Utils;
 import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
-import com.henrikroslund.genomeFeature.Feature;
 import com.henrikroslund.sequence.Sequence;
 import com.opencsv.CSVWriter;
 import lombok.extern.java.Log;
 import org.apache.commons.lang3.Range;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,17 +26,18 @@ public class CoverageAnalysis extends Stage {
         super(CoverageAnalysis.class);
     }
 
-    private final Map<Sequence, HashSet<String>> coverageMap = new ConcurrentHashMap<>();
-
-    private void initiateCoverageMap(Genome genome) {
+    protected static Map<Sequence, HashSet<String>> initiateCoverageMap(Genome genome) {
+        Map<Sequence, HashSet<String>> coverageMap = new ConcurrentHashMap<>();
         for(Sequence sequence : genome.getSequences()) {
             coverageMap.put(sequence, new HashSet<>());
         }
+        return coverageMap;
     }
 
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
-        initiateCoverageMap(inputGenome);
+        // After the analysis this map will contain all the filenames each sequence was found in.
+        Map<Sequence, HashSet<String>> coverageMap = initiateCoverageMap(inputGenome);
 
         List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, FASTA_FILE_ENDING);
         int remainingFiles = genomeFiles.size();
@@ -74,17 +73,18 @@ public class CoverageAnalysis extends Stage {
             log.info("Files remaining: " + --remainingFiles + " / " + genomeFiles.size());
         }
 
-        writeResults(genomeFiles);
+        writeResults(genomeFiles, coverageMap);
 
         return inputGenome;
     }
 
-    private void writeResults(List<File> genomeFiles) throws IOException {
+    private void writeResults(List<File> genomeFiles, Map<Sequence, HashSet<String>> coverageMap) throws IOException {
         CSVWriter csvWriter = new CSVWriter(new FileWriter(outputFolder + "/" + "result.csv"));
         csvWriter.writeNext(new String[]{"Name", "Sequence", "Strand", "Coverage %", "Coverage #", "Found in", "Not Found in"});
 
         int totalGenomes = genomeFiles.size();
         List<String> genomeFileNames = genomeFiles.stream().map(File::getName).collect(Collectors.toList());
+        // Write single sequence results
         coverageMap.forEach((sequence, genomeMatches) -> {
             List<String> row = new ArrayList<>();
             row.add(sequence.getGenome());
@@ -97,17 +97,51 @@ public class CoverageAnalysis extends Stage {
             row.add(toCellWithNewline(genomeFileNames.stream().distinct().filter(filename -> !genomeMatches.contains(filename)).collect(Collectors.toSet())));
             csvWriter.writeNext(row.toArray(new String[0]));
         });
+
+        // Write dual sequences results
+        getCoverageMapMultipleSequences(coverageMap).forEach((sequences, genomeMatches) -> {
+            List<String> row = new ArrayList<>();
+            row.add(toCellWithNewline(sequences.stream().map(Sequence::getGenome).collect(Collectors.toList())));
+            row.add(toCellWithNewline(sequences.stream().map(Sequence::getRaw).collect(Collectors.toList())));
+            row.add(toCellWithNewline(sequences.stream().map(Sequence::getStrandRepresentation).collect(Collectors.toList())));
+            double percent = 100.0 * ((double) genomeMatches.size() / (double) totalGenomes);
+            row.add(String.format("%.2f", percent));
+            row.add(genomeMatches.size() + " / " + totalGenomes);
+            row.add(toCellWithNewline(genomeMatches));
+            row.add(toCellWithNewline(genomeFileNames.stream().distinct().filter(filename -> !genomeMatches.contains(filename)).collect(Collectors.toSet())));
+            csvWriter.writeNext(row.toArray(new String[0]));
+        });
         csvWriter.close();
     }
 
-    private String toCellWithNewline(Set<String> strings) {
+    protected static Map<List<Sequence>, HashSet<String>> getCoverageMapMultipleSequences(Map<Sequence, HashSet<String>> coverage) {
+        Map<List<Sequence>, HashSet<String>> result = new ConcurrentHashMap<>();
+        coverage.forEach((sequence, genomeMatches) -> {
+            coverage.forEach((sequence2, genomeMatches2) -> {
+                if(sequence == sequence2) {
+                    return;
+                }
+                List<Sequence> sequences = new ArrayList<>();
+                sequences.add(sequence);
+                sequences.add(sequence2);
+                // We sort to avoid entries like {X,Y} and {Y,X}
+                Collections.sort(sequences);
+                HashSet<String> combinedGenomeMatches = new HashSet<>();
+                combinedGenomeMatches.addAll(genomeMatches);
+                combinedGenomeMatches.addAll(genomeMatches2);
+                result.put(sequences, combinedGenomeMatches);
+            });
+        });
+        return result;
+    }
+
+    private String toCellWithNewline(Collection<String> strings) {
         StringBuilder cellString = new StringBuilder();
         for(String string: strings) {
             cellString.append(string).append("\n");
         }
         return cellString.toString();
     }
-
 
     @Override
     public String toString() {
