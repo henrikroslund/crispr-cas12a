@@ -15,6 +15,11 @@ import java.util.List;
 
 import static com.henrikroslund.Utils.*;
 
+/**
+ * This stage will analyze input genome sequences with gene feature files located in the input folder.
+ * The results are saved to a csv file.
+ */
+
 @Log
 public class CandidateFeature extends Stage {
 

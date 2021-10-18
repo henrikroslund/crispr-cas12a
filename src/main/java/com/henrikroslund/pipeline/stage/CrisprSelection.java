@@ -15,6 +15,13 @@ import static com.henrikroslund.Utils.FASTA_FILE_ENDING;
 import static com.henrikroslund.Utils.loadGenomesInFolder;
 import static com.henrikroslund.evaluators.NoConsecutiveIdenticalN1N20Evaluator.Type.QUADRUPLE;
 
+/**
+ * This stage will analyze all genomes in the input folder and produce a singe genome output
+ * with sequences which met all the criteria according the stage configuration.
+ *
+ * This can be particularly useful to select initial crispr candidates in a pipeline.
+ */
+
 @Log
 public class CrisprSelection extends Stage {
 

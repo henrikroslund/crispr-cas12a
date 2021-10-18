@@ -15,6 +15,17 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * This stage will analyze the input genome sequences with the genomes in the input folder
+ * according to the given TypeEvaluator.
+ * The input folder sequences can be reduced by providing a set of Evaluators for the sample set,
+ * this can greatly increase performance of the analysis.
+ * The typing results are stored in each sequence in the input genome during the process.
+ * Since the process can take a very long time, intermediate results will be saved to file
+ * along with a list of already processed genomes from the input folder. In this way that
+ * could be used to resume the pipeline at a later time if needed.
+ */
+
 @Log
 public class CandidateTyping extends Stage {
 

@@ -19,6 +19,12 @@ import java.util.stream.Collectors;
 
 import static com.henrikroslund.Utils.*;
 
+/**
+ * This stage will analyze the coverage of input genome sequences with
+ * all genome files in the input folder.
+ * The coverage results are saved to a csv file .
+ */
+
 @Log
 public class CoverageAnalysis extends Stage {
 

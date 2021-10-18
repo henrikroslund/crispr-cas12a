@@ -10,6 +10,14 @@ import lombok.extern.java.Log;
 import java.io.File;
 import java.util.*;
 
+/**
+ * This stage is used for eliminating crispr candidates by analysing genomes in the input folder.
+ * The input genome contains the candidates and the result is a genome containing only the sequences
+ * which remain after discarded sequences have been removed based on the list of evaluators configured.
+ *
+ * This is particularly useful to remove cross reactive pathogens from the crispr candidates.
+ */
+
 @Log
 public class CrisprElimination extends Stage {
 
