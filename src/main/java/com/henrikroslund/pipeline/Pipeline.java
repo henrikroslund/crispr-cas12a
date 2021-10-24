@@ -10,8 +10,6 @@ import java.util.List;
 @Log
 public class Pipeline {
 
-    // TODO print pipeline and stage configuration in log
-
     private final List<Stage> stages = new ArrayList<>();
 
     private final String name;
@@ -63,6 +61,7 @@ public class Pipeline {
         log.info("Finished pipeline: " + name);
     }
 
+    @Override
     public String toString() {
         return name;
     }

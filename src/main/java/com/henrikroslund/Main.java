@@ -54,7 +54,8 @@ public class Main {
             //suis_pipeline_3();
             //testFastaSplit();
             //bpHumanGenome();
-            suisCoverage();
+            //suisCoverage();
+            serotyping();
 
         } catch(Exception e) {
             StringWriter sw = new StringWriter();
@@ -67,6 +68,13 @@ public class Main {
             printMemoryStat();
             log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
         }
+    }
+
+    public static void serotyping() throws Exception {
+        String inputFolder = baseInputFolder+"/Serotyping suis";
+        Pipeline pipeline = new Pipeline("Serotyping suis", inputFolder, baseOutputFolder);
+        pipeline.addStage(new Serotyping());
+        pipeline.run();
     }
 
     public static void bpHumanGenome() throws Exception {

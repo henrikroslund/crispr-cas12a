@@ -125,13 +125,18 @@ public abstract class Stage {
             return;
         }
         List<File> fastaFiles = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
-        for(File fastaFile: fastaFiles) {
+        log.info("Files to preprocess: " + fastaFiles.size());
+        for(int i = 0; i < fastaFiles.size(); i++) {
+            File fastaFile = fastaFiles.get(i);
             if(hasMultipleGenomesInFastaFile(fastaFile)) {
                 log.info("Found multiple genomes in fasta file so will split file: " + fastaFile.getName());
                 splitFastaWithMultipleGenomes(fastaFile);
             } else if(hasLowerCaseCharacters(fastaFile)) {
                 log.info("Found lower case letter in fasta file so will create new file: " + fastaFile.getName());
                 splitFastaWithMultipleGenomes(fastaFile);
+            }
+            if(i % 10 == 0) {
+                log.info("Processed number of files: " + i);
             }
         }
     }
@@ -177,13 +182,14 @@ public abstract class Stage {
     }
 
     private boolean hasMultipleGenomesInFastaFile(File fastaFile) throws IOException {
-        Stream<String> lines = Files.lines(fastaFile.toPath());
-        int numberOfFasta = (int) lines.parallel().filter(s -> s.charAt(0) == FASTA_DELIMITER).count();
-        if(numberOfFasta > 1) {
-            log.info("Found " + numberOfFasta + " genomes inside fasta file: " + fastaFile.getName());
-            return true;
+        try (Stream<String> lines = Files.lines(fastaFile.toPath())) {
+            int numberOfFasta = (int) lines.parallel().filter(s -> s.charAt(0) == FASTA_DELIMITER).count();
+            if (numberOfFasta > 1) {
+                log.info("Found " + numberOfFasta + " genomes inside fasta file: " + fastaFile.getName());
+                return true;
+            }
+            return false;
         }
-        return false;
     }
 
     private boolean hasLowerCaseCharacters(File fastaFile) throws IOException {

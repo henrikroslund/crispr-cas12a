@@ -127,10 +127,15 @@ public class Sequence implements Comparable<Sequence> {
         return isComplement ? "-" : "+";
     }
 
-    public Sequence getComplement() {
-        StringBuilder complement = new StringBuilder(RAW_LENGTH);
-        for(int i=RAW_LENGTH-1; i>=0; i--) {
-            char character = raw.charAt(i);
+    /**
+     * Will return complement of input sequence. For example:
+     * Input sequence:  ATGC
+     * Output Sequence: GCAT
+     */
+    public static String getComplement(String sequence) {
+        StringBuilder complement = new StringBuilder(sequence.length());
+        for(int i=sequence.length()-1; i>=0; i--) {
+            char character = sequence.charAt(i);
             switch (character) {
                 case 'A' -> complement.append('T');
                 case 'T' -> complement.append('A');
@@ -140,9 +145,13 @@ public class Sequence implements Comparable<Sequence> {
             }
         }
         if(log.isLoggable(Level.FINE)) {
-            log.fine(raw + " " + complement);
+            log.fine(sequence + " " + complement);
         }
-        return new Sequence(complement.toString(), startIndex +(RAW_LENGTH-1), genome, true);
+        return complement.toString();
+    }
+
+    public Sequence getComplement() {
+        return new Sequence(getComplement(raw), startIndex +(RAW_LENGTH-1), genome, true);
     }
 
     // Equals and hashcode only cares about the raw string

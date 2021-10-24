@@ -35,7 +35,7 @@ public class Genome {
 
     private static final int INITIAL_COLLECTION_CAPACITY = 75000;
     public static final String GENOME_FILE_ENDING = ".genome";
-    private static String CSV_FILE_ENDING = ".csv";
+    private static final String CSV_FILE_ENDING = ".csv";
 
     public Genome(boolean skipDuplicates, String filename, String firstRow) {
         this.skipDuplicates = skipDuplicates;
@@ -60,17 +60,17 @@ public class Genome {
                         File genomeFile = new File(chromosomeFile);
                         if(genomeFile.exists()) {
                             log.info("Adding file " + genomeFile.getName());
-                            String firstRow = Utils.getFirstRow(genomeFile.getAbsolutePath());
-                            String genomeFileData = getFileContent(chromosomeFile).substring(firstRow.length()-1);
-                            createSequences(criteria, genomeFileData);
+                            String chromosomeFirstRow = Utils.getFirstRow(genomeFile.getAbsolutePath());
+                            String sequenceData = getSequenceData(chromosomeFile, chromosomeFirstRow);
+                            createSequences(criteria, sequenceData);
                         }
                     }
                 } else {
                     throw new IllegalArgumentException("Tried to create genome that includes all chromosomes but which is not a primary chromosome: " + file.getName());
                 }
             } else {
-                String data = getFileContent(absoluteFilePath).substring(firstRow.length()-1);
-                createSequences(criteria, data);
+                String sequenceData = getSequenceData(absoluteFilePath, firstRow);
+                createSequences(criteria, sequenceData);
             }
         } else if(absoluteFilePath.endsWith(GENOME_FILE_ENDING)) {
             BufferedReader reader = Files.newBufferedReader(Path.of(absoluteFilePath));
@@ -104,23 +104,31 @@ public class Genome {
         }
     }
 
+    public String getSequenceData() throws Exception {
+        return getSequenceData(absoluteFilePath, firstRow);
+    }
+
+    private String getSequenceData(String absoluteFilePath, String firstRow) throws IOException {
+        return getFileContent(absoluteFilePath).substring(firstRow.length()-1);
+    }
+
     @SneakyThrows
     public void saveSurroundingSequences(Sequence sequence, String outputFolder, String outputFilename) {
         if(includeAllChromosomes) {
             throw new Exception("Cannot save surrounding sequences when all chromosomes have been combines into one genome");
         }
         String firstRow = Utils.getFirstRow(absoluteFilePath);
-        String genomeFileData = getFileContent(absoluteFilePath).substring(firstRow.length()-1);
+        String sequenceData = getSequenceData();
         int nbrBeforeAndAfter = 2000;
         int startPosition = sequence.getStartIndex() - nbrBeforeAndAfter;
         if(startPosition < 0) {
             startPosition = 0;
         }
         int endPosition = sequence.getStartIndex() + nbrBeforeAndAfter;
-        if(endPosition >= genomeFileData.length()) {
-            endPosition = genomeFileData.length()-1;
+        if(endPosition >= sequenceData.length()) {
+            endPosition = sequenceData.length()-1;
         }
-        String surroundingSequences = genomeFileData.substring(startPosition, endPosition);
+        String surroundingSequences = sequenceData.substring(startPosition, endPosition);
         File outputFile = new File(outputFolder + "/" + outputFilename);
         if(outputFile.exists()) {
             throw new Exception("Did not expect file to already exists: " + outputFile.getAbsolutePath());
