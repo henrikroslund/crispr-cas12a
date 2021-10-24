@@ -151,8 +151,12 @@ public abstract class Stage {
         int fastaCount = 0;
         while(it.hasNext()) {
             String line = it.next();
-            if(line.charAt(0) == FASTA_DELIMITER) {
+            if(line.isEmpty()) {
+                // We remove empty lines
+                continue;
+            } else if(line.charAt(0) == FASTA_DELIMITER) {
                 if(writer != null) {
+                    writer.flush();
                     writer.close();
                 }
                 if(Utils.isChromosomeFile(fastaFile.getName())) {
@@ -174,7 +178,10 @@ public abstract class Stage {
             writer.write(line);
             writer.newLine();
         }
-
+        if(writer != null) {
+            writer.flush();
+            writer.close();
+        }
         File renameFile = new File(fastaFile.getAbsolutePath()+".skip");
         if(!fastaFile.renameTo(renameFile)) {
             throw new Exception("Unable to rename original file: " + fastaFile.getName() + " to " + renameFile.getName());
@@ -183,7 +190,7 @@ public abstract class Stage {
 
     private boolean hasMultipleGenomesInFastaFile(File fastaFile) throws IOException {
         try (Stream<String> lines = Files.lines(fastaFile.toPath())) {
-            int numberOfFasta = (int) lines.parallel().filter(s -> s.charAt(0) == FASTA_DELIMITER).count();
+            int numberOfFasta = (int) lines.parallel().filter(s -> s.isEmpty() || s.charAt(0) == FASTA_DELIMITER).count();
             if (numberOfFasta > 1) {
                 log.info("Found " + numberOfFasta + " genomes inside fasta file: " + fastaFile.getName());
                 return true;
