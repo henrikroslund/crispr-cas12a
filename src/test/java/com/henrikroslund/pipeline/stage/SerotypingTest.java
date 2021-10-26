@@ -24,8 +24,17 @@ public class SerotypingTest {
         pipeline.run();
         assertEquals(3, serotyping.getPcrProducts().size());
         assertEquals(509, serotyping.getPcrProducts().get(0).getDistance());
+        assertEquals(1, serotyping.getPcrProducts().get(0).getPrimerAPositions().size());
+        assertEquals(922, serotyping.getPcrProducts().get(0).getPrimerAPositions().get(0).intValue());
+        assertEquals(1395, serotyping.getPcrProducts().get(0).getPrimerBPositions().get(0).intValue());
         assertEquals(509, serotyping.getPcrProducts().get(1).getDistance());
+        assertEquals(1, serotyping.getPcrProducts().get(1).getPrimerAPositions().size());
+        assertEquals(3718, serotyping.getPcrProducts().get(1).getPrimerAPositions().get(0).intValue());
+        assertEquals(3233, serotyping.getPcrProducts().get(1).getPrimerBPositions().get(0).intValue());
         assertEquals(507, serotyping.getPcrProducts().get(2).getDistance());
+        assertEquals(1, serotyping.getPcrProducts().get(2).getPrimerAPositions().size());
+        assertEquals(922, serotyping.getPcrProducts().get(2).getPrimerAPositions().get(0).intValue());
+        assertEquals(1393, serotyping.getPcrProducts().get(2).getPrimerBPositions().get(0).intValue());
     }
 
     @Test
@@ -45,7 +54,7 @@ public class SerotypingTest {
     public void testFindOccurrence() {
         String genomeSequenceData = "ABCDEFGDE";
         String sequence = "DE";
-        List<Integer> indexes = Serotyping.findOccurrences(genomeSequenceData, sequence, false);
+        List<Integer> indexes = Serotyping.findOccurrences(genomeSequenceData, sequence, false, "test");
         assertEquals(2, indexes.size());
         assertEquals(4, indexes.get(0).intValue());
         assertEquals(8, indexes.get(1).intValue());
@@ -55,7 +64,7 @@ public class SerotypingTest {
     public void testFindOccurrenceComplement() {
         String genomeSequenceData = "ABCDEFGDE";
         String sequence = "DE";
-        List<Integer> indexes = Serotyping.findOccurrences(genomeSequenceData, sequence, true);
+        List<Integer> indexes = Serotyping.findOccurrences(genomeSequenceData, sequence, true, "test");
         assertEquals(2, indexes.size());
         assertEquals(5, indexes.get(0).intValue());
         assertEquals(1, indexes.get(1).intValue());

@@ -10,7 +10,9 @@ import lombok.Getter;
 import lombok.extern.java.Log;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,24 +47,26 @@ public class Serotyping extends Stage {
 
             serotypes.forEach(serotype -> {
 
+                List<Integer> primerAPositions = findOccurrences(sequenceData, serotype.getPrimerA(), false, file.getName());
+                List<Integer> primerBPositionsComplement = findOccurrences(sequenceDataComplement, serotype.getPrimerB(), true, file.getName());
                 int shortestDistancePrimerA = getShortestDistance(
-                        findOccurrences(sequenceData, serotype.getPrimerA(), false), serotype.getPrimerA().length(),
-                        findOccurrences(sequenceDataComplement, serotype.getPrimerB(), true), serotype.getPrimerB().length(), sequenceData.length());
+                        primerAPositions, serotype.getPrimerA().length(),
+                        primerBPositionsComplement, serotype.getPrimerB().length(), sequenceData.length());
 
+                List<Integer> primerAPositionsComplement = findOccurrences(sequenceDataComplement, serotype.getPrimerA(),true, file.getName());
+                List<Integer> primerBPositions = findOccurrences(sequenceData, serotype.getPrimerB(), false, file.getName());
                 int shortestDistancePrimerB = getShortestDistance(
-                        findOccurrences(sequenceData, serotype.getPrimerB(), false), serotype.getPrimerB().length(),
-                        findOccurrences(sequenceDataComplement, serotype.getPrimerA(),true), serotype.getPrimerA().length(), sequenceData.length());
+                        primerBPositions, serotype.getPrimerB().length(),
+                        primerAPositionsComplement, serotype.getPrimerA().length(), sequenceData.length());
 
-                int shortestDistance = shortestDistancePrimerA;
-                if(shortestDistance == -1 || (shortestDistancePrimerB != -1 && shortestDistancePrimerB < shortestDistance)) {
-                    shortestDistance = shortestDistancePrimerB;
-                }
-
-                if(shortestDistance != -1) {
-                    log.info("Found pcr product with distance " + shortestDistance + " in genome " + file.getName());
-                    pcrProducts.add(new PcrProduct(file.getName(), serotype, shortestDistance));
-                } else {
+                if(shortestDistancePrimerA == Integer.MAX_VALUE && shortestDistancePrimerB == Integer.MAX_VALUE) {
                     log.info("No match for " + serotype.getName() + " in genome " + file.getName());
+                } else if(shortestDistancePrimerA < shortestDistancePrimerB) {
+                    log.info("Found pcr product with distance " + shortestDistancePrimerA + " in genome " + file.getName());
+                    pcrProducts.add(new PcrProduct(file.getName(), serotype, shortestDistancePrimerA, primerAPositions, primerBPositionsComplement));
+                } else {
+                    log.info("Found pcr product with distance " + shortestDistancePrimerB + " in genome " + file.getName());
+                    pcrProducts.add(new PcrProduct(file.getName(), serotype, shortestDistancePrimerB, primerAPositionsComplement, primerBPositions));
                 }
             });
 
@@ -70,23 +74,28 @@ public class Serotyping extends Stage {
             log.info("Files remaining: " + --remainingFiles + " / " + genomeFiles.size());
         }
 
+        writeResults();
+
         return inputGenome;
     }
 
+    /**
+     * Will calculate the shortest distance based on the
+     */
     private int getShortestDistance(List<Integer> primerA, int primerALength, List<Integer> primerB, int primerBLength, int genomeSize) {
-        AtomicInteger shortestDistance = new AtomicInteger(-1);
+        AtomicInteger shortestDistance = new AtomicInteger(Integer.MAX_VALUE);
         if(primerA.isEmpty() || primerB.isEmpty()) {
             return shortestDistance.get();
         }
-        primerA.forEach(primerAIndex -> {
-            primerB.forEach(primerBIndex -> {
+        primerA.forEach(primerAPosition -> {
+            primerB.forEach(primerBPosition -> {
                 int distance;
-                if(primerAIndex > primerBIndex) {
-                    distance = genomeSize - primerAIndex - primerALength + primerBIndex;
+                if(primerAPosition > primerBPosition) {
+                    distance = genomeSize - primerAPosition - primerALength + primerBPosition;
                 } else {
-                    distance = primerBIndex - primerAIndex + primerBLength;
+                    distance = primerBPosition - primerAPosition + primerBLength;
                 }
-                if(shortestDistance.get() == -1 || distance < shortestDistance.get()) {
+                if(shortestDistance.get() == Integer.MAX_VALUE || distance < shortestDistance.get()) {
                     shortestDistance.set(distance);
                 }
             });
@@ -94,18 +103,37 @@ public class Serotyping extends Stage {
         return shortestDistance.get();
     }
 
-    private void writeResults() {
-
+    private void writeResults() throws IOException {
+        List<String> columnHeaders = List.of("genome", "serotype", "primerA",
+                "primerB", "distance", "primerAPositions", "primerBPositions");
+        CSVWriter csvWriter = new CSVWriter(new FileWriter(outputFolder+"/result.csv"));
+        csvWriter.writeNext(columnHeaders.toArray(new String[0]));
+        for(PcrProduct pcrProduct : pcrProducts) {
+            List<String> columnValue = List.of(pcrProduct.getGenome(), pcrProduct.getSerotype().getName(),
+                    pcrProduct.getSerotype().getPrimerA(), pcrProduct.getSerotype().getPrimerB(),
+                    pcrProduct.getDistance()+"", toCellWithNewline(pcrProduct.getPrimerAPositions()),
+                    toCellWithNewline(pcrProduct.getPrimerBPositions()));
+            csvWriter.writeNext(columnValue.toArray(new String[0]));
+        }
+        csvWriter.close();
     }
 
-    protected static List<Integer> findOccurrences(String genomeSequenceData, String sequence, boolean isComplement) {
+    private String toCellWithNewline(Collection<Integer> values) {
+        StringBuilder cellString = new StringBuilder();
+        for(Integer value : values) {
+            cellString.append(value).append("\n");
+        }
+        return cellString.toString();
+    }
+
+    protected static List<Integer> findOccurrences(String genomeSequenceData, String sequence, boolean isComplement, String genomeName) {
         List<Integer> indexes = new ArrayList<>();
 
         int index = 0;
         while(index != -1) {
             index = genomeSequenceData.indexOf(sequence, index + sequence.length());
             if (index != -1) {
-                log.info("Found match at index " + index + " for sequence " + sequence);
+                log.info("Found match at index " + index + " for sequence " + sequence + " in genome " + genomeName);
                 if(isComplement) {
                     indexes.add(genomeSequenceData.length() - index - sequence.length()+1);
                 } else {
