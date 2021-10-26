@@ -34,8 +34,10 @@ public class Serotyping extends Stage {
 
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
-        CSVWriter csvWriter = new CSVWriter(new FileWriter(outputFolder + "/" + "result.csv"));
-        csvWriter.writeNext(new String[]{"Serotype", "Genome"});
+        List<String> columnHeaders = List.of("genome", "serotype", "primerA",
+                "primerB", "distance", "primerAPositions", "primerBPositions");
+        CSVWriter csvWriter = new CSVWriter(new FileWriter(outputFolder+"/result.csv"));
+        csvWriter.writeNext(columnHeaders.toArray(new String[0]));
 
         List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, FASTA_FILE_ENDING);
         int remainingFiles = genomeFiles.size();
@@ -59,14 +61,19 @@ public class Serotyping extends Stage {
                         primerBPositions, serotype.getPrimerB().length(),
                         primerAPositionsComplement, serotype.getPrimerA().length(), sequenceData.length());
 
+                PcrProduct pcrProduct = null;
                 if(shortestDistancePrimerA == Integer.MAX_VALUE && shortestDistancePrimerB == Integer.MAX_VALUE) {
                     log.info("No match for " + serotype.getName() + " in genome " + file.getName());
                 } else if(shortestDistancePrimerA < shortestDistancePrimerB) {
                     log.info("Found pcr product with distance " + shortestDistancePrimerA + " in genome " + file.getName());
-                    pcrProducts.add(new PcrProduct(file.getName(), serotype, shortestDistancePrimerA, primerAPositions, primerBPositionsComplement));
+                    pcrProduct = new PcrProduct(file.getName(), serotype, shortestDistancePrimerA, primerAPositions, primerBPositionsComplement);
                 } else {
                     log.info("Found pcr product with distance " + shortestDistancePrimerB + " in genome " + file.getName());
-                    pcrProducts.add(new PcrProduct(file.getName(), serotype, shortestDistancePrimerB, primerAPositionsComplement, primerBPositions));
+                    pcrProduct = new PcrProduct(file.getName(), serotype, shortestDistancePrimerB, primerAPositionsComplement, primerBPositions);
+                }
+                if(pcrProduct != null) {
+                    pcrProducts.add(pcrProduct);
+                    csvWriter.writeNext(pcrToRow(pcrProduct).toArray(new String[0]));
                 }
             });
 
@@ -74,8 +81,7 @@ public class Serotyping extends Stage {
             log.info("Files remaining: " + --remainingFiles + " / " + genomeFiles.size());
         }
 
-        writeResults();
-
+        csvWriter.close();
         return inputGenome;
     }
 
@@ -116,6 +122,13 @@ public class Serotyping extends Stage {
             csvWriter.writeNext(columnValue.toArray(new String[0]));
         }
         csvWriter.close();
+    }
+
+    private List<String> pcrToRow(PcrProduct pcrProduct) {
+        return List.of(pcrProduct.getGenome(), pcrProduct.getSerotype().getName(),
+                pcrProduct.getSerotype().getPrimerA(), pcrProduct.getSerotype().getPrimerB(),
+                pcrProduct.getDistance()+"", toCellWithNewline(pcrProduct.getPrimerAPositions()),
+                toCellWithNewline(pcrProduct.getPrimerBPositions()));
     }
 
     private String toCellWithNewline(Collection<Integer> values) {
