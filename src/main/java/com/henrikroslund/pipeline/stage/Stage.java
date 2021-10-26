@@ -79,10 +79,12 @@ public abstract class Stage {
             discardWriter.close();
         }
         log.info("Completed stage: " + name);
-        Logger rootLogger = Logger.getLogger("");
-        rootLogger.addHandler(Main.mainLoggerFileHandler);
-        rootLogger.removeHandler(logFileHandler);
-        logFileHandler.close();
+        if(Main.mainLoggerFileHandler != null) {
+            Logger rootLogger = Logger.getLogger("");
+            rootLogger.addHandler(Main.mainLoggerFileHandler);
+            rootLogger.removeHandler(logFileHandler);
+            logFileHandler.close();
+        }
     }
 
     public Genome run(Genome inputGenome) throws Exception {

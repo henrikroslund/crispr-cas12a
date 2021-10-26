@@ -108,7 +108,7 @@ public class Genome {
         return getSequenceData(absoluteFilePath, firstRow);
     }
 
-    private String getSequenceData(String absoluteFilePath, String firstRow) throws IOException {
+    public static String getSequenceData(String absoluteFilePath, String firstRow) throws IOException {
         return getFileContent(absoluteFilePath).substring(firstRow.length()-1);
     }
 

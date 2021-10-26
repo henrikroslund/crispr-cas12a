@@ -1,6 +1,5 @@
 package com.henrikroslund.pcr;
 
-import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
 
 public class Serotype {

@@ -5,6 +5,7 @@ import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
+import com.henrikroslund.pcr.Serotype;
 import com.henrikroslund.pipeline.Pipeline;
 import com.henrikroslund.pipeline.stage.*;
 import com.henrikroslund.sequence.Sequence;
@@ -73,7 +74,9 @@ public class Main {
     public static void serotyping() throws Exception {
         String inputFolder = baseInputFolder+"/Serotyping suis";
         Pipeline pipeline = new Pipeline("Serotyping suis", inputFolder, baseOutputFolder);
-        pipeline.addStage(new Serotyping());
+        Serotype serotype2 = new Serotype("TTAGCAACGTTGCCAATAAG", "AATCCTCCATTAAAACCCTG", "serotype2");
+        Serotype serotype14 = new Serotype("TTAGACAGACACCTTATAGG", "CTAGCTTCGTTACTTGATTC", "serotype14");
+        pipeline.addStage(new Serotyping(List.of(serotype2, serotype14)));
         pipeline.run();
     }
 
