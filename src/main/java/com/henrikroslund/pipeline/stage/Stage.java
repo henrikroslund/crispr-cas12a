@@ -138,7 +138,7 @@ public abstract class Stage {
                 splitFastaWithMultipleGenomes(fastaFile);
             }
             if(i % 10 == 0) {
-                log.info("Processed number of files: " + i);
+                log.info("Processed files: " + i + "/" + fastaFiles.size());
             }
         }
     }

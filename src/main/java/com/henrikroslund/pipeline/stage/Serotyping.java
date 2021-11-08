@@ -8,6 +8,8 @@ import com.henrikroslund.sequence.Sequence;
 import com.opencsv.CSVWriter;
 import lombok.Getter;
 import lombok.extern.java.Log;
+
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -38,6 +40,9 @@ public class Serotyping extends Stage {
                 "primerB", "distance", "primerAPositions", "primerBPositions");
         CSVWriter csvWriter = new CSVWriter(new FileWriter(outputFolder+"/result.csv"));
         csvWriter.writeNext(columnHeaders.toArray(new String[0]));
+
+        // Used to write the names of the genomes where pcrs were found
+        BufferedWriter genomeWriter = new BufferedWriter(new FileWriter(outputFolder + "/pcrGenomes.txt", true));
 
         List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, FASTA_FILE_ENDING);
         int remainingFiles = genomeFiles.size();
@@ -74,6 +79,12 @@ public class Serotyping extends Stage {
                 if(pcrProduct != null) {
                     pcrProducts.add(pcrProduct);
                     csvWriter.writeNext(pcrToRow(pcrProduct).toArray(new String[0]));
+                    try {
+                        genomeWriter.append(pcrProduct.getGenome()).append("\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
                 }
             });
 
@@ -82,6 +93,7 @@ public class Serotyping extends Stage {
         }
 
         csvWriter.close();
+        genomeWriter.close();
         return inputGenome;
     }
 
