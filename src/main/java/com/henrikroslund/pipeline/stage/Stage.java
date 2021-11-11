@@ -155,45 +155,46 @@ public abstract class Stage {
             throw new Exception("Tried to split a non-fasta file");
         }
         BufferedWriter writer = null;
-        Stream<String> lines = Files.lines(fastaFile.toPath());
-        Iterator<String> it = lines.iterator();
-        int fastaCount = 0;
-        while(it.hasNext()) {
-            String line = it.next();
-            if(line.isEmpty()) {
-                // We remove empty lines
-                continue;
-            } else if(line.charAt(0) == FASTA_DELIMITER) {
-                if(writer != null) {
-                    writer.flush();
-                    writer.close();
+        try (Stream<String> lines = Files.lines(fastaFile.toPath())) {
+            Iterator<String> it = lines.iterator();
+            int fastaCount = 0;
+            while(it.hasNext()) {
+                String line = it.next();
+                if(line.isEmpty()) {
+                    // We remove empty lines
+                    continue;
+                } else if(line.charAt(0) == FASTA_DELIMITER) {
+                    if(writer != null) {
+                        writer.flush();
+                        writer.close();
+                    }
+                    if(Utils.isChromosomeFile(fastaFile.getName())) {
+                        throw new Exception("No support for splitting chromosome files at this time!");
+                    }
+                    String output = inputFolder + "/" + FilenameUtils.removeExtension(fastaFile.getName()) + "_" + fastaCount + Utils.FASTA_FILE_ENDING;
+                    if(new File(output).exists()) {
+                        throw new Exception("Did not expect file to already exist while splitting fasta file: " + output);
+                    }
+                    writer = new BufferedWriter(new FileWriter(output, true));
+                    fastaCount++;
+                } else {
+                    // We modify everything to be upper case except the first line
+                    line = line.toUpperCase();
                 }
-                if(Utils.isChromosomeFile(fastaFile.getName())) {
-                    throw new Exception("No support for splitting chromosome files at this time!");
+                if(writer == null) {
+                    throw new Exception("Something went wrong trying to split fasta file");
                 }
-                String output = inputFolder + "/" + FilenameUtils.removeExtension(fastaFile.getName()) + "_" + fastaCount + Utils.FASTA_FILE_ENDING;
-                if(new File(output).exists()) {
-                    throw new Exception("Did not expect file to already exist while splitting fasta file: " + output);
-                }
-                writer = new BufferedWriter(new FileWriter(output, true));
-                fastaCount++;
-            } else {
-                // We modify everything to be upper case except the first line
-                line = line.toUpperCase();
+                writer.write(line);
+                writer.newLine();
             }
-            if(writer == null) {
-                throw new Exception("Something went wrong trying to split fasta file");
+            if(writer != null) {
+                writer.flush();
+                writer.close();
             }
-            writer.write(line);
-            writer.newLine();
-        }
-        if(writer != null) {
-            writer.flush();
-            writer.close();
-        }
-        File renameFile = new File(fastaFile.getAbsolutePath()+".skip");
-        if(!fastaFile.renameTo(renameFile)) {
-            throw new Exception("Unable to rename original file: " + fastaFile.getName() + " to " + renameFile.getName());
+            File renameFile = new File(fastaFile.getAbsolutePath()+".skip");
+            if(!fastaFile.renameTo(renameFile)) {
+                throw new Exception("Unable to rename original file: " + fastaFile.getName() + " to " + renameFile.getName());
+            }
         }
     }
 
@@ -209,13 +210,14 @@ public abstract class Stage {
     }
 
     private boolean hasLowerCaseCharacters(File fastaFile) throws IOException {
-        Stream<String> lines = Files.lines(fastaFile.toPath());
-        int linesWithLowerCase = (int) lines.parallel().filter(s -> !StringUtils.isAllUpperCase(s)).count();
-        if(linesWithLowerCase > 1) {
-            log.info("Found lower case letters in file: " + fastaFile.getName());
-            return true;
+        try (Stream<String> lines = Files.lines(fastaFile.toPath())) {
+            int linesWithLowerCase = (int) lines.parallel().filter(s -> !StringUtils.isAllUpperCase(s)).count();
+            if(linesWithLowerCase > 1) {
+                log.info("Found lower case letters in file: " + fastaFile.getName());
+                return true;
+            }
+            return false;
         }
-        return false;
     }
 
 }
