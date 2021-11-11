@@ -148,19 +148,6 @@ public abstract class Stage {
                 System.exit(1);
             }
         });
-        for(int i = 0; i < fastaFiles.size(); i++) {
-            File fastaFile = fastaFiles.get(i);
-            if(hasMultipleGenomesInFastaFile(fastaFile)) {
-                log.info("Found multiple genomes in fasta file so will split file: " + fastaFile.getName());
-                splitFastaWithMultipleGenomes(fastaFile);
-            } else if(hasLowerCaseCharacters(fastaFile)) {
-                log.info("Found lower case letter in fasta file so will create new file: " + fastaFile.getName());
-                splitFastaWithMultipleGenomes(fastaFile);
-            }
-            if(i % 10 == 0) {
-                log.info("Processed files: " + i + "/" + fastaFiles.size());
-            }
-        }
     }
 
     private void splitFastaWithMultipleGenomes(File fastaFile) throws Exception {
