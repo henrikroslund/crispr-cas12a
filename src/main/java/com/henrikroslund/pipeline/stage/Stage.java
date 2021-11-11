@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
@@ -128,6 +129,25 @@ public abstract class Stage {
         }
         List<File> fastaFiles = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
         log.info("Files to preprocess: " + fastaFiles.size());
+        AtomicInteger processed = new AtomicInteger();
+        fastaFiles.stream().parallel().forEach(fastaFile -> {
+            try {
+                if(hasMultipleGenomesInFastaFile(fastaFile)) {
+                    log.info("Found multiple genomes in fasta file so will split file: " + fastaFile.getName());
+                    splitFastaWithMultipleGenomes(fastaFile);
+                } else if(hasLowerCaseCharacters(fastaFile)) {
+                    log.info("Found lower case letter in fasta file so will create new file: " + fastaFile.getName());
+                    splitFastaWithMultipleGenomes(fastaFile);
+                }
+                if(processed.getAndIncrement() % 10 == 0) {
+                    log.info("Processed files: " + processed + "/" + fastaFiles.size());
+                }
+            } catch (Exception e) {
+                log.severe(e.getMessage());
+                e.printStackTrace();
+                System.exit(1);
+            }
+        });
         for(int i = 0; i < fastaFiles.size(); i++) {
             File fastaFile = fastaFiles.get(i);
             if(hasMultipleGenomesInFastaFile(fastaFile)) {
