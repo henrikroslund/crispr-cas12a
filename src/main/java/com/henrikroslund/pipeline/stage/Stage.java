@@ -130,7 +130,7 @@ public abstract class Stage {
         List<File> fastaFiles = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
         log.info("Files to preprocess: " + fastaFiles.size());
         AtomicInteger processed = new AtomicInteger();
-        fastaFiles.stream().parallel().forEach(fastaFile -> {
+        fastaFiles.forEach(fastaFile -> {
             try {
                 if(hasMultipleGenomesInFastaFile(fastaFile)) {
                     log.info("Found multiple genomes in fasta file so will split file: " + fastaFile.getName());
