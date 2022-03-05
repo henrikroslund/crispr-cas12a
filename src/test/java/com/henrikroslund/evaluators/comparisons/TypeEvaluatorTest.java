@@ -1,13 +1,14 @@
 package com.henrikroslund.evaluators.comparisons;
 
 import com.henrikroslund.sequence.Sequence;
-import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TypeEvaluatorTest {
 

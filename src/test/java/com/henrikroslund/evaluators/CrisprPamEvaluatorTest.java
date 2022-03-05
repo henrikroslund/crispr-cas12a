@@ -3,11 +3,12 @@ package com.henrikroslund.evaluators;
 import com.henrikroslund.TestUtils;
 import com.henrikroslund.sequence.Sequence;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
 
 import java.util.Collections;
 
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CrisprPamEvaluatorTest {
 

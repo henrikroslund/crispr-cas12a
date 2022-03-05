@@ -3,7 +3,7 @@ package com.henrikroslund;
 import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.IdenticalEvaluator;
 import com.henrikroslund.sequence.Sequence;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GenomeTest {
 
@@ -38,16 +38,16 @@ public class GenomeTest {
         assertEquals(4, genome.getTotalSequences());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testGenomeConstructorIncludeAllChromosomesAttemptToCreateForWrongChromosome() throws Exception {
+    @Test
+    public void testGenomeConstructorIncludeAllChromosomesAttemptToCreateForWrongChromosome()  {
         File chromosome2 = new File("src/test/resources/chromosomes/genome chromosome 2.fasta");
-        new Genome(chromosome2, Collections.emptyList(), false, true);
+        assertThrows(IllegalArgumentException.class, () -> new Genome(chromosome2, Collections.emptyList(), false, true));
     }
 
-    @Test(expected = IOException.class)
-    public void testFileNotExists() throws Exception {
+    @Test
+    public void testFileNotExists() {
         File file = new File("randomFileWhichDoesNotExist");
-        new Genome(file, Collections.emptyList(), false, false);
+        assertThrows(IOException.class, () -> new Genome(file, Collections.emptyList(), false, false));
     }
 
     @Test
@@ -139,14 +139,14 @@ public class GenomeTest {
         assertEquals(4, genome.getTotalSequences());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testExistsSkipDuplicates() {
         Genome genome = new Genome(false, "filename", "firstRow");
         genome.createSequences(Collections.emptyList(), TestUtils.VALID_STRICT_CRISPR_SEQUENCE);
         assertEquals(2, genome.getTotalSequences());
 
         Sequence sequence = new Sequence(TestUtils.VALID_STRICT_CRISPR_SEQUENCE, 0, "filename");
-        genome.exists(sequence);
+        assertThrows(IllegalArgumentException.class, () -> genome.exists(sequence));
     }
 
     @Test

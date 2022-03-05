@@ -1,12 +1,13 @@
 package com.henrikroslund.pipeline.stage;
 
 import com.henrikroslund.sequence.Sequence;
-import org.junit.Test;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class CoverageAnalysisTest {
 

@@ -2,9 +2,9 @@ package com.henrikroslund.evaluators.comparisons;
 
 import com.henrikroslund.sequence.Sequence;
 import org.apache.commons.lang3.Range;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MatchEvaluatorTest {
 

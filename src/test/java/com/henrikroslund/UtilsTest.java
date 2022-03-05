@@ -1,11 +1,11 @@
 package com.henrikroslund;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 
 import static com.henrikroslund.Utils.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UtilsTest {
 

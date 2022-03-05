@@ -2,8 +2,9 @@ package com.henrikroslund.pipeline.stage;
 
 import com.henrikroslund.pcr.Serotype;
 import com.henrikroslund.pipeline.Pipeline;
-import static org.junit.Assert.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 

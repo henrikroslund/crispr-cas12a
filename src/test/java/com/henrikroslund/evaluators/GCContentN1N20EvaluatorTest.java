@@ -1,9 +1,9 @@
 package com.henrikroslund.evaluators;
 
 import com.henrikroslund.sequence.Sequence;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GCContentN1N20EvaluatorTest {
 
