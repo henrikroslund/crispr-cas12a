@@ -10,6 +10,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <license.name>mit</license.name>
+        <license.failOnMissing>false</license.failOnMissing>
     </properties>
 
     <build>
@@ -55,6 +57,38 @@
                     <mainClass>com.henrikroslund.Main</mainClass>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.0.0</version>
+                <configuration>
+                    <copyrightOwners>Henrik Roslund</copyrightOwners>
+                    <organizationName>Henrik Roslund</organizationName>
+                    <inceptionYear>2020</inceptionYear>
+                    <licenseName>${license.name}</licenseName>
+                    <dryRun>${license.failOnMissing}</dryRun>
+                    <failOnMissingHeader>${license.failOnMissing}</failOnMissingHeader>
+                    <failOnMissing>${license.failOnMissing}</failOnMissing>
+                    <failIfWarning>${license.failOnMissing}</failIfWarning>
+                    <failOnNotUptodateHeader>${license.failOnMissing}</failOnNotUptodateHeader>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>first</id>
+                        <goals>
+                            <goal>update-file-header</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                        <configuration>
+                            <licenseName>${license.name}</licenseName>
+                            <roots>
+                                <root>src/main/java</root>
+                                <root>src/test</root>
+                            </roots>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -91,4 +125,14 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <!-- This profile should be enabled when running a CI job. -->
+            <id>ci-job</id>
+            <properties>
+                <license.failOnMissing>true</license.failOnMissing>
+            </properties>
+        </profile>
+    </profiles>
 </project>
