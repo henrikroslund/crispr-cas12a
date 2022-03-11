@@ -41,7 +41,7 @@ import java.util.logging.Level;
 
 /**
  * This class represents a sequence.
- * A sequence consists of two parts, PEM and TARGET and is exactly PAM length + TARGET length = 24 characters long.
+ * A sequence consists of two parts, PAM and TARGET and is exactly PAM length + TARGET length = 24 characters long.
  * A sequence is valid if both PAM and TARGET is valid.
  * A PAM is valid if there is a match for PAM_MATCH_REGEXP
  * A TARGET is valid if the number of TARGET_MATCH_PATTERN matches are within TARGET_MATCH_MIN and TARGET_MATCH_MAX (inclusive).

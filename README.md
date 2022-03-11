@@ -4,9 +4,20 @@ This program can be used to analyze genomes for CRISPR sequences and determine b
 
 As the dataset can be large, this program contains several performance optimizations to utilize memory and cpu cores as efficient as possible. Parallelism is generally achieved by Java Stream API and can be configured accordingly. Despite these optimizations, the user needs to take special care the design the pipeline such that the dataset is reduced as much as possible as early as possible. The different evaluators will have significantly different performance impact.
 
-## Genome
+## Concepts
 
-## Sequence
+#### Genome
+A genome is typically represented in a .fasta file format. For more information please see https://en.wikipedia.org/wiki/FASTA_format
+
+#### Sequence
+A sequence is 24 characters long consisting of only characters {A,T,G,C}. A sequence is split into two parts, `PAM` and `TARGET`.
+
+#### PAM
+The PAM is the first 4 characters in a sequence. For a sequence to be considered a CRISPR sequence the PAM must be TTT^T. In some circumstance the critera can be relaxed to be TTTN.
+
+#### Target
+The Target is the last 20 characters in a sequence.
+
 
 ## Stages
 This section describes the different stages available when defining a pipeline. Each stage will have its own input and output folder. Please see respective stage's javadoc for further details on each stage and possible configuration.
