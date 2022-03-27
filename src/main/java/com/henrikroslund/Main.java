@@ -61,7 +61,34 @@ public class Main {
     static final String baseOutputFolder = "../crispr-cas12a-output/" + new SimpleDateFormat("yyyy-MM-dd hhmmss aa z").format(new Date());
     static final String baseInputFolder = "../crispr-cas12a-input";
 
+    static final String PIPELINE_ENV_KEY = "PIPELINE";
+    enum PipelineConfiguration {
+        PIPELINE_BP("bp"),
+        PIPELINE_PERFORMANCE_TESTING("performance");
+
+        public final String value;
+
+        PipelineConfiguration(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+
+        public static PipelineConfiguration fromString(String stringValue) {
+            for(PipelineConfiguration configuration : PipelineConfiguration.values()) {
+                if(configuration.value.equalsIgnoreCase(stringValue)) {
+                    return configuration;
+                }
+            }
+            return null;
+        }
+    }
+
     private final static Logger log = Logger.getLogger("");
+
 
     public static void main(String[] args) {
         long start = new Date().getTime();
@@ -72,17 +99,31 @@ public class Main {
             setupLogging();
             log.info("Started Crispr-cas12a");
 
+            var pipeline = System.getenv().get(PIPELINE_ENV_KEY);
+            if(pipeline == null) {
+                throw new IllegalArgumentException("Please set the environment variable " + PIPELINE_ENV_KEY + " to one of " + Arrays.toString(PipelineConfiguration.values()));
+            }
+
+            PipelineConfiguration configuration = PipelineConfiguration.fromString(pipeline);
+            if(configuration == null) {
+                throw new IllegalArgumentException("Invalid Pipeline \"" + pipeline + "\" Please set the environment variable " + PIPELINE_ENV_KEY + " to one of " + Arrays.toString(PipelineConfiguration.values()));
+            }
+
+            switch (configuration) {
+                case PIPELINE_BP -> suis_pipeline_3();
+                case PIPELINE_PERFORMANCE_TESTING -> performanceTesting();
+                default -> throw new IllegalArgumentException("Invalid PIPELINE selected: " + configuration);
+            }
+
             //crisprBp04_17_21_optimized_pipline();
             //crisprBp04_17_21();
             //suisrRNA();
-            //suisCommonCoverage();
+            //suisCommonCoverage();1
             //rerunPartOfSuis();
-            //performanceTesting();
-            //suis_pipeline_3();
             //testFastaSplit();
             //bpHumanGenome();
             //suisCoverage();
-            serotyping();
+            //serotyping();
 
         } catch(Exception e) {
             StringWriter sw = new StringWriter();
@@ -166,19 +207,19 @@ public class Main {
     }
 
     public static void suis_pipeline_3() throws Exception {
-        String inputFolder = baseInputFolder+"/Bp 05_01_21";
+        String inputFolder = baseInputFolder+"/Bp 03_26_22";
         Pipeline pipeline = new Pipeline("suis_pipeline_3", inputFolder, baseOutputFolder);
-        pipeline.addStage(new CrisprSelection(true, true, true));
-        pipeline.addStage(new CrisprCommon(0));
+        pipeline.addStage(new CrisprSelection(true, true, true), false);
+        pipeline.addStage(new CrisprCommon(0), false);
 
         SequenceEvaluator n1N20Eliminator = new MismatchEvaluator(null, Range.is(0), Range.between(Sequence.TARGET_INDEX_START, Sequence.N20_INDEX));
-        pipeline.addStage(new CrisprElimination(Collections.singletonList(n1N20Eliminator)));
+        pipeline.addStage(new CrisprElimination(Collections.singletonList(n1N20Eliminator)), false);
 
         SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
         TypeEvaluator typeEvaluator = new TypeEvaluator(null,2,2,4,3);
-        pipeline.addStage(new CandidateTyping(Collections.singletonList(crisprEvaluator),typeEvaluator));
+        pipeline.addStage(new CandidateTyping(Collections.singletonList(crisprEvaluator),typeEvaluator), false);
 
-        pipeline.addStage(new CandidateFeature());
+        pipeline.addStage(new CandidateFeature(), false);
         pipeline.run();
     }
 

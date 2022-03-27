@@ -152,6 +152,8 @@ public abstract class Stage {
         if(!shouldPreProcessFiles) {
             log.info("Will skip preprocess files for stage " + getName());
             return;
+        } else {
+            log.info("Pre-processing stage " + getName());
         }
         List<File> fastaFiles = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
         log.info("Files to preprocess: " + fastaFiles.size());
