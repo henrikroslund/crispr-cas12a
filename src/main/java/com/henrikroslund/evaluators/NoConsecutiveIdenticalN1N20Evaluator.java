@@ -56,7 +56,7 @@ public class NoConsecutiveIdenticalN1N20Evaluator implements SequenceEvaluator {
     }
 
     /**
-     * Returns true of there are no tripples in the N1 to N20, otherwise false
+     * Returns true if same character does not repeat consecutively according to configuration in the N1 to N20, otherwise false
      */
     @Override
     public boolean evaluate(Sequence sequence) {
