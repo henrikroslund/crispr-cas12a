@@ -6,7 +6,6 @@ First, the program generates a pool of possible CRISPR-Cas12a target sites from 
 
 Genome assembly and feature table (annotation) can be downloaded from NCBI Assembly portal (https://www.ncbi.nlm.nih.gov/assembly)
 
-
 As the dataset can be large, this program contains several performance optimizations to utilize memory and cpu cores as efficient as possible. Parallelism is generally achieved by Java Stream API and can be configured accordingly. Despite these optimizations, the user needs to take special care the design the pipeline such that the dataset is reduced as much as possible as early as possible. The different evaluators will have significantly different performance impact.
 
 ## Definitions
@@ -34,6 +33,7 @@ General configuration includes:
 
 ### CrisprSelection
 This stage is typically first in a pipeline and is used to generate an initial set of CRISPR target site candidates. It uses the following evaluators:
+
 1. Mandatory `CrisprPamEvaluator` strictMatching: true
 2. Optional `NoConsecutiveIdenticalN1N20Evaluator` type: QUADRUPLE
 3. Optional `GCContentN1N20Evaluator` range: 8-13
@@ -54,7 +54,7 @@ Output:
 This stage is used to remove candidate sequences that are not found 100% identical in all other genomes of the same species. A sequence is considered identical if the PAM and Seed matches and the number of mismatches in N7 to N20 is less than the configured amount (i.e. 0). The following evaluators are used:
 
 1. Mandatory `IdenticalEvaluator` checkPam: false, checkSeed: true, checkN7N20: false
-   1. The PAM is implicitly checked already when reading genomes since the CrisprPamEvaluator is used as described below.
+   * The PAM is implicitly checked already when reading genomes since the CrisprPamEvaluator is used as described below.
 2. Mandatory `MismatchEvaluator` mismatches: Range(0-X), indexesToCompare: Range(N7-N20)
 
 The following configuration is also applied when reading the genomes:

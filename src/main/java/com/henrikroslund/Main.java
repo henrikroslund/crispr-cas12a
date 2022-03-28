@@ -95,6 +95,32 @@ public class Main {
         }
     }
 
+    static final String PIPELINE_ENV_KEY = "PIPELINE";
+    enum PipelineConfiguration {
+        PIPELINE_BP("bp"),
+        PIPELINE_PERFORMANCE_TESTING("performance");
+
+        public final String value;
+
+        PipelineConfiguration(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+
+        public static PipelineConfiguration fromString(String stringValue) {
+            for(PipelineConfiguration configuration : PipelineConfiguration.values()) {
+                if(configuration.value.equalsIgnoreCase(stringValue)) {
+                    return configuration;
+                }
+            }
+            return null;
+        }
+    }
+
     private final static Logger log = Logger.getLogger("");
 
 
