@@ -28,16 +28,17 @@ package com.henrikroslund;
 
 import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.SequenceEvaluator;
-import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
-import com.henrikroslund.pcr.Serotype;
 import com.henrikroslund.pipeline.Pipeline;
 import com.henrikroslund.pipeline.stage.*;
 import com.henrikroslund.sequence.Sequence;
 import org.apache.commons.lang3.Range;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -60,11 +61,18 @@ public class Main {
 
     static final String baseOutputFolder = "../crispr-cas12a-output/" + new SimpleDateFormat("yyyy-MM-dd hhmmss aa z").format(new Date());
     static final String baseInputFolder = "../crispr-cas12a-input";
+    static String inputFolder;
 
     static final String PIPELINE_ENV_KEY = "PIPELINE";
+    static final String PIPELINE_INPUT_FOLDER = "PIPELINE_INPUT";
+
     enum PipelineConfiguration {
+        PIPELINE_FEATURE("features"),
         PIPELINE_BP("bp"),
-        PIPELINE_PERFORMANCE_TESTING("performance");
+        PIPELINE_PERFORMANCE_TESTING("performance"),
+        PIPELINE_TEST_PIPELINE_PREPROCESSING("test-preprocessing"),
+        PIPELINE_DEFAULT("default");
+
 
         public final String value;
 
@@ -99,7 +107,7 @@ public class Main {
             setupLogging();
             log.info("Started Crispr-cas12a");
 
-            var pipeline = System.getenv().get(PIPELINE_ENV_KEY);
+            var pipeline = System.getenv(PIPELINE_ENV_KEY);
             if(pipeline == null) {
                 throw new IllegalArgumentException("Please set the environment variable " + PIPELINE_ENV_KEY + " to one of " + Arrays.toString(PipelineConfiguration.values()));
             }
@@ -109,9 +117,18 @@ public class Main {
                 throw new IllegalArgumentException("Invalid Pipeline \"" + pipeline + "\" Please set the environment variable " + PIPELINE_ENV_KEY + " to one of " + Arrays.toString(PipelineConfiguration.values()));
             }
 
+            var pipelineInputFolder = System.getenv(PIPELINE_INPUT_FOLDER);
+            if(pipelineInputFolder == null) {
+                throw new IllegalArgumentException("Invalid input folder \"" + inputFolder + "\" Please set the environment variable " + PIPELINE_INPUT_FOLDER);
+            }
+            inputFolder = baseInputFolder + "/" + pipelineInputFolder;
+
             switch (configuration) {
+                case PIPELINE_DEFAULT -> defaultPipeline();
                 case PIPELINE_BP -> suis_pipeline_3();
+                case PIPELINE_FEATURE -> featurePipeline();
                 case PIPELINE_PERFORMANCE_TESTING -> performanceTesting();
+                case PIPELINE_TEST_PIPELINE_PREPROCESSING -> testPipelinePreprocessing();
                 default -> throw new IllegalArgumentException("Invalid PIPELINE selected: " + configuration);
             }
 
@@ -138,34 +155,11 @@ public class Main {
         }
     }
 
-    public static void serotyping() throws Exception {
-        String inputFolder = baseInputFolder+"/Serotyping suis";
-        Pipeline pipeline = new Pipeline("Serotyping suis", inputFolder, baseOutputFolder);
-        Serotype serotype2 = new Serotype("TTAGCAACGTTGCCAATAAG", "AATCCTCCATTAAAACCCTG", "serotype2");
-        Serotype serotype14 = new Serotype("TTAGACAGACACCTTATAGG", "CTAGCTTCGTTACTTGATTC", "serotype14");
-        pipeline.addStage(new Serotyping(List.of(serotype2, serotype14)));
+    public static void defaultPipeline() throws Exception {
+        Pipeline pipeline = new Pipeline("Pipeline name", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(true, true, true), false);
+        pipeline.addStage(new CandidateFeature(), false);
         pipeline.run();
-    }
-
-    public static void bpHumanGenome() throws Exception {
-        String inputFolder = baseInputFolder+"/Checking bp human genome";
-        Pipeline pipeline = new Pipeline("Checking bp human genome", inputFolder, baseOutputFolder);
-        pipeline.addStage(new CrisprSelection(true, true, true));
-        SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(true);
-        pipeline.addStage(new CandidateTyping(
-                Collections.singletonList(crisprEvaluator),
-                new MatchEvaluator(null, Range.between(17, 20), Collections.singletonList(Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX))),
-                new TypeEvaluator(null, 0, 0, 0, 0),
-                true));
-        pipeline.run();
-    }
-
-    public static void testFastaSplit() throws Exception {
-        String inputFolder = baseInputFolder+"/test fasta splitting";
-        Pipeline pipeline = new Pipeline("test fasta splitting", inputFolder, baseOutputFolder);
-        CandidateTyping stage = new CandidateTyping();
-        pipeline.addStage(stage);
-        pipeline.preProcessStagesInput();
     }
 
     public static void crBP6() throws Exception {
@@ -180,34 +174,14 @@ public class Main {
         pipeline.run();
     }
 
-    public static void crisprBp04_17_21_optimized_pipline() throws Exception {
-        String inputFolder = baseInputFolder+"/CRIPSR Bp 04_17_21";
-
-        SequenceEvaluator seedEliminator = new MismatchEvaluator(null, Range.between(0,2), Range.between(Sequence.SEED_INDEX_START, Sequence.SEED_INDEX_END));
-        SequenceEvaluator n7N20Eliminator = new MismatchEvaluator(null, Range.between(0,4), Range.between(Sequence.N7_INDEX, Sequence.N20_INDEX));
-        List<SequenceEvaluator> eliminationEvaluators = new ArrayList<>(Arrays.asList(seedEliminator, n7N20Eliminator));
-
-        Pipeline pipeline = new Pipeline("CRIPSR Bp 04_17_21_optimized_pipline", inputFolder, baseOutputFolder);
-        pipeline.addStage(new CrisprSelection(true, true, true));
-        pipeline.addStage(new CrisprCommon(1));
-        pipeline.addStage(new CrisprElimination(eliminationEvaluators));
-        pipeline.addStage(new CandidateFeature());
-        pipeline.run();
-    }
-
-    public static void crisprBp04_17_21() throws Exception {
-        String inputFolder = baseInputFolder+"/CRIPSR Bp 04_17_21";
-        Pipeline pipeline = new Pipeline("CRIPSR Bp 04_17_21", inputFolder, baseOutputFolder);
-        pipeline.addStage(new CrisprSelection(true, true, true));
-        pipeline.addStage(new CrisprCommon(0));
-        pipeline.addStage(new CrisprElimination());
-        pipeline.addStage(new CandidateTyping());
-        pipeline.addStage(new CandidateFeature());
+    public static void featurePipeline() throws Exception {
+        Pipeline pipeline = new Pipeline("Feature pipeline", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(false, false, false), false);
+        pipeline.addStage(new CandidateFeature(), false);
         pipeline.run();
     }
 
     public static void suis_pipeline_3() throws Exception {
-        String inputFolder = baseInputFolder+"/Bp 03_26_22";
         Pipeline pipeline = new Pipeline("suis_pipeline_3", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true), false);
         pipeline.addStage(new CrisprCommon(0), false);
@@ -244,32 +218,12 @@ public class Main {
         }
     }
 
-    public static void suisrRNA() throws Exception {
-        String inputFolder = baseInputFolder+"/CRISPR for Suis rRNA gene";
-        Pipeline pipeline = new Pipeline("CRISPR for Suis rRNA gene", inputFolder, baseOutputFolder);
-        pipeline.addStage(new CrisprSelection(false, false, true));
-        pipeline.addStage(new CrisprCommon());
-        pipeline.addStage(new CrisprElimination());
-        pipeline.addStage(new CandidateTyping());
-        pipeline.run();
-    }
-
-    public static void suisCoverage() throws Exception {
-        String inputFolder = baseInputFolder+"/Coverage suis";
-        Pipeline pipeline = new Pipeline("Coverage suis", inputFolder, baseOutputFolder);
-        pipeline.addStage(new CrisprSelection(false, false, true));
-        pipeline.addStage(new CoverageAnalysis(), false);
-        pipeline.run();
-    }
-
-    public static void rerunPartOfSuis() throws Exception {
-        String inputFolder = baseInputFolder+"/CRISPR Bm filter";
-        Pipeline pipeline = new Pipeline("CRISPR Bm filter", inputFolder, baseOutputFolder);
-        pipeline.addStage(new CrisprSelection(false, false, true));
-        pipeline.addStage(new CrisprElimination());
-        pipeline.addStage(new CandidateTyping());
-        pipeline.addStage(new CandidateFeature());
-        pipeline.run();
+    public static void testPipelinePreprocessing() throws Exception {
+        String inputFolder = baseInputFolder+"/test fasta splitting";
+        Pipeline pipeline = new Pipeline("test fasta splitting", inputFolder, baseOutputFolder);
+        CandidateTyping stage = new CandidateTyping();
+        pipeline.addStage(stage);
+        pipeline.preProcessStagesInput();
     }
 
     private static void setupLogging() throws IOException {
