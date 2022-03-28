@@ -72,8 +72,8 @@ public class GenomeFeature {
                 if(parts.length < 2) {
                     throw new Exception("Unexpected amount of parts " + parts.length + " for: " + line);
                 }
-                start = Integer.parseInt(parts[0]);
-                end = Integer.parseInt(parts[1]);
+                start = Integer.parseInt(parts[0].replaceAll("[<>]", ""));
+                end = Integer.parseInt(parts[1].replaceAll("[<>]", ""));
                 type = "";
                 if(parts.length >= 3) {
                     type = parts[2];

@@ -92,7 +92,8 @@ public class Utils {
 
     public static List<Genome> loadGenomesInFolder(String folder, List<SequenceEvaluator> criteria, boolean skipDuplicates, boolean includeAllChromosomes) {
         List<Genome> genomes = Collections.synchronizedList(new ArrayList<>());
-        List<File> genomeFiles = Utils.getFilesInFolder(folder, "");
+        List<File> genomeFiles = Utils.getFilesInFolder(folder, FASTA_FILE_ENDING);
+        genomeFiles.addAll(Utils.getFilesInFolder(folder, Genome.GENOME_FILE_ENDING));
         (Main.DEBUG ? genomeFiles.stream() : genomeFiles.parallelStream())
                 .forEach(file -> {
                     try {
