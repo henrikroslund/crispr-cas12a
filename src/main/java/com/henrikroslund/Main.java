@@ -69,6 +69,7 @@ public class Main {
     enum PipelineConfiguration {
         PIPELINE_FEATURE("features"),
         PIPELINE_BP("bp"),
+        PIPELINE_SUIS("suis"),
         PIPELINE_PERFORMANCE_TESTING("performance"),
         PIPELINE_TEST_PIPELINE_PREPROCESSING("test-preprocessing"),
         PIPELINE_DEFAULT("default");
@@ -125,7 +126,8 @@ public class Main {
 
             switch (configuration) {
                 case PIPELINE_DEFAULT -> defaultPipeline();
-                case PIPELINE_BP -> suis_pipeline_3();
+                case PIPELINE_BP -> bp_pipeline();
+                case PIPELINE_SUIS -> suis_pipeline();
                 case PIPELINE_FEATURE -> featurePipeline();
                 case PIPELINE_PERFORMANCE_TESTING -> performanceTesting();
                 case PIPELINE_TEST_PIPELINE_PREPROCESSING -> testPipelinePreprocessing();
@@ -162,18 +164,6 @@ public class Main {
         pipeline.run();
     }
 
-    public static void crBP6() throws Exception {
-        String inputFolder = baseInputFolder+"/Checking crBP6";
-        Pipeline pipeline = new Pipeline("Checking crBP6", inputFolder, baseOutputFolder);
-        pipeline.addStage(new CrisprSelection(true, true, true));
-        pipeline.addStage(new CandidateTyping(
-                Collections.emptyList(),
-                new MismatchEvaluator(null, Range.between(0, 3)),
-                new TypeEvaluator(null, 0, 0, 0, 0),
-                false));
-        pipeline.run();
-    }
-
     public static void featurePipeline() throws Exception {
         Pipeline pipeline = new Pipeline("Feature pipeline", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(false, false, false), false);
@@ -181,10 +171,26 @@ public class Main {
         pipeline.run();
     }
 
-    public static void suis_pipeline_3() throws Exception {
-        Pipeline pipeline = new Pipeline("suis_pipeline_3", inputFolder, baseOutputFolder);
+    public static void bp_pipeline() throws Exception {
+        Pipeline pipeline = new Pipeline("bp_pipeline", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true), false);
-        pipeline.addStage(new CrisprCommon(0), false);
+        pipeline.addStage(new CrisprCommon(0, true, true, 0), false);
+
+        SequenceEvaluator n1N20Eliminator = new MismatchEvaluator(null, Range.is(0), Range.between(Sequence.TARGET_INDEX_START, Sequence.N20_INDEX));
+        pipeline.addStage(new CrisprElimination(Collections.singletonList(n1N20Eliminator)), false);
+
+        SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
+        TypeEvaluator typeEvaluator = new TypeEvaluator(null,2,2,4,3);
+        pipeline.addStage(new CandidateTyping(Collections.singletonList(crisprEvaluator),typeEvaluator), false);
+
+        pipeline.addStage(new CandidateFeature(), false);
+        pipeline.run();
+    }
+
+    public static void suis_pipeline() throws Exception {
+        Pipeline pipeline = new Pipeline("suis_pipeline", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(true, true, true), false);
+        pipeline.addStage(new CrisprCommon(1, false, false, 1), false);
 
         SequenceEvaluator n1N20Eliminator = new MismatchEvaluator(null, Range.is(0), Range.between(Sequence.TARGET_INDEX_START, Sequence.N20_INDEX));
         pipeline.addStage(new CrisprElimination(Collections.singletonList(n1N20Eliminator)), false);
