@@ -27,6 +27,7 @@ package com.henrikroslund.pipeline.stage;
  */
 
 import com.henrikroslund.Genome;
+import com.henrikroslund.Main;
 import com.henrikroslund.Utils;
 import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.SequenceEvaluator;
@@ -47,15 +48,22 @@ import java.util.*;
 @Log
 public class CrisprElimination extends Stage {
 
-    List<SequenceEvaluator> evaluators = Collections.emptyList();
+    List<SequenceEvaluator> evaluatorsOR = Collections.emptyList();
+    List<SequenceEvaluator> evaluatorsAND = Collections.emptyList();
 
     public CrisprElimination() {
         super(CrisprElimination.class);
     }
 
-    public CrisprElimination(List<SequenceEvaluator> evaluators) {
+    public CrisprElimination(List<SequenceEvaluator> evaluatorsAND) {
         this();
-        this.evaluators = evaluators;
+        this.evaluatorsAND = evaluatorsAND;
+    }
+
+    public CrisprElimination(List<SequenceEvaluator> evaluatorsAND, List<SequenceEvaluator> evaluatorsOR) {
+        this();
+        this.evaluatorsOR = evaluatorsOR;
+        this.evaluatorsAND = evaluatorsAND;
     }
 
     @Override
@@ -73,20 +81,29 @@ public class CrisprElimination extends Stage {
 
             Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator(false)), true, false);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
+                boolean wasFound = false;
                 if(genome.exists(sequence)) {
                     found.add(sequence);
+                    wasFound = true;
                 }
-                if(!evaluators.isEmpty()) {
-                    // TODO change this back to being an OR operator and instead the
-                    // MismatchEvaluator should handle the AND conditions so it can print the correct
-                    // log matching for ====X==XXX
-                    List<SequenceEvaluator> newEvaluators = SequenceEvaluator.getNewEvaluators(sequence, evaluators);
+                if(!wasFound && !evaluatorsOR.isEmpty()) {
+                    List<SequenceEvaluator> newEvaluators = SequenceEvaluator.getNewEvaluators(sequence, evaluatorsOR);
+                    SequenceEvaluator evaluatorMatch = genome.hasAnyMatchToAnyEvaluator(newEvaluators);
+                    if(evaluatorMatch != null) {
+                        found.add(sequence);
+                        wasFound = true;
+                        log.info("Will remove " + sequence + " because close match was found by " + evaluatorMatch);
+                    }
+                }
+                if(!wasFound && !evaluatorsAND.isEmpty()) {
+                    List<SequenceEvaluator> newEvaluators = SequenceEvaluator.getNewEvaluators(sequence, evaluatorsAND);
                     Sequence match = genome.getSequenceMatchingAllEvaluators(newEvaluators);
                     if(match != null) {
                         found.add(sequence);
                         log.info("Will remove " + sequence + " because close match was found by " + newEvaluators);
                     }
                 }
+
             });
 
             printProcessingTime(startTime);
@@ -107,7 +124,16 @@ public class CrisprElimination extends Stage {
         StringBuilder description = new StringBuilder();
         description.append(getName());
         description.append(" ").append(getStageFolder());
-        for(SequenceEvaluator evaluator : evaluators) {
+        if(!evaluatorsOR.isEmpty()) {
+            description.append(" ").append(" OR-evaluators:");
+        }
+        for(SequenceEvaluator evaluator : evaluatorsOR) {
+            description.append(" ").append(evaluator.describe());
+        }
+        if(!evaluatorsAND.isEmpty()) {
+            description.append(" ").append(" And-evaluators:");
+        }
+        for(SequenceEvaluator evaluator : evaluatorsAND) {
             description.append(" ").append(evaluator.describe());
         }
         return description.toString();

@@ -28,6 +28,7 @@ package com.henrikroslund;
 
 import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.SequenceEvaluator;
+import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.pipeline.Pipeline;
@@ -134,16 +135,6 @@ public class Main {
                 default -> throw new IllegalArgumentException("Invalid PIPELINE selected: " + configuration);
             }
 
-            //crisprBp04_17_21_optimized_pipline();
-            //crisprBp04_17_21();
-            //suisrRNA();
-            //suisCommonCoverage();1
-            //rerunPartOfSuis();
-            //testFastaSplit();
-            //bpHumanGenome();
-            //suisCoverage();
-            //serotyping();
-
         } catch(Exception e) {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
@@ -192,12 +183,14 @@ public class Main {
         pipeline.addStage(new CrisprSelection(true, true, true), false);
         pipeline.addStage(new CrisprCommon(1, false, false, 1), false);
 
-        SequenceEvaluator n1N20Eliminator = new MismatchEvaluator(null, Range.is(0), Range.between(Sequence.TARGET_INDEX_START, Sequence.N20_INDEX));
+        SequenceEvaluator n1N20Eliminator = new MismatchEvaluator(null, Range.between(0,1), Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX));
         pipeline.addStage(new CrisprElimination(Collections.singletonList(n1N20Eliminator)), false);
 
         SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
         TypeEvaluator typeEvaluator = new TypeEvaluator(null,2,2,4,3);
-        pipeline.addStage(new CandidateTyping(Collections.singletonList(crisprEvaluator),typeEvaluator), false);
+        SequenceEvaluator bindCriteria = new MatchEvaluator(null, Range.between(16, 24),
+                Collections.singletonList(Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX)));
+        pipeline.addStage(new CandidateTyping(Collections.singletonList(crisprEvaluator), bindCriteria, typeEvaluator, false), false);
 
         pipeline.addStage(new CandidateFeature(), false);
         pipeline.run();
