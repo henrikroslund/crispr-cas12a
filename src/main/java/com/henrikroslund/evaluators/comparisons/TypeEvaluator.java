@@ -43,6 +43,7 @@ public class TypeEvaluator implements SequenceEvaluator {
         TYPE_4, // Did not bind in genome. Cannot be evaluated in this class on a sequence comparison level.
         TYPE_5, // >=X mismatches in N7-N20
         TYPE_6, // >=X mismatches in Seed
+        TYPE_7, // >=X1 mismatches in Seed AND >=X2 mismatches in N7-N20
         TYPE_DISCARD // If no other type applies
     }
 
@@ -50,6 +51,8 @@ public class TypeEvaluator implements SequenceEvaluator {
     private final int type2Criteria;
     private final int type5Criteria;
     private final int type6Criteria;
+    private final int type7X1Critera;
+    private final int type7X2Critera;
 
     final Sequence sequence;
 
@@ -59,16 +62,18 @@ public class TypeEvaluator implements SequenceEvaluator {
     private final List<Type> matchTypes = new ArrayList<>();
     private final String[] matchRepresentation = new String[]{"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?"};
 
-    public TypeEvaluator(Sequence sequence, int type1Criteria, int type2Criteria, int type5Criteria, int type6Criteria) {
+    public TypeEvaluator(Sequence sequence, int type1Criteria, int type2Criteria, int type5Criteria, int type6Criteria, int type7X1Criteria, int type7X2Criteria) {
         this.sequence = sequence;
         this.type1Criteria = type1Criteria;
         this.type2Criteria = type2Criteria;
         this.type5Criteria = type5Criteria;
         this.type6Criteria = type6Criteria;
+        this.type7X1Critera = type7X1Criteria;
+        this.type7X2Critera = type7X2Criteria;
     }
 
     public TypeEvaluator(Sequence sequence) {
-        this(sequence, 2, 2, 3, 3);
+        this(sequence, 2, 2, 3, 3, 99, 99);
     }
 
     private void reset() {
@@ -128,7 +133,7 @@ public class TypeEvaluator implements SequenceEvaluator {
 
     @Override
     public SequenceEvaluator getNewEvaluator(Sequence sequence) {
-        return new TypeEvaluator(sequence, type1Criteria, type2Criteria, type5Criteria, type6Criteria);
+        return new TypeEvaluator(sequence, type1Criteria, type2Criteria, type5Criteria, type6Criteria, type7X1Critera, type7X2Critera);
     }
 
     private void evaluateTypes(int pamMismatches, int seedMismatches, int seedMismatchesInARow, int mismatchesN7toN20) {
@@ -146,6 +151,9 @@ public class TypeEvaluator implements SequenceEvaluator {
         }
         if(seedMismatches >= type6Criteria) {
             matchTypes.add(Type.TYPE_6);
+        }
+        if(seedMismatches >= type7X1Critera && mismatchesN7toN20 >= type7X2Critera) {
+            matchTypes.add(Type.TYPE_7);
         }
         if(matchTypes.isEmpty()) {
             matchTypes.add(Type.TYPE_DISCARD);

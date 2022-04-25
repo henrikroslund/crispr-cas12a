@@ -127,7 +127,7 @@ public class Main {
 
             switch (configuration) {
                 case PIPELINE_DEFAULT -> defaultPipeline();
-                case PIPELINE_BP -> bp_pipeline();
+                //case PIPELINE_BP -> bp_pipeline();
                 case PIPELINE_SUIS -> suis_pipeline();
                 case PIPELINE_FEATURE -> featurePipeline();
                 case PIPELINE_PERFORMANCE_TESTING -> performanceTesting();
@@ -161,7 +161,7 @@ public class Main {
         pipeline.addStage(new CandidateFeature(), false);
         pipeline.run();
     }
-
+/*
     public static void bp_pipeline() throws Exception {
         Pipeline pipeline = new Pipeline("bp_pipeline", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true), false);
@@ -177,7 +177,7 @@ public class Main {
         pipeline.addStage(new CandidateFeature(), false);
         pipeline.run();
     }
-
+*/
     public static void suis_pipeline() throws Exception {
         Pipeline pipeline = new Pipeline("suis_pipeline", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true), false);
@@ -186,7 +186,7 @@ public class Main {
         pipeline.addStage(new CrisprElimination(Collections.singletonList(n1N20Eliminator)), false);
 
         SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
-        TypeEvaluator typeEvaluator = new TypeEvaluator(null,2,2,4,3);
+        TypeEvaluator typeEvaluator = new TypeEvaluator(null,2,2,4,3, 1, 2);
         SequenceEvaluator bindCriteria = new MatchEvaluator(null, Range.between(16, 24),
                 Collections.singletonList(Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX)));
         pipeline.addStage(new CandidateTyping(Collections.singletonList(crisprEvaluator), bindCriteria, typeEvaluator, false), false);
