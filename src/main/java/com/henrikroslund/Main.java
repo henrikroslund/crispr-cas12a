@@ -181,9 +181,8 @@ public class Main {
     public static void suis_pipeline() throws Exception {
         Pipeline pipeline = new Pipeline("suis_pipeline", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true), false);
-        pipeline.addStage(new CrisprCommon(1, false, false, 1), false);
-
-        SequenceEvaluator n1N20Eliminator = new MismatchEvaluator(null, Range.between(0,1), Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX));
+        pipeline.addStage(new CrisprCommon(1, false, false, 2), false);
+        SequenceEvaluator n1N20Eliminator = new MismatchEvaluator(null, Range.between(0,3), Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX));
         pipeline.addStage(new CrisprElimination(Collections.singletonList(n1N20Eliminator)), false);
 
         SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
@@ -231,5 +230,13 @@ public class Main {
         mainLoggerFileHandler = new FileHandler(baseOutputFolder + "/application.log");
         mainLoggerFileHandler.setFormatter(simpleFormatter);
         log.addHandler(mainLoggerFileHandler);
+    }
+
+    public static final boolean ABORT_IF_CANDIDATE_IS_REMOVED = false;
+    public static void candidateWasRemoved(Sequence sequence) {
+        if(ABORT_IF_CANDIDATE_IS_REMOVED) {
+            log.severe("Candidate was about to be removed: " + sequence);
+            System.exit(1);
+        }
     }
 }

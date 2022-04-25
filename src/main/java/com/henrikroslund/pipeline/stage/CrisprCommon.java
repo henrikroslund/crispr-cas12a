@@ -27,6 +27,7 @@ package com.henrikroslund.pipeline.stage;
  */
 
 import com.henrikroslund.Genome;
+import com.henrikroslund.Main;
 import com.henrikroslund.Utils;
 import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.IdenticalEvaluator;
@@ -114,6 +115,7 @@ public class CrisprCommon extends Stage {
                     log.info(sequence.getRaw() + " was not found in " + file.getName() + " and so far not found in " + notFoundIn.get(sequence).size());
                     if(notFoundIn.get(sequence).size() > toleranceNbrOfGenomes) {
                         toBeRemoved.add(sequence);
+                        Main.candidateWasRemoved(sequence);
                     }
                 }
             });

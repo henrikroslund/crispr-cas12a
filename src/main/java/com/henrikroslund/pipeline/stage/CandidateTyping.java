@@ -27,6 +27,7 @@ package com.henrikroslund.pipeline.stage;
  */
 
 import com.henrikroslund.Genome;
+import com.henrikroslund.Main;
 import com.henrikroslund.Utils;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
@@ -124,6 +125,7 @@ public class CandidateTyping extends Stage {
                     mainGenomeSequence.increaseMetaDataCounters(evaluator.getMatchTypes());
                     if(evaluator.getMatchTypes().contains(TypeEvaluator.Type.TYPE_DISCARD)) {
                         discards.add(mainGenomeSequence);
+                        Main.candidateWasRemoved(mainGenomeSequence);
                     }
                     log.info("allMatches: " + allMatchesInOtherGenomes.size() + " " + mainGenomeSequence + " " + evaluator + " discardCount: " + discards.size());
                     if(saveSurroundingSequencesForMatches) {

@@ -93,6 +93,7 @@ public class CrisprElimination extends Stage {
                         found.add(sequence);
                         wasFound = true;
                         log.info("Will remove " + sequence + " because close match was found by " + evaluatorMatch);
+                        Main.candidateWasRemoved(sequence);
                     }
                 }
                 if(!wasFound && !evaluatorsAND.isEmpty()) {
@@ -101,6 +102,7 @@ public class CrisprElimination extends Stage {
                     if(match != null) {
                         found.add(sequence);
                         log.info("Will remove " + sequence + " because close match was found by " + newEvaluators);
+                        Main.candidateWasRemoved(sequence);
                     }
                 }
 
