@@ -55,6 +55,7 @@ public class Main {
 
     private final static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final static ScheduledFuture<?> memUsageHandle = scheduler.scheduleAtFixedRate(Utils::printMemoryStat, 1, 15, TimeUnit.SECONDS);
+    private final static ScheduledFuture<?> threadDump = scheduler.scheduleAtFixedRate(Utils::threadDump, 1, 3600/2, TimeUnit.SECONDS);
 
     public static final boolean DEBUG = false;
     public static FileHandler mainLoggerFileHandler;
@@ -149,8 +150,10 @@ public class Main {
             log.severe(sw.toString());
         } finally {
             memUsageHandle.cancel(false);
+            threadDump.cancel(false);
             scheduler.shutdown();
             printMemoryStat();
+            Utils.threadDump();
             log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
         }
     }
