@@ -28,6 +28,7 @@ package com.henrikroslund;
 
 import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.SequenceEvaluator;
+import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.pipeline.Pipeline;
@@ -70,6 +71,7 @@ public class Main {
     enum PipelineConfiguration {
         PIPELINE_FEATURE("features"),
         PIPELINE_BP("bp"),
+        PIPELINE_BP_HUMAN_GENOME("bpHuman"),
         PIPELINE_PERFORMANCE_TESTING("performance"),
         PIPELINE_TEST_PIPELINE_PREPROCESSING("test-preprocessing"),
         PIPELINE_DEFAULT("default");
@@ -127,6 +129,7 @@ public class Main {
             switch (configuration) {
                 case PIPELINE_DEFAULT -> defaultPipeline();
                 case PIPELINE_BP -> suis_pipeline_3();
+                case PIPELINE_BP_HUMAN_GENOME -> bpHumanGenome();
                 case PIPELINE_FEATURE -> featurePipeline();
                 case PIPELINE_PERFORMANCE_TESTING -> performanceTesting();
                 case PIPELINE_TEST_PIPELINE_PREPROCESSING -> testPipelinePreprocessing();
@@ -200,7 +203,21 @@ public class Main {
         pipeline.run();
     }
 
-    public static void performanceTesting() throws Exception {
+    public static void bpHumanGenome() throws Exception {
+        String inputFolder = baseInputFolder + "/Checking bp human genome";
+        Pipeline pipeline = new Pipeline("Checking bp human genome", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(true, true, true));
+        SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
+        pipeline.addStage(new CandidateTyping(
+                Collections.singletonList(crisprEvaluator),
+                new MatchEvaluator(null, Range.between(15, 20), Collections.singletonList(Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX))),
+                new TypeEvaluator(null, 2, 2, 4, 3),
+                true), true);
+        pipeline.run();
+    }
+
+
+        public static void performanceTesting() throws Exception {
         for(int i=0; i<1; i++) {
             String inputFolder = baseInputFolder+"/performance-testing";
             Pipeline pipeline = new Pipeline("Performance testing", inputFolder, baseOutputFolder);
