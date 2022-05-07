@@ -28,10 +28,12 @@ package com.henrikroslund.evaluators;
 
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
+import lombok.extern.java.Log;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Log
 public class NoConsecutiveIdenticalN1N20Evaluator implements SequenceEvaluator {
 
     public enum Type {
@@ -64,6 +66,7 @@ public class NoConsecutiveIdenticalN1N20Evaluator implements SequenceEvaluator {
         boolean result = matcher.find();
         if(!result) {
             match = sequence;
+            handleEvaluationMatch(log);
         } else {
             match = null;
         }

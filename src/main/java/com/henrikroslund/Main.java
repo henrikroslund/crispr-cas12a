@@ -28,6 +28,7 @@ package com.henrikroslund;
 
 import com.henrikroslund.evaluators.CrisprPamEvaluator;
 import com.henrikroslund.evaluators.SequenceEvaluator;
+import com.henrikroslund.evaluators.comparisons.MatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.MismatchEvaluator;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.pipeline.Pipeline;
@@ -55,6 +56,7 @@ public class Main {
 
     private final static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final static ScheduledFuture<?> memUsageHandle = scheduler.scheduleAtFixedRate(Utils::printMemoryStat, 1, 15, TimeUnit.SECONDS);
+    private final static ScheduledFuture<?> threadDump = scheduler.scheduleAtFixedRate(Utils::threadDump, 1, 3600/2, TimeUnit.SECONDS);
 
     public static final boolean DEBUG = false;
     public static FileHandler mainLoggerFileHandler;
@@ -69,10 +71,11 @@ public class Main {
     enum PipelineConfiguration {
         PIPELINE_FEATURE("features"),
         PIPELINE_BP("bp"),
+        PIPELINE_BP_HUMAN_GENOME("bpHuman"),
+        PIPELINE_CANDIDATE_ANALYSIS("candidateAnalysis"),
         PIPELINE_PERFORMANCE_TESTING("performance"),
         PIPELINE_TEST_PIPELINE_PREPROCESSING("test-preprocessing"),
         PIPELINE_DEFAULT("default");
-
 
         public final String value;
 
@@ -126,21 +129,13 @@ public class Main {
             switch (configuration) {
                 case PIPELINE_DEFAULT -> defaultPipeline();
                 case PIPELINE_BP -> suis_pipeline_3();
+                case PIPELINE_BP_HUMAN_GENOME -> bpHumanGenome();
+                case PIPELINE_CANDIDATE_ANALYSIS -> candidateAnalysis();
                 case PIPELINE_FEATURE -> featurePipeline();
                 case PIPELINE_PERFORMANCE_TESTING -> performanceTesting();
                 case PIPELINE_TEST_PIPELINE_PREPROCESSING -> testPipelinePreprocessing();
                 default -> throw new IllegalArgumentException("Invalid PIPELINE selected: " + configuration);
             }
-
-            //crisprBp04_17_21_optimized_pipline();
-            //crisprBp04_17_21();
-            //suisrRNA();
-            //suisCommonCoverage();1
-            //rerunPartOfSuis();
-            //testFastaSplit();
-            //bpHumanGenome();
-            //suisCoverage();
-            //serotyping();
 
         } catch(Exception e) {
             StringWriter sw = new StringWriter();
@@ -149,8 +144,10 @@ public class Main {
             log.severe(sw.toString());
         } finally {
             memUsageHandle.cancel(false);
+            threadDump.cancel(false);
             scheduler.shutdown();
             printMemoryStat();
+            Utils.threadDump();
             log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
         }
     }
@@ -197,7 +194,27 @@ public class Main {
         pipeline.run();
     }
 
-    public static void performanceTesting() throws Exception {
+    public static void candidateAnalysis() throws Exception {
+        Pipeline pipeline = new Pipeline("Candidate Analysis Pipeline", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(true, true, true));
+        pipeline.addStage(new CandidateAnalysis(new MismatchEvaluator(null, Range.is(3), Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX))));
+        pipeline.run();
+    }
+
+    public static void bpHumanGenome() throws Exception {
+        Pipeline pipeline = new Pipeline("Checking bp human genome", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(true, true, true));
+        SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
+        pipeline.addStage(new CandidateTyping(
+                Collections.singletonList(crisprEvaluator),
+                new MatchEvaluator(null, Range.between(15, 20), Collections.singletonList(Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX))),
+                new TypeEvaluator(null, 2, 2, 4, 3),
+                true), true);
+        pipeline.run();
+    }
+
+
+        public static void performanceTesting() throws Exception {
         for(int i=0; i<1; i++) {
             String inputFolder = baseInputFolder+"/performance-testing";
             Pipeline pipeline = new Pipeline("Performance testing", inputFolder, baseOutputFolder);

@@ -29,11 +29,13 @@ package com.henrikroslund.evaluators.comparisons;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
+import lombok.extern.java.Log;
 import org.apache.commons.lang3.Range;
 
 import java.util.Collections;
 import java.util.List;
 
+@Log
 public class MatchEvaluator implements SequenceEvaluator {
 
     final Sequence sequence;
@@ -78,6 +80,7 @@ public class MatchEvaluator implements SequenceEvaluator {
         if(matchRange.contains(numberOfMatches)) {
             this.match = sequence;
             this.matches = numberOfMatches;
+            handleEvaluationMatch(log);
             return true;
         } else {
             this.matches = -1;

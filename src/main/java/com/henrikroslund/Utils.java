@@ -29,9 +29,16 @@ package com.henrikroslund;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import lombok.extern.java.Log;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -141,6 +148,34 @@ public class Utils {
         if(used > maxMemUsage) {
             maxMemUsage = used;
             log.info("Total Memory: " + total + " MB, Used: " + used + ", Free: " + free + ", MaxUsed: " + maxMemUsage);
+        }
+    }
+
+    public static void threadDump() {
+        BufferedWriter threadDumpWriter = null;
+        try {
+            String outputFolder = Main.baseOutputFolder + "/debugging";
+            new File(outputFolder).mkdirs();
+            threadDumpWriter = new BufferedWriter(new FileWriter(outputFolder + "/"
+                    + new SimpleDateFormat("yyyy-MM-dd hhmmss aa z").format(new Date()) + ".log", true));
+            StringBuilder threadDump = new StringBuilder(System.lineSeparator());
+            threadDump.append("Number of threads ").append(Thread.activeCount()).append(System.lineSeparator());
+            threadDump.append("Total Number of threads ").append(ManagementFactory.getThreadMXBean().getThreadCount()).append(System.lineSeparator());
+            ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+            for(ThreadInfo threadInfo : threadMXBean.dumpAllThreads(true, true)) {
+                threadDump.append(threadInfo.toString());
+            }
+            threadDumpWriter.write(threadDump.toString());
+        } catch (IOException e) {
+            log.severe("Error when saving thread dump: " + e.getMessage());
+        } finally {
+            try {
+                if(threadDumpWriter != null) {
+                    threadDumpWriter.close();
+                }
+            } catch (IOException e) {
+                log.severe("Error when closing writer: " + e.getMessage());
+            }
         }
     }
 }

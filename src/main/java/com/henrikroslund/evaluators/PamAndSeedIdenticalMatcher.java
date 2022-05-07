@@ -29,7 +29,9 @@ package com.henrikroslund.evaluators;
 import com.henrikroslund.sequence.Sequence;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.extern.java.Log;
 
+@Log
 public class PamAndSeedIdenticalMatcher implements SequenceEvaluator {
 
     @Getter(AccessLevel.PROTECTED)
@@ -48,6 +50,7 @@ public class PamAndSeedIdenticalMatcher implements SequenceEvaluator {
         boolean result = this.sequence.equalsPam(sequence) && this.sequence.equalsSeed(sequence);
         if(result) {
             match = sequence;
+            handleEvaluationMatch(log);
         } else {
             match = null;
         }

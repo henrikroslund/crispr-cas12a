@@ -245,6 +245,8 @@ public class Genome {
     }
     public List<Sequence> getSequencesMatchingAnyEvaluator(List<SequenceEvaluator> evaluators) {
         List<Sequence> results = Collections.synchronizedList(new ArrayList<>());
+        // It is important this is not done in parallel as the evaluators are not thread safe.
+        // If this needs to be run in parallel then each sequence needs to create a new evaluator before evaluating
         sequences.forEach(sequence -> {
             if(SequenceEvaluator.matchAny(evaluators, sequence) != null) {
                 results.add(sequence);

@@ -29,12 +29,14 @@ package com.henrikroslund.evaluators.comparisons;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
+import lombok.extern.java.Log;
 import org.apache.commons.lang3.Range;
 
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+@Log
 public class MismatchEvaluator implements SequenceEvaluator {
 
     final Sequence sequence;
@@ -97,6 +99,7 @@ public class MismatchEvaluator implements SequenceEvaluator {
         if(mismatchRange.contains(numberOfMismatches)) {
             this.match = sequence;
             this.mismatches = numberOfMismatches;
+            handleEvaluationMatch(log);
             return true;
         } else {
             this.mismatches = -1;
@@ -112,7 +115,7 @@ public class MismatchEvaluator implements SequenceEvaluator {
 
     @Override
     public String describe() {
-        return "MismatchEvaluator(mismatches: " + mismatchRange + " indexes: " + describeIndexesToCompare + " )";
+        return "MismatchEvaluator(mismatches: " + mismatchRange + " indexes: " + describeIndexesToCompare + " sequence: " + sequence + " )";
     }
 
     @Override
