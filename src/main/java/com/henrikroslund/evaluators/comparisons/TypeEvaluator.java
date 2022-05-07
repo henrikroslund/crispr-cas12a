@@ -29,11 +29,13 @@ package com.henrikroslund.evaluators.comparisons;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
+import lombok.extern.java.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Log
 public class TypeEvaluator implements SequenceEvaluator {
 
     public enum Type {
@@ -53,6 +55,8 @@ public class TypeEvaluator implements SequenceEvaluator {
     private final int type6Criteria;
     private final int type7X1Critera;
     private final int type7X2Critera;
+
+    public static final int DISABLE_TYPE = -1;
 
     final Sequence sequence;
 
@@ -152,12 +156,13 @@ public class TypeEvaluator implements SequenceEvaluator {
         if(seedMismatches >= type6Criteria) {
             matchTypes.add(Type.TYPE_6);
         }
-        if(seedMismatches >= type7X1Critera && mismatchesN7toN20 >= type7X2Critera) {
+        if(type7X1Critera != DISABLE_TYPE && type7X2Critera != DISABLE_TYPE && seedMismatches >= type7X1Critera && mismatchesN7toN20 >= type7X2Critera) {
             matchTypes.add(Type.TYPE_7);
         }
         if(matchTypes.isEmpty()) {
             matchTypes.add(Type.TYPE_DISCARD);
         }
+        handleEvaluationMatch(log);
     }
 
     @Override

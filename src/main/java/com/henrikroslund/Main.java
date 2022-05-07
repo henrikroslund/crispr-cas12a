@@ -56,6 +56,7 @@ public class Main {
 
     private final static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final static ScheduledFuture<?> memUsageHandle = scheduler.scheduleAtFixedRate(Utils::printMemoryStat, 1, 15, TimeUnit.SECONDS);
+    private final static ScheduledFuture<?> threadDump = scheduler.scheduleAtFixedRate(Utils::threadDump, 1, 3600/2, TimeUnit.SECONDS);
 
     public static final boolean DEBUG = false;
     public static FileHandler mainLoggerFileHandler;
@@ -71,10 +72,11 @@ public class Main {
         PIPELINE_FEATURE("features"),
         PIPELINE_BP("bp"),
         PIPELINE_SUIS("suis"),
+        PIPELINE_BP_HUMAN_GENOME("bpHuman"),
+        PIPELINE_CANDIDATE_ANALYSIS("candidateAnalysis"),
         PIPELINE_PERFORMANCE_TESTING("performance"),
         PIPELINE_TEST_PIPELINE_PREPROCESSING("test-preprocessing"),
         PIPELINE_DEFAULT("default");
-
 
         public final String value;
 
@@ -127,8 +129,10 @@ public class Main {
 
             switch (configuration) {
                 case PIPELINE_DEFAULT -> defaultPipeline();
-                //case PIPELINE_BP -> bp_pipeline();
+                case PIPELINE_BP -> bp_pipeline();
                 case PIPELINE_SUIS -> suis_pipeline();
+                case PIPELINE_BP_HUMAN_GENOME -> bpHumanGenome();
+                case PIPELINE_CANDIDATE_ANALYSIS -> candidateAnalysis();
                 case PIPELINE_FEATURE -> featurePipeline();
                 case PIPELINE_PERFORMANCE_TESTING -> performanceTesting();
                 case PIPELINE_TEST_PIPELINE_PREPROCESSING -> testPipelinePreprocessing();
@@ -142,8 +146,10 @@ public class Main {
             log.severe(sw.toString());
         } finally {
             memUsageHandle.cancel(false);
+            threadDump.cancel(false);
             scheduler.shutdown();
             printMemoryStat();
+            Utils.threadDump();
             log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
         }
     }
@@ -161,7 +167,7 @@ public class Main {
         pipeline.addStage(new CandidateFeature(), false);
         pipeline.run();
     }
-/*
+
     public static void bp_pipeline() throws Exception {
         Pipeline pipeline = new Pipeline("bp_pipeline", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true), false);
@@ -171,13 +177,13 @@ public class Main {
         pipeline.addStage(new CrisprElimination(Collections.singletonList(n1N20Eliminator)), false);
 
         SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
-        TypeEvaluator typeEvaluator = new TypeEvaluator(null,2,2,4,3);
+        TypeEvaluator typeEvaluator = new TypeEvaluator(null,2,2,4,3, TypeEvaluator.DISABLE_TYPE, TypeEvaluator.DISABLE_TYPE);
         pipeline.addStage(new CandidateTyping(Collections.singletonList(crisprEvaluator),typeEvaluator), false);
 
         pipeline.addStage(new CandidateFeature(), false);
         pipeline.run();
     }
-*/
+
     public static void suis_pipeline() throws Exception {
         Pipeline pipeline = new Pipeline("suis_pipeline", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true), false);
@@ -195,7 +201,27 @@ public class Main {
         pipeline.run();
     }
 
-    public static void performanceTesting() throws Exception {
+    public static void candidateAnalysis() throws Exception {
+        Pipeline pipeline = new Pipeline("Candidate Analysis Pipeline", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(true, true, true));
+        pipeline.addStage(new CandidateAnalysis(new MismatchEvaluator(null, Range.is(3), Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX))));
+        pipeline.run();
+    }
+
+    public static void bpHumanGenome() throws Exception {
+        Pipeline pipeline = new Pipeline("Checking bp human genome", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(true, true, true));
+        SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
+        pipeline.addStage(new CandidateTyping(
+                Collections.singletonList(crisprEvaluator),
+                new MatchEvaluator(null, Range.between(15, 20), Collections.singletonList(Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX))),
+                new TypeEvaluator(null, 2, 2, 4, 3, TypeEvaluator.DISABLE_TYPE, TypeEvaluator.DISABLE_TYPE),
+                true), true);
+        pipeline.run();
+    }
+
+
+        public static void performanceTesting() throws Exception {
         for(int i=0; i<1; i++) {
             String inputFolder = baseInputFolder+"/performance-testing";
             Pipeline pipeline = new Pipeline("Performance testing", inputFolder, baseOutputFolder);
