@@ -72,10 +72,10 @@ public class Main {
         PIPELINE_FEATURE("features"),
         PIPELINE_BP("bp"),
         PIPELINE_BP_HUMAN_GENOME("bpHuman"),
+        PIPELINE_CANDIDATE_ANALYSIS("candidateAnalysis"),
         PIPELINE_PERFORMANCE_TESTING("performance"),
         PIPELINE_TEST_PIPELINE_PREPROCESSING("test-preprocessing"),
         PIPELINE_DEFAULT("default");
-
 
         public final String value;
 
@@ -130,21 +130,12 @@ public class Main {
                 case PIPELINE_DEFAULT -> defaultPipeline();
                 case PIPELINE_BP -> suis_pipeline_3();
                 case PIPELINE_BP_HUMAN_GENOME -> bpHumanGenome();
+                case PIPELINE_CANDIDATE_ANALYSIS -> candidateAnalysis();
                 case PIPELINE_FEATURE -> featurePipeline();
                 case PIPELINE_PERFORMANCE_TESTING -> performanceTesting();
                 case PIPELINE_TEST_PIPELINE_PREPROCESSING -> testPipelinePreprocessing();
                 default -> throw new IllegalArgumentException("Invalid PIPELINE selected: " + configuration);
             }
-
-            //crisprBp04_17_21_optimized_pipline();
-            //crisprBp04_17_21();
-            //suisrRNA();
-            //suisCommonCoverage();1
-            //rerunPartOfSuis();
-            //testFastaSplit();
-            //bpHumanGenome();
-            //suisCoverage();
-            //serotyping();
 
         } catch(Exception e) {
             StringWriter sw = new StringWriter();
@@ -203,8 +194,14 @@ public class Main {
         pipeline.run();
     }
 
+    public static void candidateAnalysis() throws Exception {
+        Pipeline pipeline = new Pipeline("Candidate Analysis Pipeline", inputFolder, baseOutputFolder);
+        pipeline.addStage(new CrisprSelection(true, true, true));
+        pipeline.addStage(new CandidateAnalysis(new MismatchEvaluator(null, Range.is(3), Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX))));
+        pipeline.run();
+    }
+
     public static void bpHumanGenome() throws Exception {
-        String inputFolder = baseInputFolder + "/Checking bp human genome";
         Pipeline pipeline = new Pipeline("Checking bp human genome", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true));
         SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
