@@ -172,6 +172,7 @@ public class TypeEvaluator implements SequenceEvaluator {
                 + Type.TYPE_2.name() + ": " + type2Criteria + " "
                 + Type.TYPE_5.name() + ": " + type5Criteria + " "
                 + Type.TYPE_6.name() + ": " + type6Criteria + " "
+                + Type.TYPE_7.name() + ": " + type7X1Critera + "-" + type7X2Critera + " "
                 + ")";
     }
 
