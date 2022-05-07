@@ -28,7 +28,9 @@ package com.henrikroslund.evaluators;
 
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
+import lombok.extern.java.Log;
 
+@Log
 public class IdenticalEvaluator implements SequenceEvaluator {
 
     final Sequence sequence;
@@ -71,6 +73,7 @@ public class IdenticalEvaluator implements SequenceEvaluator {
         }
         if(result) {
             match = sequence;
+            handleEvaluationMatch(log);
         } else {
             match = null;
         }

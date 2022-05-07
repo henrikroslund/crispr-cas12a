@@ -28,7 +28,9 @@ package com.henrikroslund.evaluators;
 
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
+import lombok.extern.java.Log;
 
+@Log
 public class CrisprPamEvaluator implements SequenceEvaluator {
 
     // First three must be Ts and the forth must Not be T for crispr
@@ -53,6 +55,7 @@ public class CrisprPamEvaluator implements SequenceEvaluator {
                 ( !strictMatching || sequence.getRaw().charAt(3) != 'T');
         if(result) {
             match = sequence;
+            handleEvaluationMatch(log);
         }
         return result;
     }

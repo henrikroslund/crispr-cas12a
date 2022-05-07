@@ -26,53 +26,10 @@ package com.henrikroslund.evaluators;
  * #L%
  */
 
-import com.henrikroslund.sequence.Sequence;
-import lombok.Getter;
-import lombok.extern.java.Log;
-import org.apache.commons.lang3.Range;
+public class EvaluatorConfig {
 
-@Log
-public class GCContentN1N20Evaluator implements SequenceEvaluator {
-
-    private final Range<Integer> range;
-
-    @Getter
-    private Sequence match = null;
-
-    public GCContentN1N20Evaluator() {
-        this(Range.between(9,11));
-    }
-
-    public GCContentN1N20Evaluator(Range<Integer> range) {
-        this.range = range;
-    }
-
-    @Override
-    public boolean evaluate(Sequence sequence) {
-        int gcCount = sequence.getGCCount();
-        if(range.contains(gcCount)) {
-            match = sequence;
-            handleEvaluationMatch(log);
-            return true;
-        } else {
-            match = null;
-            return false;
-        }
-    }
-
-    @Override
-    public SequenceEvaluator getNewEvaluator(Sequence sequence) {
-        return new GCContentN1N20Evaluator(range);
-    }
-
-    @Override
-    public String describe() {
-        return "GCContentN1N20Evaluator(" + range + ")";
-    }
-
-    @Override
-    public String toString() {
-        return describe() + " " +  match.toString();
-    }
+    // Note that if this is changed to true there will
+    // be a huge negative performance impact
+    public static boolean logEvaluationMatch = false;
 
 }

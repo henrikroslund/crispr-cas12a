@@ -30,6 +30,7 @@ import com.henrikroslund.sequence.Sequence;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public interface SequenceEvaluator {
 
@@ -41,6 +42,12 @@ public interface SequenceEvaluator {
     Sequence getMatch();
 
     SequenceEvaluator getNewEvaluator(Sequence sequence);
+
+    default void handleEvaluationMatch(Logger log) {
+        if(EvaluatorConfig.logEvaluationMatch) {
+            log.info(toString());
+        }
+    }
 
     /**
      * Will return true if ALL the evaluators returns true

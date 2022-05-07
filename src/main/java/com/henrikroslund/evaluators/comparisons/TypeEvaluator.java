@@ -29,11 +29,13 @@ package com.henrikroslund.evaluators.comparisons;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.Getter;
+import lombok.extern.java.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Log
 public class TypeEvaluator implements SequenceEvaluator {
 
     public enum Type {
@@ -150,6 +152,7 @@ public class TypeEvaluator implements SequenceEvaluator {
         if(matchTypes.isEmpty()) {
             matchTypes.add(Type.TYPE_DISCARD);
         }
+        handleEvaluationMatch(log);
     }
 
     @Override
