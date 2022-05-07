@@ -148,7 +148,7 @@ public class Main {
             memUsageHandle.cancel(false);
             threadDump.cancel(false);
             scheduler.shutdown();
-            printMemoryStat();
+            printMemoryStat(true);
             Utils.threadDump();
             log.info("Execution time: " + (new Date().getTime() - start)/1000 + " seconds");
         }

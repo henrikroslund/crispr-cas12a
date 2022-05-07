@@ -139,13 +139,16 @@ public class Utils {
     }
 
     public static void printMemoryStat() {
+        printMemoryStat(false);
+    }
+    public static void printMemoryStat(boolean forcePrint) {
         Runtime rt = Runtime.getRuntime();
 
         long total = rt.totalMemory() / MEGABYTE_FACTOR;
         long free = rt.freeMemory() / MEGABYTE_FACTOR;
 
         long used = total - free;
-        if(used > maxMemUsage) {
+        if(forcePrint || used > maxMemUsage) {
             maxMemUsage = used;
             log.info("Total Memory: " + total + " MB, Used: " + used + ", Free: " + free + ", MaxUsed: " + maxMemUsage);
         }
