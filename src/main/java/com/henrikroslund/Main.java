@@ -188,7 +188,7 @@ public class Main {
         Pipeline pipeline = new Pipeline("suis_pipeline", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true), false);
         pipeline.addStage(new CrisprCommon(1, false, false, 2), false);
-        SequenceEvaluator n1N20Eliminator = new MismatchEvaluator(null, Range.between(0,3), Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX));
+        SequenceEvaluator n1N20Eliminator = new MismatchEvaluator(null, Range.between(0,2), Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX));
         pipeline.addStage(new CrisprElimination(Collections.singletonList(n1N20Eliminator)), false);
 
         SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
