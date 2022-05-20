@@ -56,7 +56,7 @@ public class CrisprCommon extends Stage {
         this();
         this.n7n20AllowedMismatches = n7n20AllowedMismatches;
         // We do not check pam because we know that all sequences are already Crispr sequences
-        evaluators.add(new IdenticalEvaluator(null, false, true, false));
+        evaluators.add(new IdenticalEvaluator(null, false, true));
         evaluators.add(new MismatchEvaluator(null, Range.between(0, n7n20AllowedMismatches), Range.between(Sequence.N7_INDEX, Sequence.N20_INDEX)));
     }
 
@@ -84,7 +84,7 @@ public class CrisprCommon extends Stage {
     protected Genome execute(Genome inputGenome) throws Exception {
         List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
         for(File file : genomeFiles) {
-            Collection<Sequence> notFound =  Collections.synchronizedSet(new HashSet<>());
+            Collection<Sequence> notFound =  Collections.synchronizedSet(new TreeSet<>());
             Date startTime = new Date();
 
             if(Utils.isChromosomeFile(file.getName()) && !Utils.isPrimaryChromosomeFile(file.getName())) {

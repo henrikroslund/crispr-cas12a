@@ -29,6 +29,7 @@ package com.henrikroslund.pipeline.stage;
 import com.henrikroslund.Genome;
 import com.henrikroslund.Utils;
 import com.henrikroslund.evaluators.CrisprPamEvaluator;
+import com.henrikroslund.evaluators.IdenticalEvaluator;
 import com.henrikroslund.evaluators.SequenceEvaluator;
 import com.henrikroslund.sequence.Sequence;
 import lombok.extern.java.Log;
@@ -68,13 +69,16 @@ public class CrisprElimination extends Stage {
         List<File> otherGenomes = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
         int fileNumber = 0;
         for(File file : otherGenomes) {
-            Collection<Sequence> found =  Collections.synchronizedSet(new HashSet<>());
+            Collection<Sequence> found =  Collections.synchronizedSet(new TreeSet<>());
             Date startTime = new Date();
 
             Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator(false)), true, false);
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
                 if(genome.exists(sequence)) {
                     found.add(sequence);
+                    IdenticalEvaluator evaluator = new IdenticalEvaluator(sequence);
+                    Sequence match = genome.getSequenceMatchingAllEvaluators(List.of(evaluator));
+                    log.info("Found exact match for " + sequence + " in " + match);
                 }
                 if(!evaluators.isEmpty()) {
                     // TODO change this back to being an OR operator and instead the

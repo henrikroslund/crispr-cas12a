@@ -29,9 +29,11 @@ package com.henrikroslund.sequence;
 import com.henrikroslund.TestUtils;
 import com.henrikroslund.evaluators.comparisons.TypeEvaluator;
 import com.henrikroslund.exceptions.InvalidSequenceException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -72,20 +74,19 @@ public class SequenceTest {
 
     @Test
     public void testCompareTo() {
-        String originalsq = "TTTACCCCCAAAAACCCCCAAAAG";
-        Sequence sequence1 = new Sequence(originalsq, 5, "test");
-        Sequence sequence2 = new Sequence(originalsq, 10, "test");
-        Sequence sequence3 = new Sequence(originalsq, 1, "test", true);
-        assertEquals(-1, sequence1.compareTo(sequence2));
+        Sequence sequence1 = new Sequence("TTTACCCCCAAAAACCCCCAAAAG", 5, "test");
+        Sequence sequence2 = new Sequence("TTTACCCCCAAAAACCCCCAAAAA", 10, "test");
+        Sequence sequence3 = new Sequence("TTTACCCCCAAAAACCCCCAAAAC", 1, "test", true);
+        assertEquals(1, sequence1.compareTo(sequence2));
 
         List<Sequence> list = new ArrayList<>();
         list.add(sequence3);
         list.add(sequence2);
         list.add(sequence1);
         Collections.sort(list);
-        assertSame(sequence1, list.get(0));
-        assertSame(sequence2, list.get(1));
-        assertSame(sequence3, list.get(2));
+        assertSame(sequence2, list.get(0));
+        assertSame(sequence3, list.get(1));
+        assertSame(sequence1, list.get(2));
     }
 
     @Test
@@ -120,4 +121,79 @@ public class SequenceTest {
         assertEquals(Integer.valueOf(10), sequence.getMetaData().get(TypeEvaluator.Type.TYPE_2));
     }
 
+    @Test
+    public void testRawHashCollision() {
+        String raw1 = "TTTCAATGGTCGCGAACCCACCGT";
+        String raw2 = "TTTTAAATTTTCTCACCACAAAAT";
+        Sequence sequence1 = new Sequence(raw1, 0, "genomeName");
+        Sequence sequence2 = new Sequence(raw2, 0, "genomeNmae");
+        assertEquals(raw1.hashCode(), raw2.hashCode());
+        assertNotEquals(sequence1, sequence2);
+    }
+
+    @Test
+    @Disabled
+    public void testSequenceHash() {
+        char[] proteins = {'T', 'A', 'C', 'G'};
+        ArrayList<String> allCombinationsRaw = new ArrayList<>();
+        collectAllCombinations(proteins, "", proteins.length, Sequence.RAW_LENGTH, allCombinationsRaw);
+        System.out.println("Total combinations: " + allCombinationsRaw.size());
+        ArrayList<Sequence> allCombinations = new ArrayList<>();
+        allCombinationsRaw.forEach(raw -> allCombinations.add(new Sequence(raw, 0, "")));
+
+        AtomicInteger collisions = new AtomicInteger();
+
+        allCombinations.parallelStream().forEach(combination -> {
+            allCombinations.forEach(match -> {
+                boolean isHashEqual = combination.getRaw().hashCode() == match.getRaw().hashCode();
+                boolean isEqual = combination.equals(match);
+                if(isHashEqual && !combination.getRaw().equalsIgnoreCase(match.getRaw())) {
+                    System.out.println("Collisions found " + collisions.incrementAndGet());
+                    if(isEqual) {
+                        System.out.println("Warning real collision found");
+                        fail("Warning real collision found");
+                    }
+                }
+            });
+        });
+        assertEquals(0, collisions.get());
+    }
+
+    @Test
+    public void testNoPamAndSeedHashCollisions() {
+        char[] proteins = {'T', 'A', 'C', 'G'};
+
+        int maxStringLength = 8;
+        assertTrue(Sequence.PAM_LENGTH <= maxStringLength);
+        assertTrue(Sequence.SEED_LENGTH <= maxStringLength);
+
+        ArrayList<String> allCombinations = new ArrayList<>();
+        collectAllCombinations(proteins, "", proteins.length, maxStringLength, allCombinations);
+        AtomicInteger collisions = new AtomicInteger();
+        System.out.println("Total combinations: " + allCombinations.size());
+        allCombinations.parallelStream().forEach(combination -> {
+            allCombinations.forEach(match -> {
+                boolean isHashEqual = combination.hashCode() == match.hashCode();
+                if(isHashEqual && !combination.equalsIgnoreCase(match)) {
+                    fail("Collision found");
+                }
+            });
+        });
+        assertEquals(0, collisions.get());
+    }
+
+    static void collectAllCombinations(char[] set, String prefix, int n, int k, ArrayList<String> allCombinations)
+    {
+        if (k == 0)
+        {
+            allCombinations.add(prefix);
+            return;
+        }
+        for (int i = 0; i < n; ++i)
+        {
+            String newPrefix = prefix + set[i];
+            collectAllCombinations(set, newPrefix,
+                    n, k - 1, allCombinations);
+        }
+    }
 }

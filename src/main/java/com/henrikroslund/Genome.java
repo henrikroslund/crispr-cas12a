@@ -66,7 +66,7 @@ public class Genome {
     public Genome(boolean skipDuplicates, String filename, String firstRow) {
         this.skipDuplicates = skipDuplicates;
         if(skipDuplicates) {
-            sequences = Collections.synchronizedSet(new HashSet<>(INITIAL_COLLECTION_CAPACITY));
+            sequences = Collections.synchronizedSet(new TreeSet<>());
         } else {
             sequences = Collections.synchronizedList(new ArrayList<>(INITIAL_COLLECTION_CAPACITY));
         }
@@ -193,13 +193,11 @@ public class Genome {
             Sequence sequence = new Sequence(sequenceData.substring(i, i+Sequence.RAW_LENGTH), i, genomeName);
 
             if(shouldAdd(criteria, sequence)) {
-                sequence.getRawHash();
                 sequences.add(sequence);
             }
 
             Sequence complement = sequence.getComplement();
             if(shouldAdd(criteria, complement)) {
-                complement.getRawHash();
                 sequences.add(complement);
             }
         });
