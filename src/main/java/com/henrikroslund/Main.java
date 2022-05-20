@@ -61,12 +61,13 @@ public class Main {
     public static final boolean DEBUG = false;
     public static FileHandler mainLoggerFileHandler;
 
-    static final String baseOutputFolder = "../crispr-cas12a-output/" + new SimpleDateFormat("yyyy-MM-dd hhmmss aa z").format(new Date());
+    static final String PIPELINE_ENV_KEY = "PIPELINE";
+    static final String PIPELINE_INPUT_FOLDER = "PIPELINE_INPUT";
+
+    static final String baseOutputFolder = "../crispr-cas12a-output/" + new SimpleDateFormat("yyyy-MM-dd hhmmss aa z").format(new Date()) + " " + System.getenv(PIPELINE_ENV_KEY);
     static final String baseInputFolder = "../crispr-cas12a-input";
     static String inputFolder;
 
-    static final String PIPELINE_ENV_KEY = "PIPELINE";
-    static final String PIPELINE_INPUT_FOLDER = "PIPELINE_INPUT";
 
     enum PipelineConfiguration {
         PIPELINE_FEATURE("features"),
@@ -99,7 +100,6 @@ public class Main {
     }
 
     private final static Logger log = Logger.getLogger("");
-
 
     public static void main(String[] args) {
         long start = new Date().getTime();
