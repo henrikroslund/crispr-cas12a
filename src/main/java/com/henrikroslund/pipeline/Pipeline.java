@@ -27,6 +27,7 @@ package com.henrikroslund.pipeline;
  */
 
 import com.henrikroslund.Genome;
+import com.henrikroslund.Utils;
 import com.henrikroslund.pipeline.stage.Stage;
 import lombok.extern.java.Log;
 
@@ -75,6 +76,10 @@ public class Pipeline {
             description.append("\n").append(stage);
         }
         log.info(description.toString());
+
+        log.info("Printing all input files");
+        Utils.getFilesInFolder(inputFolder, "").forEach(file -> log.info(file.getPath() + " " + file.length()/1000 + " kb"));
+
         log.info("Will start pipeline.");
 
         preProcessStagesInput();
