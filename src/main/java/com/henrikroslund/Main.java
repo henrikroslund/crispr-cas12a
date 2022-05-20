@@ -36,10 +36,7 @@ import com.henrikroslund.pipeline.stage.*;
 import com.henrikroslund.sequence.Sequence;
 import org.apache.commons.lang3.Range;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -108,6 +105,7 @@ public class Main {
                 throw new Exception("Could not create output directory: " + baseOutputFolder);
             }
             setupLogging();
+            logGitInfo();
             log.info("Started Crispr-cas12a");
 
             var pipeline = System.getenv(PIPELINE_ENV_KEY);
@@ -249,5 +247,17 @@ public class Main {
         mainLoggerFileHandler = new FileHandler(baseOutputFolder + "/application.log");
         mainLoggerFileHandler.setFormatter(simpleFormatter);
         log.addHandler(mainLoggerFileHandler);
+    }
+
+    private static void logGitInfo() {
+        try (InputStream is = Main.class.getClassLoader()
+                .getResourceAsStream("git.properties")) {
+            if(is != null) {
+                new BufferedReader(new InputStreamReader(is)).lines().forEach(log::info);
+            }
+        }
+        catch (IOException io) {
+            io.printStackTrace();
+        }
     }
 }
