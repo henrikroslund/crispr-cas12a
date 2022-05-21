@@ -7,9 +7,10 @@
     <output_file path="$PROJECT_DIR$/logs/log.txt" />
     <option name="MAIN_CLASS_NAME" value="com.henrikroslund.Main" />
     <module name="crispr-cas12a" />
-    <option name="VM_PARAMETERS" value="-Xmx10G" />
+    <option name="VM_PARAMETERS" value="-Xmx20G" />
     <method v="2">
       <option name="Make" enabled="true" />
+      <option name="Maven.BeforeRunTask" enabled="true" file="$PROJECT_DIR$/pom.xml" goal="compile" />
     </method>
   </configuration>
 </component>

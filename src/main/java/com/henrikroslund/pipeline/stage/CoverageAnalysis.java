@@ -34,12 +34,12 @@ import com.henrikroslund.sequence.Sequence;
 import com.opencsv.CSVWriter;
 import lombok.extern.java.Log;
 import org.apache.commons.lang3.Range;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -58,10 +58,10 @@ public class CoverageAnalysis extends Stage {
         super(CoverageAnalysis.class);
     }
 
-    protected static Map<Sequence, HashSet<String>> initiateCoverageMap(Genome genome) {
-        Map<Sequence, HashSet<String>> coverageMap = new ConcurrentHashMap<>();
+    protected static Map<Sequence, TreeSet<String>> initiateCoverageMap(Genome genome) {
+        Map<Sequence, TreeSet<String>> coverageMap = Collections.synchronizedMap(new TreeMap<>());
         for(Sequence sequence : genome.getSequences()) {
-            coverageMap.put(sequence, new HashSet<>());
+            coverageMap.put(sequence, new TreeSet<>());
         }
         return coverageMap;
     }
@@ -69,7 +69,7 @@ public class CoverageAnalysis extends Stage {
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
         // After the analysis this map will contain all the filenames each sequence was found in.
-        Map<Sequence, HashSet<String>> coverageMap = initiateCoverageMap(inputGenome);
+        Map<Sequence, TreeSet<String>> coverageMap = initiateCoverageMap(inputGenome);
 
         List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, FASTA_FILE_ENDING);
         int remainingFiles = genomeFiles.size();
@@ -110,7 +110,7 @@ public class CoverageAnalysis extends Stage {
         return inputGenome;
     }
 
-    private void writeResults(List<File> genomeFiles, Map<Sequence, HashSet<String>> coverageMap) throws IOException {
+    private void writeResults(List<File> genomeFiles, Map<Sequence, TreeSet<String>> coverageMap) throws IOException {
         CSVWriter csvWriter = new CSVWriter(new FileWriter(outputFolder + "/" + "result.csv"));
         csvWriter.writeNext(new String[]{"Name", "Sequence", "Strand", "Coverage %", "Coverage #", "Found in", "Not Found in"});
 
@@ -131,8 +131,10 @@ public class CoverageAnalysis extends Stage {
         });
 
         // Write dual sequences results
-        getCoverageMapMultipleSequences(coverageMap).forEach((sequences, genomeMatches) -> {
+        getCoverageMapMultipleSequences(coverageMap).forEach(entry -> {
             List<String> row = new ArrayList<>();
+            List<Sequence> sequences = entry.getLeft();
+            HashSet<String> genomeMatches = entry.getRight();
             row.add(toCellWithNewline(sequences.stream().map(Sequence::getGenome).collect(Collectors.toList())));
             row.add(toCellWithNewline(sequences.stream().map(Sequence::getRaw).collect(Collectors.toList())));
             row.add(toCellWithNewline(sequences.stream().map(Sequence::getStrandRepresentation).collect(Collectors.toList())));
@@ -146,8 +148,21 @@ public class CoverageAnalysis extends Stage {
         csvWriter.close();
     }
 
-    protected static Map<List<Sequence>, HashSet<String>> getCoverageMapMultipleSequences(Map<Sequence, HashSet<String>> coverage) {
-        Map<List<Sequence>, HashSet<String>> result = new ConcurrentHashMap<>();
+    protected static TreeSet<Pair<List<Sequence>, HashSet<String>>> getCoverageMapMultipleSequences(Map<Sequence, TreeSet<String>> coverage) {
+        TreeSet<Pair<List<Sequence>, HashSet<String>>> result = new TreeSet<>((o1, o2) -> {
+            if(o1.getLeft().size() > o2.getLeft().size()) {
+                return 1;
+            } else if(o1.getLeft().size() < o2.getLeft().size()) {
+                return -1;
+            }
+            for(int i=0; i<o1.getLeft().size(); i++) {
+                int compareTo = o1.getLeft().get(i).compareTo(o2.getLeft().get(i));
+                if(compareTo != 0) {
+                    return compareTo;
+                }
+            }
+            return 0;
+        });
         coverage.forEach((sequence, genomeMatches) -> {
             coverage.forEach((sequence2, genomeMatches2) -> {
                 if(sequence == sequence2) {
@@ -161,7 +176,7 @@ public class CoverageAnalysis extends Stage {
                 HashSet<String> combinedGenomeMatches = new HashSet<>();
                 combinedGenomeMatches.addAll(genomeMatches);
                 combinedGenomeMatches.addAll(genomeMatches2);
-                result.put(sequences, combinedGenomeMatches);
+                result.add(Pair.of(sequences, combinedGenomeMatches));
             });
         });
         return result;

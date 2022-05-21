@@ -40,19 +40,17 @@ public class IdenticalEvaluator implements SequenceEvaluator {
 
     private boolean checkPam = true;
     private boolean checkSeed = true;
-    private boolean checkN7N20 = true;
     private boolean checkAll = true;
 
     public IdenticalEvaluator(Sequence sequence) {
         this.sequence = sequence;
     }
 
-    public IdenticalEvaluator(Sequence sequence, boolean checkPam, boolean checkSeed, boolean checkN7N20) {
+    public IdenticalEvaluator(Sequence sequence, boolean checkPam, boolean checkSeed) {
         this.sequence = sequence;
         this.checkPam = checkPam;
         this.checkSeed = checkSeed;
-        this.checkN7N20 = checkN7N20;
-        this.checkAll = checkPam && checkSeed && checkN7N20;
+        this.checkAll = checkPam && checkSeed;
     }
 
     @Override
@@ -67,9 +65,6 @@ public class IdenticalEvaluator implements SequenceEvaluator {
             if(checkSeed) {
                 result = result && this.sequence.equalsSeed(sequence);
             }
-            if(checkN7N20) {
-                result = result && this.sequence.equalsSeed(sequence);
-            }
         }
         if(result) {
             match = sequence;
@@ -82,12 +77,12 @@ public class IdenticalEvaluator implements SequenceEvaluator {
 
     @Override
     public SequenceEvaluator getNewEvaluator(Sequence sequence) {
-        return new IdenticalEvaluator(sequence, checkPam, checkSeed, checkN7N20);
+        return new IdenticalEvaluator(sequence, checkPam, checkSeed);
     }
 
     @Override
     public String describe() {
-        return "IdenticalEvaluator( checkPam="+checkPam + " checkSeed="+checkSeed + " checkN7N20=" + checkN7N20 + " )";
+        return "IdenticalEvaluator( checkPam="+checkPam + " checkSeed="+checkSeed + " )";
     }
 
     @Override

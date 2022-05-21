@@ -99,6 +99,8 @@ public abstract class Stage {
 
         log.info("Starting stage: " + name);
         log.info(name + " configuration:\n" + this);
+        log.info("Printing all input files");
+        Utils.getFilesInFolder(inputFolder, "").forEach(file -> log.info(file.getPath() + " " + file.length()/1000 + " kb"));
     }
 
     protected void postExecute() throws IOException {
