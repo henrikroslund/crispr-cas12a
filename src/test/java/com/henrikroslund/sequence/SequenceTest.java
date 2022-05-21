@@ -133,6 +133,7 @@ public class SequenceTest {
 
     @Test
     @Disabled
+    // This is a test to evaluate hash collisions
     public void testSequenceHash() {
         char[] proteins = {'T', 'A', 'C', 'G'};
         ArrayList<String> allCombinationsRaw = new ArrayList<>();
