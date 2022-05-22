@@ -76,7 +76,7 @@ public class CrisprElimination extends Stage {
         List<File> otherGenomes = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
         int fileNumber = 0;
         for(File file : otherGenomes) {
-            Collection<Sequence> found =  Collections.synchronizedSet(new HashSet<>());
+            Collection<Sequence> found =  Collections.synchronizedSet(new TreeSet<>());
             Date startTime = new Date();
 
             Genome genome = new Genome(file, Collections.singletonList(new CrisprPamEvaluator(false)), true, false);

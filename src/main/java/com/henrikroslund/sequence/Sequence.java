@@ -54,7 +54,8 @@ public class Sequence implements Comparable<Sequence> {
 
     private int pamHash = 0;
     private int seedHash = 0;
-    private int n7n20Hash = 0;
+    private int i10t17Hash = 0;
+    private int i18t23Hash = 0;
 
     public static final int PAM_INDEX_START = 0;
     public static final int PAM_LENGTH = 4;
@@ -141,10 +142,6 @@ public class Sequence implements Comparable<Sequence> {
         return this.getSeedHash() == sequence.getSeedHash();
     }
 
-    public boolean equalsN7N20(Sequence sequence) {
-        return this.getN7N20Hash() == sequence.getN7N20Hash();
-    }
-
     public boolean getIsComplement() {
         return isComplement;
     }
@@ -178,20 +175,6 @@ public class Sequence implements Comparable<Sequence> {
 
     public Sequence getComplement() {
         return new Sequence(getComplement(raw), startIndex +(RAW_LENGTH-1), genome, true);
-    }
-
-    // Equals and hashcode only cares about the raw string
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Sequence sequence = (Sequence) o;
-        return getRawHash() == sequence.getRawHash();
-    }
-
-    @Override
-    public int hashCode() {
-        return getRawHash();
     }
 
     public String metaDataToString() {
@@ -247,23 +230,37 @@ public class Sequence implements Comparable<Sequence> {
     }
 
     /**
-     * Compares the start index of the sequences.
-     * A lower index number is considered to be greater.
-     * Complement is always considered to be greater.
+     * Since we want two sequences to be considered equal when we add two
+     * sequences to a treeset with same raw string - then we must only
+     * compare the hashes here
      */
     @Override
     public int compareTo(Sequence o) {
-        int genomeCompare = this.genome.compareTo(o.genome);
-        if(genomeCompare != 0) {
-            return genomeCompare;
+        if(getPamHash() > o.getPamHash()) {
+            return 1;
+        } else if(getPamHash() < o.getPamHash()) {
+            return -1;
         }
-        if(this.isComplement != o.isComplement) {
-            return this.isComplement ? 1 : -1;
+
+        if(getSeedHash() > o.getSeedHash()) {
+            return 1;
+        } else if(getSeedHash() < o.getSeedHash()) {
+            return -1;
         }
-        if(this.startIndex == o.startIndex) {
-            return 0;
+
+        if(getI10t17Hash() > o.getI10t17Hash()) {
+            return 1;
+        } else if(getI10t17Hash() < o.getI10t17Hash()) {
+            return -1;
         }
-        return this.startIndex < o.startIndex ? -1 : 1;
+
+        if(getI18t23Hash() > o.getI18t23Hash()) {
+            return 1;
+        } else if(getI18t23Hash() < o.getI18t23Hash()) {
+            return -1;
+        }
+
+        return 0;
     }
 
     /**
@@ -283,7 +280,8 @@ public class Sequence implements Comparable<Sequence> {
         return gcCount;
     }
 
-    public int getRawHash() {
+    // The raw hash should never be used as it has large amounts of hash collisions
+    private int getRawHash() {
         return raw.hashCode();
     }
 
@@ -301,10 +299,37 @@ public class Sequence implements Comparable<Sequence> {
         return seedHash;
     }
 
-    public int getN7N20Hash() {
-        if(this.n7n20Hash == 0) {
-            this.n7n20Hash = raw.substring(SEED_INDEX_END+1, RAW_INDEX_END).hashCode();
+    private int getI10t17Hash() {
+        if(this.i10t17Hash == 0) {
+            this.i10t17Hash = raw.substring(10, 17+1).hashCode();
         }
-        return n7n20Hash;
+        return this.i10t17Hash;
+    }
+
+    private int getI18t23Hash() {
+        if(this.i18t23Hash == 0) {
+            this.i18t23Hash = raw.substring(18).hashCode();
+        }
+        return i18t23Hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Sequence sequence = (Sequence) o;
+        // Because of so many hash collisions with the raw string we instead split that into subsection we know
+        // do not have any collisions and then we check all of those.
+        // We do this instead of comparing the characters one by one as that would have a higher performance
+        // impact when running huge amount of equals.
+        return getRawHash() == sequence.getRawHash() && getPamHash() == sequence.getPamHash() &&
+                getI10t17Hash() == sequence.getI10t17Hash() && getI18t23Hash() == sequence.getI18t23Hash();
+    }
+
+    @Override
+    public int hashCode() {
+        log.severe("hashCode must never be used in sequence as it is not reliable");
+        System.exit(1);
+        return 0;
     }
 }

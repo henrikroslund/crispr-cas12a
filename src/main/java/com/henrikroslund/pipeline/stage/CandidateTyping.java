@@ -85,7 +85,7 @@ public class CandidateTyping extends Stage {
 
     @Override
     protected Genome execute(Genome inputGenome) throws Exception {
-        HashSet<String> alreadyProcessed = getAlreadyProcessedGenomes(inputFolder);
+        Collection<String> alreadyProcessed = getAlreadyProcessedGenomes(inputFolder);
 
         int fileNumber = 0;
         List<File> otherGenomes = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
@@ -108,7 +108,7 @@ public class CandidateTyping extends Stage {
             Genome genome = new Genome(file, sampleSetCriteria, true, false);
             AtomicInteger counter = new AtomicInteger(0);
 
-            Collection<Sequence> discards = new HashSet<>();
+            Collection<Sequence> discards = Collections.synchronizedSet(new TreeSet<>());
             inputGenome.getSequences().parallelStream().forEach(mainGenomeSequence -> {
 
                 Collection<Sequence> allMatchesInOtherGenomes =
@@ -153,8 +153,8 @@ public class CandidateTyping extends Stage {
         return inputGenome;
     }
 
-    private static HashSet<String> getAlreadyProcessedGenomes(String inputFolder) throws Exception {
-        HashSet<String> files = new HashSet<>();
+    private static Collection<String> getAlreadyProcessedGenomes(String inputFolder) throws Exception {
+        Collection<String> files = new TreeSet<>();
         File file = new File(inputFolder+PROCESSED_GENOMES_FILE);
         if(!file.exists()) {
             log.info("File with already processed genomes does not exist. No input files will be skipped");

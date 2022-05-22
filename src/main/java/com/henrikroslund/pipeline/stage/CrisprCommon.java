@@ -63,7 +63,7 @@ public class CrisprCommon extends Stage {
         this.toleranceNbrOfGenomes = toleranceNbrOfGenomes;
         // We do not check pam because we know that all sequences are already Crispr sequences
         if(startMismatchesAtN7) {
-            evaluators.add(new IdenticalEvaluator(null, false, true, false));
+            evaluators.add(new IdenticalEvaluator(null, false, true));
             evaluators.add(new MismatchEvaluator(null, Range.between(0, allowedMismatches), Range.between(Sequence.N7_INDEX, Sequence.N20_INDEX)));
         } else {
             evaluators.add(new MismatchEvaluator(null, Range.between(0, allowedMismatches), Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX)));
@@ -95,12 +95,10 @@ public class CrisprCommon extends Stage {
         List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
 
         Map<Sequence, List<String>> notFoundIn = new ConcurrentHashMap<>();
-        inputGenome.getSequences().forEach(sequence -> {
-            notFoundIn.put(sequence, Collections.synchronizedList(new ArrayList<>()));
-        });
+        inputGenome.getSequences().forEach(sequence -> notFoundIn.put(sequence, Collections.synchronizedList(new ArrayList<>())));
 
         for(File file : genomeFiles) {
-            Collection<Sequence> toBeRemoved =  Collections.synchronizedSet(new HashSet<>());
+            Collection<Sequence> toBeRemoved =  Collections.synchronizedSet(new TreeSet<>());
             Date startTime = new Date();
 
             if(Utils.isChromosomeFile(file.getName()) && !Utils.isPrimaryChromosomeFile(file.getName())) {
