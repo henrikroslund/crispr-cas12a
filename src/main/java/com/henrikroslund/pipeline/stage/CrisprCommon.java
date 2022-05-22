@@ -39,7 +39,6 @@ import org.apache.commons.lang3.Range;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Log
 public class CrisprCommon extends Stage {
@@ -94,7 +93,7 @@ public class CrisprCommon extends Stage {
     protected Genome execute(Genome inputGenome) throws Exception {
         List<File> genomeFiles = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
 
-        Map<Sequence, List<String>> notFoundIn = new ConcurrentHashMap<>();
+        Map<Sequence, List<String>> notFoundIn = Collections.synchronizedMap(new TreeMap<>());
         inputGenome.getSequences().forEach(sequence -> notFoundIn.put(sequence, Collections.synchronizedList(new ArrayList<>())));
 
         for(File file : genomeFiles) {
