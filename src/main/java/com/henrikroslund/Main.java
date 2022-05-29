@@ -191,7 +191,7 @@ public class Main {
 
         SequenceEvaluator crisprEvaluator = new CrisprPamEvaluator(false);
         TypeEvaluator typeEvaluator = new TypeEvaluator(null,2,2,4,3, 1, 2);
-        SequenceEvaluator bindCriteria = new MatchEvaluator(null, Range.between(15, 24),
+        SequenceEvaluator bindCriteria = new MatchEvaluator(null, Range.between(16, 24),
                 Collections.singletonList(Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX)));
         pipeline.addStage(new CandidateTyping(Collections.singletonList(crisprEvaluator), bindCriteria, typeEvaluator, false), false);
 
