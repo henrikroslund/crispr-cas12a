@@ -58,7 +58,7 @@ public class CandidateAnalysis extends Stage {
         for(File file : otherGenomes) {
             Date startTime = new Date();
 
-            Genome genome = new Genome(file, Collections.singletonList(genomeEvaluator), skipDuplicates, false);
+            Genome genome = new Genome(file, Collections.emptyList(), skipDuplicates, false);
             EvaluatorConfig.logEvaluationMatch = true;
             inputGenome.getSequences().parallelStream().forEach(sequence -> {
                 SequenceEvaluator newEvaluator = evaluator.getNewEvaluator(sequence);

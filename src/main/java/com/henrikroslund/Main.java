@@ -195,7 +195,7 @@ public class Main {
     public static void candidateAnalysis() throws Exception {
         Pipeline pipeline = new Pipeline("Candidate Analysis Pipeline", inputFolder, baseOutputFolder);
         pipeline.addStage(new CrisprSelection(true, true, true));
-        pipeline.addStage(new CandidateAnalysis(new MismatchEvaluator(null, Range.is(3), Range.between(Sequence.N1_INDEX, Sequence.N20_INDEX))));
+        pipeline.addStage(new CandidateAnalysis(new MismatchEvaluator(null, Range.is(3), Range.between(Sequence.PAM_INDEX_START, Sequence.N20_INDEX))));
         pipeline.run();
     }
 
