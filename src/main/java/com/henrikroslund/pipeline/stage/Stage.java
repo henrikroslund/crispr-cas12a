@@ -150,7 +150,7 @@ public abstract class Stage {
     // Will do any required pre-processing of the input files.
     // Right now it will split fasta files with multiple genomes into separate files
     // and also make sure all characters are upper case.
-    public void preProcessInputFiles() throws  Exception {
+    public void preProcessInputFiles() {
         if(!shouldPreProcessFiles) {
             log.info("Will skip preprocess files for stage " + getName());
             return;
@@ -158,7 +158,8 @@ public abstract class Stage {
             log.info("Pre-processing stage " + getName());
         }
         List<File> fastaFiles = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
-        log.info("Files to preprocess: " + fastaFiles.size());
+        int nbrOfFiles = fastaFiles.size();
+        log.info("Files to preprocess: " + nbrOfFiles);
         AtomicInteger processed = new AtomicInteger();
         fastaFiles.forEach(fastaFile -> {
             try {
@@ -170,7 +171,7 @@ public abstract class Stage {
                     splitFastaWithMultipleGenomes(fastaFile);
                 }
                 if(processed.getAndIncrement() % 10 == 0) {
-                    log.info("Processed files: " + processed + "/" + fastaFiles.size());
+                    log.info("Processed files: " + processed + "/" + nbrOfFiles);
                 }
             } catch (Exception e) {
                 log.severe(e.getMessage());
@@ -178,6 +179,67 @@ public abstract class Stage {
                 System.exit(1);
             }
         });
+
+        // If there is a max size specified now is the time to split the files
+        if(Main.MAX_SIZE_FASTA_FILE_MB != 0) {
+            log.info("Max size for fasta is set so will split any files larger than " + Main.MAX_SIZE_FASTA_FILE_MB + " MB");
+            fastaFiles = Utils.getFilesInFolder(inputFolder, Utils.FASTA_FILE_ENDING);
+            fastaFiles.forEach(file -> {
+                // We allow a 1MB flexibility since the writes also does not have 100% precision
+                if(file.length()/1000000 >= Main.MAX_SIZE_FASTA_FILE_MB+1) {
+                    log.info("File is larger than max size and will be split: " + file.getName());
+                    try {
+                        splitFastaOnSize(file, Main.MAX_SIZE_FASTA_FILE_MB);
+                    } catch (Exception e) {
+                        log.severe(e.getMessage());
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
+                }
+            });
+        }
+    }
+
+    private void splitFastaOnSize(File fastaFile, int maxSizeMb) throws Exception {
+        if(!StringUtils.endsWith(fastaFile.getName(), Utils.FASTA_FILE_ENDING)) {
+            throw new Exception("Tried to split a non-fasta file");
+        }
+        int newFileCount = 0;
+        try (Stream<String> lines = Files.lines(fastaFile.toPath())) {
+            Iterator<String> it = lines.iterator();
+            String firstRow = it.next();
+            String line = it.next();
+
+            while(it.hasNext()) {
+                String output = inputFolder + "/" + FilenameUtils.removeExtension(fastaFile.getName()) + "_SIZE-SPLIT_" + newFileCount++ + Utils.FASTA_FILE_ENDING;
+                if(new File(output).exists()) {
+                    throw new Exception("Did not expect file to already exist while splitting fasta file: " + output);
+                }
+                log.info("Creating file " + output);
+
+                BufferedWriter writer = new BufferedWriter(new FileWriter(output, true));;
+                writer.write(firstRow);
+                writer.newLine();
+                // Writing the first sequence line here will cause the last line of the previous file to also be written
+                // in the next file. We do this to not lose any sequences in the file split intersection.
+                writer.write(line);
+                writer.newLine();
+                File outputFile = new File(output);
+                while(it.hasNext() && outputFile.length()/1000000 < Main.MAX_SIZE_FASTA_FILE_MB) {
+                    line = it.next();
+                    writer.write(line);
+                    writer.newLine();
+                }
+                writer.flush();
+                writer.close();
+            }
+        }
+
+        File renameFile = new File(fastaFile.getAbsolutePath()+".skip");
+        if(!fastaFile.renameTo(renameFile)) {
+            throw new Exception("Unable to rename original file: " + fastaFile.getName() + " to " + renameFile.getName());
+        }
+
     }
 
     private void splitFastaWithMultipleGenomes(File fastaFile) throws Exception {

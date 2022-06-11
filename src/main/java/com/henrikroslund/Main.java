@@ -65,6 +65,9 @@ public class Main {
     static final String baseInputFolder = "../crispr-cas12a-input";
     static String inputFolder;
 
+    public static int MAX_SIZE_FASTA_FILE_MB = 0;
+    static final String MAX_SIZE_FASTA_PARAMETER = "MAX_SIZE_FASTA";
+
 
     enum PipelineConfiguration {
         PIPELINE_FEATURE("features"),
@@ -107,6 +110,12 @@ public class Main {
             setupLogging();
             logGitInfo();
             log.info("Started Crispr-cas12a");
+
+            var maxSizeFastMb = System.getenv(MAX_SIZE_FASTA_PARAMETER);
+            if(maxSizeFastMb != null) {
+                MAX_SIZE_FASTA_FILE_MB = Integer.parseInt(maxSizeFastMb);
+                log.info("Max size fasta file is " + maxSizeFastMb + " MB");
+            }
 
             var pipeline = System.getenv(PIPELINE_ENV_KEY);
             if(pipeline == null) {
