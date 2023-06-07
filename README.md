@@ -7,6 +7,7 @@ First, the program generates a pool of possible CRISPR-Cas12a target sites from 
 Genome assembly and feature table (annotation) can be downloaded from NCBI Assembly portal (https://www.ncbi.nlm.nih.gov/assembly)
 
 As the dataset can be large, this program contains several performance optimizations to utilize memory and cpu cores as efficient as possible. Parallelism is generally achieved by Java Stream API and can be configured accordingly. Despite these optimizations, the user needs to take special care the design the pipeline such that the dataset is reduced as much as possible as early as possible. The different evaluators will have significantly different performance impact.
+You will need at least JDK 17 to build the program.
 
 ## Definitions
 
