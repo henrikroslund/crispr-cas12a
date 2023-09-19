@@ -194,3 +194,7 @@ For convenience there is an intellij run target called `CrisprCas12 BP` which wi
 * OpenJDK 17 (https://formulae.brew.sh/formula/openjdk)
 * Maven v3.8.4 (https://maven.apache.org/)
 * Git (https://formulae.brew.sh/formula/git)
+
+## Publications
+This program has been used in the following publications.
+* https://journals.plos.org/plosntds/article?id=10.1371/journal.pntd.0010659
